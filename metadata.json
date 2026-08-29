@@ -1,0 +1,7 @@
+{
+  "name": "Elastic & Trim Packing Calculator",
+  "description": "Garment & textile elastic weight-to-length calculator, packing list and carton sticker label generator",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+

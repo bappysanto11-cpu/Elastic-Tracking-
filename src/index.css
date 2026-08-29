@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+@media print {
+  @page {
+    size: A4 auto;
+    margin: 4mm;
+  }
+
+  body.print-landscape {
+    @page {
+      size: A4 landscape;
+      margin: 4mm;
+    }
+  }
+
+  body.print-portrait {
+    @page {
+      size: A4 portrait;
+      margin: 4mm;
+    }
+  }
+
+  body {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Ensure background colors (e.g. black Buyer badge) print accurately */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Avoid page breaks inside carton blocks */
+  .carton-print-block {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Full width container during print */
+  #factory-printable-sheet {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
