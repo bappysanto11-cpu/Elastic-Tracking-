@@ -20,18 +20,24 @@ import { AiScanModal } from './components/AiScanModal';
 import { FormulaHelpModal } from './components/FormulaHelpModal';
 import { PrintPreviewModal } from './components/PrintPreviewModal';
 import { PrintToast } from './components/PrintToast';
-import { NetWeightCountSummary } from './components/NetWeightCountSummary';
 import { ExcelDriveModal } from './components/ExcelDriveModal';
 import { CartonQrDetailModal } from './components/CartonQrDetailModal';
 import { ApkDownloadModal } from './components/ApkDownloadModal';
 import { IndexedDbBackupModal } from './components/IndexedDbBackupModal';
+import { AuthModal } from './components/AuthModal';
 import { triggerIndexedDbBackup, openIndexedDB } from './utils/indexedDbBackup';
 import { FloatingSummaryBadge } from './components/FloatingSummaryBadge';
 import { WorkspaceModal } from './components/WorkspaceModal';
 import { DEFAULT_WORKSPACE_ID, loadWorkspaceData, saveWorkspaceData } from './utils/workspaceManager';
 import { AnalyticsView } from './components/AnalyticsView';
+import { ElasticDemandView } from './components/ElasticDemandView';
+import { ElasticDemandModal } from './components/ElasticDemandModal';
+import { ElasticDemand } from './types/elasticDemand';
+import { loadDemands, saveDemands } from './utils/elasticDemandStorage';
 import { useHistory } from './utils/useHistory';
-import { Table, LayoutGrid, Tag, Layers, Check, QrCode, BarChart3, Undo2, Redo2, Search, RotateCcw } from 'lucide-react';
+import { useAuth } from './context/AuthContext';
+import { useRealtimeSync } from './hooks/useRealtimeSync';
+import { Table, LayoutGrid, Tag, Layers, Check, QrCode, BarChart3, Undo2, Redo2, Search, RotateCcw, ClipboardList, Maximize2, Minimize2 } from 'lucide-react';
 
 const STORAGE_KEY = 'garment_elastic_calculator_v1';
 
@@ -39,8 +45,16 @@ const STORAGE_KEY = 'garment_elastic_calculator_v1';
 
 export default function App() {
   const [lang, setLang] = useState<Language>('bn');
-  const [activeTab, setActiveTab] = useState<'table' | 'sheet' | 'stickers' | 'analytics'>('table');
-  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [activeTab, setActiveTab] = useState<'table' | 'sheet' | 'stickers' | 'analytics' | 'demands'>('table');
+  const [isAddDemandModalOpen, setIsAddDemandModalOpen] = useState(false);
+
+  // Elastic Demands State
+  const [demands, setDemands] = useState<ElasticDemand[]>(() => loadDemands());
+
+  // Save demands to storage on change
+  useEffect(() => {
+    saveDemands(demands);
+  }, [demands]);
 
   // Modals
   const [isAiScanOpen, setIsAiScanOpen] = useState<boolean>(false);
@@ -48,6 +62,7 @@ export default function App() {
   const [isExcelDriveOpen, setIsExcelDriveOpen] = useState<boolean>(false);
   const [isApkModalOpen, setIsApkModalOpen] = useState<boolean>(false);
   const [isIndexedDbModalOpen, setIsIndexedDbModalOpen] = useState<boolean>(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
   const [isHelpOpen, setIsHelpOpen] = useState<boolean>(false);
   const [isActivityLogOpen, setIsActivityLogOpen] = useState<boolean>(false);
   const [isWorkspaceModalOpen, setIsWorkspaceModalOpen] = useState<boolean>(false);
@@ -55,17 +70,30 @@ export default function App() {
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState<boolean>(false);
   const [printOrientation, setPrintOrientation] = useState<'landscape' | 'portrait'>('landscape');
   const [isPrintToastVisible, setIsPrintToastVisible] = useState<boolean>(false);
+  const [isFocusMode, setIsFocusMode] = useState<boolean>(false);
 
   // QR Code Carton Inspection Modal
   const [isCartonQrModalOpen, setIsCartonQrModalOpen] = useState<boolean>(false);
   const [selectedCartonForQr, setSelectedCartonForQr] = useState<CartonRow | null>(null);
   const [directQrPayload, setDirectQrPayload] = useState<CartonQrPayload | null>(null);
 
+  // Auth & Real-Time Sync
+  const { user } = useAuth();
+
   // Sheet State
   const { state: sheetData, set: setSheetData, undo: undoSheetData, redo: redoSheetData, reset: resetSheetData, canUndo, canRedo } = useHistory<PackingSheetData>(() => {
     const loaded = loadWorkspaceData(localStorage.getItem('garment_active_workspace') || DEFAULT_WORKSPACE_ID);
     return loaded || INITIAL_IMAGE_DATA;
   });
+
+  // Real-Time Cloud Synchronization Engine
+  const {
+    isOnline,
+    syncStatus,
+    lastCloudSyncTime,
+    pendingOfflineChanges,
+    triggerManualSync,
+  } = useRealtimeSync(sheetData, user);
 
   // Local storage last saved tracking
   const [lastSavedTime, setLastSavedTime] = useState<Date | null>(() => {
@@ -150,28 +178,19 @@ export default function App() {
       } else if ((e.metaKey || e.ctrlKey) && e.key === 'y') {
         e.preventDefault();
         if (canRedo) redoSheetData();
+      } else if (e.key === 'Escape' && isFocusMode) {
+        setIsFocusMode(false);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [canUndo, canRedo, undoSheetData, redoSheetData]);
+  }, [canUndo, canRedo, undoSheetData, redoSheetData, isFocusMode]);
 
   // Compute live summary
   const summary = calculateSummary(sheetData.cartons);
 
-  // Filtered cartons based on global search
-  const filteredCartons = sheetData.cartons.filter(c => {
-    if (!searchQuery) return true;
-    const query = searchQuery.toLowerCase();
-    return (
-      c.cartonNo.toString().includes(query) ||
-      c.grossWt.toString().includes(query) ||
-      c.netWt.toString().includes(query) ||
-      c.lengthMtr.toString().includes(query) ||
-      c.wtPerUnit.toString().includes(query)
-    );
-  });
+  const filteredCartons = sheetData.cartons;
 
   const filteredSheetData = {
     ...sheetData,
@@ -206,6 +225,58 @@ export default function App() {
       ...prev,
       ...updated,
     }));
+  };
+
+  // Demand handlers
+  const handleSaveDemand = (demand: ElasticDemand) => {
+    setDemands(prev => {
+      const idx = prev.findIndex(d => d.id === demand.id);
+      if (idx >= 0) {
+        const next = [...prev];
+        next[idx] = demand;
+        return next;
+      }
+      return [demand, ...prev];
+    });
+  };
+
+  const handleDeleteDemand = (id: string) => {
+    setDemands(prev => prev.filter(d => d.id !== id));
+  };
+
+  const handleLoadDemandIntoSheet = (demand: ElasticDemand) => {
+    setSheetData(prev => {
+      const defaultTare = demand.defaultTare || prev.defaultTare || 0.5;
+      const defaultWtPerUnit = demand.unitWeightGm || prev.defaultWtPerUnit || 8.0;
+      
+      const updatedCartons = prev.cartons.map((c, idx) =>
+        recomputeCarton(
+          {
+            ...c,
+            tareWt: defaultTare,
+            wtPerUnit: defaultWtPerUnit,
+          },
+          idx,
+          defaultTare,
+          defaultWtPerUnit
+        )
+      );
+
+      return {
+        ...prev,
+        buyer: demand.buyer,
+        customer: demand.customer,
+        ref: demand.ref,
+        size: demand.size,
+        color: demand.color,
+        defaultTare,
+        defaultWtPerUnit,
+        cartons: updatedCartons,
+        logs: [...(prev.logs || []), createLog('SYSTEM', `Loaded Demand for ${demand.buyer} (${demand.ref} - ${demand.requiredQtyMtr} Mtr)`)].slice(-50),
+      };
+    });
+
+    setActiveTab('table');
   };
 
   // Cascade default tare & unit weight to cartons
@@ -548,147 +619,219 @@ export default function App() {
   const t = translations[lang];
 
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-900 flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
-      {/* Header Bar */}
-      <Header
-        lang={lang}
-        setLang={setLang}
-        onOpenAiScan={() => setIsAiScanOpen(true)}
-        onOpenHelp={() => setIsHelpOpen(true)}
-        onOpenActivityLog={() => setIsActivityLogOpen(true)}
-        onOpenTools={() => setIsToolsOpen(true)}
-        onOpenExcelDrive={() => setIsExcelDriveOpen(true)}
-        onOpenApk={() => setIsApkModalOpen(true)}
-        onOpenIndexedDbBackups={() => setIsIndexedDbModalOpen(true)}
-        onPrint={() => handleRequestPrint(activeTab === 'stickers' ? 'portrait' : 'landscape')}
-        onExportCsv={() => exportPackingSheetToCsv(sheetData, summary)}
-        onReset={handleReset}
-        onImportData={handleImportExcelData}
-        onUndo={undoSheetData}
-        onRedo={redoSheetData}
-        canUndo={canUndo}
-        canRedo={canRedo}
-        sheetData={sheetData}
-        summary={summary}
-        lastSavedTime={lastSavedTime}
-        isSaving={isSaving}
-      />
+    <div className={`min-h-screen bg-slate-100 text-slate-900 flex flex-col font-sans selection:bg-indigo-500 selection:text-white ${isFocusMode ? 'focus-mode-active' : ''}`}>
+      {/* Header Bar - Collapsed in Focus Mode */}
+      {!isFocusMode && (
+        <Header
+          lang={lang}
+          setLang={setLang}
+          onOpenAiScan={() => setIsAiScanOpen(true)}
+          onOpenHelp={() => setIsHelpOpen(true)}
+          onOpenActivityLog={() => setIsActivityLogOpen(true)}
+          onOpenTools={() => setIsToolsOpen(true)}
+          onOpenExcelDrive={() => setIsExcelDriveOpen(true)}
+          onOpenApk={() => setIsApkModalOpen(true)}
+          onOpenIndexedDbBackups={() => setIsIndexedDbModalOpen(true)}
+          onOpenAuthModal={() => setIsAuthModalOpen(true)}
+          onPrint={() => handleRequestPrint(activeTab === 'stickers' ? 'portrait' : 'landscape')}
+          onExportCsv={() => exportPackingSheetToCsv(sheetData, summary)}
+          onReset={handleReset}
+          onImportData={handleImportExcelData}
+          onUndo={undoSheetData}
+          onRedo={redoSheetData}
+          canUndo={canUndo}
+          canRedo={canRedo}
+          sheetData={sheetData}
+          summary={summary}
+          lastSavedTime={lastSavedTime}
+          isSaving={isSaving}
+          isOnline={isOnline}
+          syncStatus={syncStatus}
+          lastCloudSyncTime={lastCloudSyncTime}
+          pendingOfflineChanges={pendingOfflineChanges}
+          onManualSync={triggerManualSync}
+        />
+      )}
+
+      {/* Focus Mode Floating Top Bar */}
+      {isFocusMode && (
+        <div className="sticky top-0 z-40 bg-slate-900 text-white px-4 py-2.5 shadow-md flex items-center justify-between animate-in slide-in-from-top-2 duration-200">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-500/20 text-amber-300 border border-amber-500/40 rounded-lg text-xs font-bold font-mono">
+              <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+              <span>{t.focusMode || 'Focus Mode'}</span>
+            </div>
+            <div className="text-xs text-slate-300 font-medium hidden sm:flex items-center gap-2">
+              <span>{sheetData.companyName || 'Packing Sheet'}</span>
+              <span>•</span>
+              <span>Buyer: <strong className="text-white">{sheetData.buyer || 'N/A'}</strong></span>
+              <span>•</span>
+              <span>Ref: <strong className="text-white">{sheetData.ref || 'N/A'}</strong></span>
+              <span>•</span>
+              <span>Size: <strong className="text-white">{sheetData.size || 'N/A'}</strong></span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <div className="text-xs bg-slate-800 text-slate-200 px-3 py-1 rounded-lg border border-slate-700 font-mono hidden md:flex items-center gap-3">
+              <span>Cartons: <strong className="text-white">{summary.totalCtn}</strong></span>
+              <span>•</span>
+              <span>Net: <strong className="text-emerald-400">{summary.totalNetWt.toFixed(2)} Kg</strong></span>
+              <span>•</span>
+              <span>Mtr: <strong className="text-indigo-400">{Math.round(summary.totalMtr).toLocaleString()} m</strong></span>
+            </div>
+
+            <button
+              onClick={() => setIsFocusMode(false)}
+              className="flex items-center gap-1.5 px-3 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-lg transition cursor-pointer shadow-sm"
+              title="Exit Focus Mode (Restore full UI) [Esc]"
+            >
+              <Minimize2 className="w-3.5 h-3.5" />
+              <span>{t.exitFocusMode || 'Exit Focus Mode'}</span>
+              <kbd className="hidden sm:inline-block ml-1 px-1.5 py-0.2 bg-slate-950/20 text-slate-950 rounded text-[10px] font-mono">
+                Esc
+              </kbd>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6">
-        {/* Global Search & Dashboard Actions */}
-        <div className="mb-4 flex flex-col sm:flex-row items-center gap-4 print:hidden">
-          <div className="relative flex-1 w-full">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-4 w-4 text-slate-400" />
-            </div>
-            <input
-              type="text"
-              className="block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-xl leading-5 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all"
-              placeholder={t.globalSearch}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+      <main className={`flex-1 max-w-7xl w-full mx-auto ${isFocusMode ? 'p-2 sm:p-4' : 'p-4 sm:p-6'}`}>
+        {/* Dashboard Actions - Collapsed in Focus Mode */}
+        {!isFocusMode && (
+          <div className="mb-4 flex flex-col sm:flex-row items-center justify-end gap-4 print:hidden">
+            <button
+              type="button"
+              onClick={() => setIsAddDemandModalOpen(true)}
+              className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-xs font-bold rounded-xl shadow-xs transition-all cursor-pointer"
+            >
+              <Tag className="w-4 h-4" />
+              <span>{lang === 'en' ? 'Add Elastic Demand' : 'ইলাস্টিক চাহিদা যোগ করুন'}</span>
+            </button>
+          </div>
+        )}
+
+        {/* Order Header Input Form - Collapsed in Focus Mode */}
+        {!isFocusMode && (
+          <div className="print:hidden">
+            <OrderHeaderForm
+              sheetData={sheetData}
+              onChange={handleUpdateHeader}
+              onApplyDefaultWeights={handleApplyDefaultWeights}
+              lang={lang}
+              demands={demands}
+              onSelectDemand={handleLoadDemandIntoSheet}
+              onOpenDemandsView={() => setActiveTab('demands')}
             />
-            {searchQuery && (
-              <button 
-                onClick={() => setSearchQuery('')}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
-              >
-                <RotateCcw className="h-3 w-3" />
-              </button>
-            )}
           </div>
-          
-          <div className="flex items-center gap-2 shrink-0">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-              {lang === 'en' ? 'Results' : 'ফলাফল'}: {filteredCartons.length} / {sheetData.cartons.length}
-            </span>
+        )}
+
+        {/* Real-time Summary Cards - Collapsed in Focus Mode */}
+        {!isFocusMode && (
+          <div className="print:hidden">
+            <SummaryCards 
+              summary={summary} 
+              lang={lang} 
+              matchingDemand={demands.find(d => sheetData.ref && d.ref && d.ref.trim().toLowerCase() === sheetData.ref.trim().toLowerCase())} 
+            />
           </div>
-        </div>
+        )}
 
-        {/* Order Header Input Form */}
-        <div className="print:hidden">
-          <OrderHeaderForm
-            sheetData={sheetData}
-            onChange={handleUpdateHeader}
-            onApplyDefaultWeights={handleApplyDefaultWeights}
-            lang={lang}
-          />
-        </div>
+        {/* View Switcher Tabs - Collapsed in Focus Mode */}
+        {!isFocusMode && (
+          <div className="flex items-center gap-2 mb-4 border-b border-slate-300 pb-2 print:hidden overflow-x-auto">
+            {/* Table View Tab */}
+            <button
+              onClick={() => setActiveTab('table')}
+              className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition cursor-pointer shrink-0 ${
+                activeTab === 'table'
+                  ? 'bg-slate-900 text-white shadow-xs'
+                  : 'bg-white text-slate-600 hover:bg-slate-200 border border-slate-200'
+              }`}
+            >
+              <Table className="w-4 h-4" />
+              <span>{t.tableView}</span>
+              <span className="text-[10px] bg-slate-700 text-slate-200 px-1.5 py-0.2 rounded font-mono">
+                {filteredCartons.length}
+              </span>
+            </button>
 
-        {/* Real-time Summary Cards */}
-        <div className="print:hidden">
-          <SummaryCards summary={summary} lang={lang} />
-        </div>
+            {/* Elastic Demands Tab */}
+            <button
+              onClick={() => setActiveTab('demands')}
+              className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition cursor-pointer shrink-0 ${
+                activeTab === 'demands'
+                  ? 'bg-slate-900 text-white shadow-xs'
+                  : 'bg-white text-slate-600 hover:bg-slate-200 border border-slate-200'
+              }`}
+            >
+              <ClipboardList className="w-4 h-4 text-amber-400" />
+              <span>{t.elasticDemandTab || 'Demands'}</span>
+              <span className="text-[10px] bg-amber-500 text-slate-950 px-1.5 py-0.2 rounded font-mono font-bold">
+                {demands.filter(d => d.status !== 'completed' && d.status !== 'cancelled').length}
+              </span>
+            </button>
 
-        {/* Total Net Weight Count & Live Summary Breakdown */}
-        <div className="print:hidden">
-          <NetWeightCountSummary summary={filteredSummary} sheetData={filteredSheetData} lang={lang} />
-        </div>
+            {/* Factory Sheet (Exact Photo Replica) Tab */}
+            <button
+              onClick={() => setActiveTab('sheet')}
+              className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition cursor-pointer shrink-0 ${
+                activeTab === 'sheet'
+                  ? 'bg-slate-900 text-white shadow-xs'
+                  : 'bg-white text-slate-600 hover:bg-slate-200 border border-slate-200'
+              }`}
+            >
+              <LayoutGrid className="w-4 h-4 text-emerald-400" />
+              <span>{t.exactSheetView}</span>
+              <span className="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.2 rounded font-mono font-bold">
+                Photo Grid
+              </span>
+            </button>
 
-        {/* View Switcher Tabs */}
-        <div className="flex items-center gap-2 mb-4 border-b border-slate-300 pb-2 print:hidden">
-          {/* Table View Tab */}
-          <button
-            onClick={() => setActiveTab('table')}
-            className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition cursor-pointer ${
-              activeTab === 'table'
-                ? 'bg-slate-900 text-white shadow-xs'
-                : 'bg-white text-slate-600 hover:bg-slate-200 border border-slate-200'
-            }`}
-          >
-            <Table className="w-4 h-4" />
-            <span>{t.tableView}</span>
-            <span className="text-[10px] bg-slate-700 text-slate-200 px-1.5 py-0.2 rounded font-mono">
-              {filteredCartons.length}
-            </span>
-          </button>
+            {/* Sticker Labels Tab */}
+            <button
+              onClick={() => setActiveTab('stickers')}
+              className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition cursor-pointer shrink-0 ${
+                activeTab === 'stickers'
+                  ? 'bg-slate-900 text-white shadow-xs'
+                  : 'bg-white text-slate-600 hover:bg-slate-200 border border-slate-200'
+              }`}
+            >
+              <Tag className="w-4 h-4 text-indigo-400" />
+              <span>{t.stickerLabels}</span>
+            </button>
 
-          {/* Factory Sheet (Exact Photo Replica) Tab */}
-          <button
-            onClick={() => setActiveTab('sheet')}
-            className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition cursor-pointer ${
-              activeTab === 'sheet'
-                ? 'bg-slate-900 text-white shadow-xs'
-                : 'bg-white text-slate-600 hover:bg-slate-200 border border-slate-200'
-            }`}
-          >
-            <LayoutGrid className="w-4 h-4 text-emerald-400" />
-            <span>{t.exactSheetView}</span>
-            <span className="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.2 rounded font-mono font-bold">
-              Photo Grid
-            </span>
-          </button>
-
-          {/* Sticker Labels Tab */}
-          <button
-            onClick={() => setActiveTab('stickers')}
-            className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition cursor-pointer ${
-              activeTab === 'stickers'
-                ? 'bg-slate-900 text-white shadow-xs'
-                : 'bg-white text-slate-600 hover:bg-slate-200 border border-slate-200'
-            }`}
-          >
-            <Tag className="w-4 h-4 text-indigo-400" />
-            <span>{t.stickerLabels}</span>
-          </button>
-
-          {/* Analytics Tab */}
-          <button
-            onClick={() => setActiveTab('analytics')}
-            className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition cursor-pointer ${
-              activeTab === 'analytics'
-                ? 'bg-slate-900 text-white shadow-xs'
-                : 'bg-white text-slate-600 hover:bg-slate-200 border border-slate-200'
-            }`}
-          >
-            <BarChart3 className="w-4 h-4 text-rose-400" />
-            <span>{t.analyticsTab || 'Analytics'}</span>
-          </button>
-        </div>
+            {/* Analytics Tab */}
+            <button
+              onClick={() => setActiveTab('analytics')}
+              className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition cursor-pointer shrink-0 ${
+                activeTab === 'analytics'
+                  ? 'bg-slate-900 text-white shadow-xs'
+                  : 'bg-white text-slate-600 hover:bg-slate-200 border border-slate-200'
+              }`}
+            >
+              <BarChart3 className="w-4 h-4 text-rose-400" />
+              <span>{t.analyticsTab || 'Analytics'}</span>
+            </button>
+          </div>
+        )}
 
         {/* Tab Views */}
-        {activeTab === 'table' && (
+        {(!isFocusMode && activeTab === 'demands') && (
+          <div className="print:hidden">
+            <ElasticDemandView
+              demands={demands}
+              onSaveDemand={handleSaveDemand}
+              onDeleteDemand={handleDeleteDemand}
+              onLoadDemandIntoSheet={handleLoadDemandIntoSheet}
+              currentSheetData={sheetData}
+              lang={lang}
+            />
+          </div>
+        )}
+
+        {(isFocusMode || activeTab === 'table') && (
           <div className="print:hidden">
             <CartonTable
               sheetData={filteredSheetData}
@@ -703,11 +846,19 @@ export default function App() {
               onClearEmpty={handleClearEmpty}
               onOpenCartonQr={handleOpenCartonQr}
               lang={lang}
+              demands={demands}
+              onSelectDemand={(demand) => {
+                if (demand) {
+                  handleLoadDemandIntoSheet(demand);
+                }
+              }}
+              isFocusMode={isFocusMode}
+              onToggleFocusMode={() => setIsFocusMode(prev => !prev)}
             />
           </div>
         )}
 
-        {activeTab === 'sheet' && (
+        {(!isFocusMode && activeTab === 'sheet') && (
           <div>
             <FactorySheetView
               sheetData={filteredSheetData}
@@ -720,7 +871,7 @@ export default function App() {
           </div>
         )}
 
-        {activeTab === 'stickers' && (
+        {(!isFocusMode && activeTab === 'stickers') && (
           <div>
             <StickerLabelsView
               sheetData={filteredSheetData}
@@ -732,7 +883,7 @@ export default function App() {
           </div>
         )}
 
-        {activeTab === 'analytics' && (
+        {(!isFocusMode && activeTab === 'analytics') && (
           <div className="print:hidden">
             <AnalyticsView
               sheetData={filteredSheetData}
@@ -762,23 +913,26 @@ export default function App() {
         </div>
       </main>
 
-      <FloatingSummaryBadge summary={summary} lang={lang} />
+      {/* Floating summary badge - Collapsed in Focus Mode */}
+      {!isFocusMode && <FloatingSummaryBadge summary={summary} lang={lang} />}
 
-      {/* Footer */}
-      <footer className="bg-white border-t border-slate-200 py-3 px-4 text-center text-xs text-slate-500 print:hidden">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p>
-            {sheetData.companyName || 'GOOD & FAST Pa. Co. Ltd'} — Export Garment Packing & Elastic Calculation System
-          </p>
-          <div className="flex items-center gap-4 text-[11px] text-slate-400">
-            <span>Net Wt = Gross − Tare</span>
-            <span>•</span>
-            <span>Mtr = (Net × 1000) / Wt/unit</span>
-            <span>•</span>
-            <span>Gry = (Mtr / 0.9144) / 144</span>
+      {/* Footer - Collapsed in Focus Mode */}
+      {!isFocusMode && (
+        <footer className="bg-white border-t border-slate-200 py-3 px-4 text-center text-xs text-slate-500 print:hidden">
+          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+            <p>
+              {sheetData.companyName || 'GOOD & FAST Pa. Co. Ltd'} — Export Garment Packing & Elastic Calculation System
+            </p>
+            <div className="flex items-center gap-4 text-[11px] text-slate-400">
+              <span>Net Wt = Gross − Tare</span>
+              <span>•</span>
+              <span>Mtr = (Net × 1000) / Wt/unit</span>
+              <span>•</span>
+              <span>Gry = (Mtr / 0.9144) / 144</span>
+            </div>
           </div>
-        </div>
-      </footer>
+        </footer>
+      )}
 
       {/* Modals */}
       <CartonQrDetailModal
@@ -835,10 +989,31 @@ export default function App() {
         }}
       />
 
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        currentSheetData={sheetData}
+        onLoadSheetData={loaded => {
+          setSheetData(loaded);
+        }}
+        lang={lang}
+      />
+
       <AiScanModal
         isOpen={isAiScanOpen}
         onClose={() => setIsAiScanOpen(false)}
         onApplyExtractedData={handleApplyExtractedData}
+        lang={lang}
+      />
+
+      <ElasticDemandModal
+        isOpen={isAddDemandModalOpen}
+        onClose={() => setIsAddDemandModalOpen(false)}
+        onSave={(newDemand) => {
+          handleSaveDemand(newDemand);
+          setIsAddDemandModalOpen(false);
+          setActiveTab('demands');
+        }}
         lang={lang}
       />
 

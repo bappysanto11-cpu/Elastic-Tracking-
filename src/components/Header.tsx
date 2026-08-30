@@ -12,6 +12,7 @@ import {
   Share2,
   Wrench,
   Cloud,
+  CloudOff,
   Smartphone,
   HardDrive,
   CheckCircle2,
@@ -19,13 +20,22 @@ import {
   Database,
   Upload,
   Undo2,
-  Redo2
+  Redo2,
+  LogIn,
+  User,
+  ShieldCheck,
+  Wifi,
+  WifiOff,
+  RefreshCw,
+  AlertCircle
 } from 'lucide-react';
 import { Language, translations } from '../utils/translations';
 import { Folder, Activity } from 'lucide-react';
 import { getWorkspaces, DEFAULT_WORKSPACE_ID } from '../utils/workspaceManager';
 import { PackingSheetData, SummaryStats, CartonRow } from '../types/calculator';
 import { parseExcelOrCsvFile } from '../utils/export';
+import { useAuth } from '../context/AuthContext';
+import { SyncStatus } from '../hooks/useRealtimeSync';
 
 interface HeaderProps {
   lang: Language;
@@ -40,6 +50,7 @@ interface HeaderProps {
   activeWorkspaceId?: string;
   onOpenApk?: () => void;
   onOpenIndexedDbBackups?: () => void;
+  onOpenAuthModal?: () => void;
   onPrint: () => void;
   onExportCsv: () => void;
   onReset: () => void;
@@ -52,6 +63,12 @@ interface HeaderProps {
   summary: SummaryStats;
   lastSavedTime?: Date | null;
   isSaving?: boolean;
+  // Realtime Sync & Online/Offline props
+  isOnline?: boolean;
+  syncStatus?: SyncStatus;
+  lastCloudSyncTime?: Date | null;
+  pendingOfflineChanges?: boolean;
+  onManualSync?: () => Promise<boolean>;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -65,6 +82,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenCloudSync,
   onOpenApk,
   onOpenIndexedDbBackups,
+  onOpenAuthModal,
   onPrint,
   onExportCsv,
   onReset,
@@ -77,11 +95,19 @@ export const Header: React.FC<HeaderProps> = ({
   summary,
   lastSavedTime,
   isSaving = false,
+  isOnline = true,
+  syncStatus = 'local_only',
+  lastCloudSyncTime = null,
+  pendingOfflineChanges = false,
+  onManualSync,
 }) => {
   const [copied, setCopied] = useState(false);
   const [showSaveTooltip, setShowSaveTooltip] = useState(false);
+  const [showSyncTooltip, setShowSyncTooltip] = useState(false);
+  const [isManualSyncing, setIsManualSyncing] = useState(false);
   const [, setTick] = useState(0);
   const t = translations[lang];
+  const { user } = useAuth();
 
   // Refresh relative time every 5 seconds
   useEffect(() => {
@@ -96,16 +122,27 @@ export const Header: React.FC<HeaderProps> = ({
     const now = new Date();
     const diffSec = Math.floor((now.getTime() - date.getTime()) / 1000);
 
-    if (diffSec < 4) return lang === 'en' ? 'Saved just now' : 'এখনই সংরক্ষিত';
-    if (diffSec < 60) return lang === 'en' ? `Saved ${diffSec}s ago` : `${diffSec} সেকেন্ড আগে সংরক্ষিত`;
+    if (diffSec < 4) return lang === 'en' ? 'Just now' : 'এখনই';
+    if (diffSec < 60) return lang === 'en' ? `${diffSec}s ago` : `${diffSec} সেকেন্ড আগে`;
     const diffMin = Math.floor(diffSec / 60);
-    if (diffMin < 60) return lang === 'en' ? `Saved ${diffMin}m ago` : `${diffMin} মিনিট আগে সংরক্ষিত`;
+    if (diffMin < 60) return lang === 'en' ? `${diffMin}m ago` : `${diffMin} মিনিট আগে`;
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   const getFormattedTime = (date: Date | null | undefined): string => {
     if (!date) return '';
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+  };
+
+  const handleManualSyncClick = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!onManualSync || isManualSyncing) return;
+    setIsManualSyncing(true);
+    try {
+      await onManualSync();
+    } finally {
+      setTimeout(() => setIsManualSyncing(false), 600);
+    }
   };
 
   const handleCopySummary = async () => {
@@ -120,7 +157,6 @@ Total Net Wt / Carton: ${summary.totalNetWt} Kg / ${summary.totalCtn} CTN
 Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.totalYds} Yds)`;
 
     try {
-      // Ensure window is focused to prevent "Document is not focused" error
       window.focus();
       await navigator.clipboard.writeText(text);
       setCopied(true);
@@ -148,7 +184,6 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
           text: text,
         });
       } catch (err: any) {
-        // Ignore user cancellations
         if (err.name === 'AbortError' || err.message?.toLowerCase().includes('cancel')) {
           return;
         }
@@ -188,9 +223,9 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
   return (
     <header className="bg-slate-900 text-white border-b border-slate-800 shadow-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex flex-col md:flex-row items-center justify-between gap-4">
-        {/* Left: Brand / Title */}
+        {/* Left: Brand / Title & Status Indicators */}
         <div className="flex items-center gap-3 w-full md:w-auto">
-          <div className="w-10 h-10 rounded-lg bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
+          <div className="w-10 h-10 rounded-lg bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0 shadow-inner">
             <Calculator className="w-6 h-6" />
           </div>
           <div>
@@ -198,9 +233,191 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
               <h1 className="text-lg font-bold tracking-tight text-white flex items-center gap-2">
                 {t.appTitle}
               </h1>
-              <span className="text-[11px] px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-800 font-mono font-medium">
-                Mtr & Gry Auto-Calc
-              </span>
+
+              {/* Online / Offline & Realtime Sync Status Badge */}
+              <div 
+                className="relative inline-block"
+                onMouseEnter={() => setShowSyncTooltip(true)}
+                onMouseLeave={() => setShowSyncTooltip(false)}
+              >
+                <button
+                  type="button"
+                  onClick={() => setShowSyncTooltip(prev => !prev)}
+                  className={`flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-mono font-semibold transition-all duration-300 cursor-pointer border shadow-2xs ${
+                    !isOnline || syncStatus === 'offline'
+                      ? 'bg-amber-950/80 text-amber-300 border-amber-500/50 hover:bg-amber-900/70'
+                      : syncStatus === 'syncing' || isManualSyncing
+                      ? 'bg-cyan-950/90 text-cyan-200 border-cyan-400/60 animate-pulse'
+                      : syncStatus === 'synced'
+                      ? 'bg-emerald-950/70 text-emerald-300 border-emerald-500/40 hover:bg-emerald-900/60 hover:border-emerald-400/60'
+                      : syncStatus === 'error'
+                      ? 'bg-rose-950/80 text-rose-300 border-rose-500/50 hover:bg-rose-900/60'
+                      : 'bg-slate-800/80 text-slate-300 border-slate-700 hover:bg-slate-700'
+                  }`}
+                  title="Real-time network and Firestore sync status"
+                >
+                  {/* Glowing Status Dot */}
+                  <span className="relative flex h-2 w-2">
+                    <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                      !isOnline || syncStatus === 'offline'
+                        ? 'bg-amber-400'
+                        : syncStatus === 'syncing' || isManualSyncing
+                        ? 'bg-cyan-400'
+                        : syncStatus === 'synced'
+                        ? 'bg-emerald-400'
+                        : 'bg-emerald-400'
+                    }`} />
+                    <span className={`relative inline-flex rounded-full h-2 w-2 ${
+                      !isOnline || syncStatus === 'offline'
+                        ? 'bg-amber-500'
+                        : syncStatus === 'syncing' || isManualSyncing
+                        ? 'bg-cyan-400'
+                        : syncStatus === 'synced'
+                        ? 'bg-emerald-500'
+                        : 'bg-emerald-500'
+                    }`} />
+                  </span>
+
+                  {/* Icon */}
+                  {!isOnline ? (
+                    <WifiOff className="w-3 h-3 text-amber-400" />
+                  ) : syncStatus === 'syncing' || isManualSyncing ? (
+                    <RefreshCw className="w-3 h-3 text-cyan-300 animate-spin" />
+                  ) : syncStatus === 'synced' ? (
+                    <Cloud className="w-3 h-3 text-emerald-400" />
+                  ) : syncStatus === 'offline' ? (
+                    <CloudOff className="w-3 h-3 text-amber-400" />
+                  ) : syncStatus === 'error' ? (
+                    <AlertCircle className="w-3 h-3 text-rose-400" />
+                  ) : (
+                    <Wifi className="w-3 h-3 text-emerald-400" />
+                  )}
+
+                  {/* Text Label */}
+                  <span className="truncate max-w-[130px] sm:max-w-none">
+                    {!isOnline
+                      ? (lang === 'en' ? 'Offline · Local' : 'অফলাইন · লোকাল')
+                      : syncStatus === 'syncing' || isManualSyncing
+                      ? (lang === 'en' ? 'Syncing...' : 'সিঙ্ক হচ্ছে...')
+                      : syncStatus === 'synced'
+                      ? (lang === 'en' ? 'Online · Synced' : 'অনলাইন · সিঙ্কড')
+                      : syncStatus === 'offline'
+                      ? (lang === 'en' ? 'Offline · Queued' : 'অফলাইন · সংরক্ষিত')
+                      : syncStatus === 'error'
+                      ? (lang === 'en' ? 'Sync Retry' : 'সিঙ্ক রিট্রাই')
+                      : (lang === 'en' ? 'Online · Local' : 'অনলাইন · লোকাল')}
+                  </span>
+                </button>
+
+                {/* Rich Real-Time Sync Tooltip */}
+                {showSyncTooltip && (
+                  <div className="absolute left-0 top-full mt-1.5 z-50 w-80 p-3.5 bg-slate-950 text-slate-200 border border-slate-700 rounded-xl shadow-2xl text-xs space-y-2.5 animate-in fade-in zoom-in-95 duration-150">
+                    <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                      <span className="font-bold text-white flex items-center gap-1.5">
+                        {isOnline ? (
+                          <Wifi className="w-4 h-4 text-emerald-400" />
+                        ) : (
+                          <WifiOff className="w-4 h-4 text-amber-400" />
+                        )}
+                        {lang === 'en' ? 'Real-Time Sync Engine' : 'রিয়েল-টাইম সিঙ্ক ইঞ্জিন'}
+                      </span>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold border ${
+                        isOnline 
+                          ? 'bg-emerald-950 text-emerald-300 border-emerald-800' 
+                          : 'bg-amber-950 text-amber-300 border-amber-800'
+                      }`}>
+                        {isOnline ? (lang === 'en' ? 'ONLINE' : 'অনলাইন') : (lang === 'en' ? 'OFFLINE' : 'অফলাইন')}
+                      </span>
+                    </div>
+
+                    <div className="space-y-1.5 text-[11px] text-slate-300">
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-400">{lang === 'en' ? 'Network Connection:' : 'নেটওয়ার্ক সংযোগ:'}</span>
+                        <span className={`font-mono font-bold flex items-center gap-1 ${
+                          isOnline ? 'text-emerald-300' : 'text-amber-300'
+                        }`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+                          {isOnline ? (lang === 'en' ? 'Active' : 'সক্রিয়') : (lang === 'en' ? 'Disconnected' : 'বিচ্ছিন্ন')}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-400">{lang === 'en' ? 'Firestore Cloud Sync:' : 'ফায়ারস্টোর ক্লাউড সিঙ্ক:'}</span>
+                        <span className="font-mono font-semibold text-slate-200 flex items-center gap-1">
+                          {user ? (
+                            syncStatus === 'synced' ? (
+                              <span className="text-emerald-300 font-bold flex items-center gap-1">
+                                <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                                {lang === 'en' ? 'Real-Time Active' : 'রিয়েল-টাইম সক্রিয়'}
+                              </span>
+                            ) : syncStatus === 'syncing' ? (
+                              <span className="text-cyan-300 font-bold flex items-center gap-1">
+                                <RefreshCw className="w-3 h-3 animate-spin" />
+                                {lang === 'en' ? 'Pushing edits...' : 'সিঙ্ক করা হচ্ছে...'}
+                              </span>
+                            ) : (
+                              <span className="text-amber-300 font-bold">
+                                {pendingOfflineChanges ? (lang === 'en' ? 'Queued (Offline)' : 'কিউ করা আছে') : (lang === 'en' ? 'Offline' : 'অফলাইন')}
+                              </span>
+                            )
+                          ) : (
+                            <span className="text-slate-400 font-medium">
+                              {lang === 'en' ? 'Local Only (Sign in to sync)' : 'শুধুমাত্র লোকাল (সিঙ্ক করতে লগইন করুন)'}
+                            </span>
+                          )}
+                        </span>
+                      </div>
+
+                      {user && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-slate-400">{lang === 'en' ? 'Last Cloud Synced:' : 'সর্বশেষ ক্লাউড সিঙ্ক:'}</span>
+                          <span className="font-mono font-bold text-emerald-300 flex items-center gap-1">
+                            <Clock className="w-3 h-3 text-slate-400" />
+                            {lastCloudSyncTime ? getRelativeTimeString(lastCloudSyncTime) : (lang === 'en' ? 'Pending' : 'অপেক্ষমান')}
+                          </span>
+                        </div>
+                      )}
+
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-400">{lang === 'en' ? 'Offline Safety:' : 'অফলাইন নিরাপত্তা:'}</span>
+                        <span className="font-mono text-emerald-300 font-semibold">LocalStorage + IndexedDB</span>
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t border-slate-800 flex items-center justify-between gap-2">
+                      <span className="text-[10px] text-slate-400 flex items-center gap-1">
+                        <HardDrive className="w-3 h-3 text-slate-400 shrink-0" />
+                        {lang === 'en' ? 'Immediate auto-push on edit' : 'এডিট করলেই অটো-সিঙ্ক'}
+                      </span>
+
+                      {user && onManualSync ? (
+                        <button
+                          type="button"
+                          onClick={handleManualSyncClick}
+                          disabled={isManualSyncing || !isOnline}
+                          className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 disabled:text-slate-500 text-white text-[10.5px] font-bold rounded-lg shadow-xs transition cursor-pointer flex items-center gap-1.5"
+                        >
+                          <RefreshCw className={`w-3 h-3 ${isManualSyncing ? 'animate-spin text-cyan-300' : ''}`} />
+                          <span>{isManualSyncing ? (lang === 'en' ? 'Syncing...' : 'সিঙ্ক হচ্ছে...') : t.syncNowBtn}</span>
+                        </button>
+                      ) : onOpenAuthModal ? (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowSyncTooltip(false);
+                            onOpenAuthModal();
+                          }}
+                          className="px-2 py-1 bg-indigo-600 hover:bg-indigo-500 text-white text-[10.5px] font-bold rounded-lg shadow-xs transition cursor-pointer flex items-center gap-1"
+                        >
+                          <LogIn className="w-3 h-3" />
+                          <span>{lang === 'en' ? 'Sign In' : 'লগইন'}</span>
+                        </button>
+                      ) : null}
+                    </div>
+                  </div>
+                )}
+              </div>
 
               {/* LocalStorage & IndexedDB Saved Indicator with Tooltip */}
               <div 
@@ -209,6 +426,7 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
                 onMouseLeave={() => setShowSaveTooltip(false)}
               >
                 <button
+                  type="button"
                   onClick={() => {
                     if (onOpenIndexedDbBackups) {
                       onOpenIndexedDbBackups();
@@ -216,28 +434,18 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
                       setShowSaveTooltip(prev => !prev);
                     }
                   }}
-                  className={`flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-mono font-semibold transition-all duration-300 cursor-pointer border ${
+                  className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold transition-all duration-300 cursor-pointer border ${
                     isSaving
                       ? 'bg-amber-950/80 text-amber-300 border-amber-500/50 animate-pulse'
-                      : 'bg-emerald-950/60 text-emerald-300 border-emerald-500/30 hover:bg-emerald-900/60 hover:border-emerald-400/60'
+                      : 'bg-slate-800/80 text-slate-300 border-slate-700 hover:bg-slate-700 hover:text-white'
                   }`}
                   title="Saved to LocalStorage & IndexedDB (Click to view snapshots)"
                 >
-                  <span className="relative flex h-2 w-2">
-                    <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
-                      isSaving ? 'bg-amber-400' : 'bg-emerald-400'
-                    }`} />
-                    <span className={`relative inline-flex rounded-full h-2 w-2 ${
-                      isSaving ? 'bg-amber-500' : 'bg-emerald-500'
-                    }`} />
-                  </span>
-
                   <Database className="w-3 h-3 text-emerald-400" />
-                  <span className="truncate max-w-[130px] sm:max-w-none">
+                  <span className="truncate max-w-[110px] sm:max-w-none">
                     {isSaving 
-                      ? (lang === 'en' ? 'Backing up...' : 'সংরক্ষণ হচ্ছে...') 
-                      : getRelativeTimeString(lastSavedTime)
-                    }
+                      ? (lang === 'en' ? 'Saving...' : 'সংরক্ষণ...') 
+                      : (lang === 'en' ? 'IndexedDB' : 'লোকাল')}
                   </span>
                 </button>
 
@@ -279,6 +487,7 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
                       </span>
                       {onOpenIndexedDbBackups && (
                         <button
+                          type="button"
                           onClick={(e) => {
                             e.stopPropagation();
                             setShowSaveTooltip(false);
@@ -303,8 +512,53 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
 
         {/* Right: Actions */}
         <div className="flex items-center flex-wrap gap-2 w-full md:w-auto justify-end">
+          {/* User Account / Google Login Button */}
+          {onOpenAuthModal && (
+            <button
+              type="button"
+              onClick={onOpenAuthModal}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold shadow-xs border transition-all cursor-pointer ${
+                user 
+                  ? 'bg-slate-800 hover:bg-slate-700 text-white border-indigo-500/40' 
+                  : 'bg-indigo-600 hover:bg-indigo-500 text-white border-indigo-400'
+              }`}
+              title={user ? `Signed in as ${user.displayName || user.email}` : 'Sign in with Google or Email'}
+            >
+              {user ? (
+                <>
+                  {user.photoURL ? (
+                    <img 
+                      src={user.photoURL} 
+                      alt="User avatar" 
+                      className="w-4 h-4 rounded-full border border-indigo-400 object-cover" 
+                    />
+                  ) : (
+                    <div className="w-4 h-4 rounded-full bg-indigo-500 text-white text-[9px] font-bold flex items-center justify-center">
+                      {user.displayName?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'U'}
+                    </div>
+                  )}
+                  <span className="max-w-[80px] sm:max-w-[120px] truncate">
+                    {user.displayName?.split(' ')[0] || user.email?.split('@')[0] || 'User'}
+                  </span>
+                  <span className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-400' : 'bg-amber-400'}`} title={isOnline ? "Cloud Active" : "Offline Mode"} />
+                </>
+              ) : (
+                <>
+                  <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                  </svg>
+                  <span>{t.loginAccount}</span>
+                </>
+              )}
+            </button>
+          )}
+
           {/* AI Scan Button */}
           <button
+            type="button"
             onClick={onOpenAiScan}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-xs font-semibold shadow-sm transition-all cursor-pointer"
             title="Scan handwritten or printed packing list sheet using Gemini AI"
@@ -331,6 +585,7 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
 
           {/* OneDrive / Excel Access Button */}
           <button
+            type="button"
             onClick={onOpenExcelDrive}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-gradient-to-r from-emerald-700 to-teal-700 hover:from-emerald-600 hover:to-teal-600 text-white text-xs font-semibold shadow-sm border border-emerald-500/30 transition cursor-pointer"
             title="OneDrive & Excel Access: Import .xlsx from OneDrive or Export to Excel Online"
@@ -342,6 +597,7 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
           {/* Android App APK Button */}
           {onOpenApk && (
             <button
+              type="button"
               onClick={onOpenApk}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-semibold shadow-sm border border-emerald-400/30 transition cursor-pointer"
               title="Install App on Android Smartphone / Tablet"
@@ -353,6 +609,7 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
 
           {/* Tools Modal Button */}
           <button
+            type="button"
             onClick={onOpenTools}
             className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700 transition cursor-pointer"
             title="Garment calculation tools: Sample Wt, Reverse Calculator, Bulk Paste"
@@ -363,6 +620,7 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
 
           {/* Share Summary */}
           <button
+            type="button"
             onClick={handleShareSummary}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-sm transition-all cursor-pointer"
             title="Share or Copy summary for WhatsApp / Email"
@@ -382,6 +640,7 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
 
           {/* Print */}
           <button
+            type="button"
             onClick={onPrint}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-sm transition cursor-pointer"
           >
@@ -391,6 +650,7 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
 
           {/* Formula Help */}
           <button
+            type="button"
             onClick={onOpenHelp}
             className="p-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition cursor-pointer"
             title="How calculations work (Formulas)"
@@ -401,6 +661,7 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
           {/* Undo */}
           {onUndo && (
             <button
+              type="button"
               onClick={onUndo}
               disabled={!canUndo}
               className={`p-1.5 rounded-md border transition cursor-pointer flex items-center justify-center ${
@@ -417,6 +678,7 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
           {/* Redo */}
           {onRedo && (
             <button
+              type="button"
               onClick={onRedo}
               disabled={!canRedo}
               className={`p-1.5 rounded-md border transition cursor-pointer flex items-center justify-center ${
@@ -432,6 +694,7 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
 
           {/* Reset */}
           <button
+            type="button"
             onClick={onReset}
             className="p-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition cursor-pointer"
             title={t.resetDefault}
@@ -441,6 +704,7 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
 
           {/* Language Switch */}
           <button
+            type="button"
             onClick={() => setLang(lang === 'en' ? 'bn' : 'en')}
             className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700 transition cursor-pointer"
           >

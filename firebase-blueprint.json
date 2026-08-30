@@ -1,0 +1,46 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "lastLoginAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid"]
+    },
+    "PackingSheet": {
+      "title": "PackingSheet",
+      "description": "Cloud synced packing sheets for the user",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "ref": { "type": "string" },
+        "buyer": { "type": "string" },
+        "customer": { "type": "string" },
+        "companyName": { "type": "string" },
+        "size": { "type": "string" },
+        "color": { "type": "string" },
+        "sheetData": { "type": "object" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "sheetData"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "entity": "UserProfile",
+      "description": "User document storing profile"
+    },
+    "/users/{userId}/sheets/{sheetId}": {
+      "entity": "PackingSheet",
+      "description": "Packing sheet document stored per user"
+    }
+  }
+}

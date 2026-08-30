@@ -1,25 +1,11 @@
 @import "tailwindcss";
 
+@page {
+  size: A4 auto;
+  margin: 4mm;
+}
+
 @media print {
-  @page {
-    size: A4 auto;
-    margin: 4mm;
-  }
-
-  body.print-landscape {
-    @page {
-      size: A4 landscape;
-      margin: 4mm;
-    }
-  }
-
-  body.print-portrait {
-    @page {
-      size: A4 portrait;
-      margin: 4mm;
-    }
-  }
-
   body {
     background-color: #ffffff !important;
     color: #000000 !important;
@@ -51,3 +37,4 @@
     max-width: 100% !important;
   }
 }
+

@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef, useId } from 'react';
 import { 
   getStoredHistory, 
+  getIndexedDbSuggestions,
   saveHistoryEntry, 
   removeHistoryEntry, 
-  AutocompleteStorageMap 
+  AutocompleteStorageMap,
+  SuggestionItem
 } from '../utils/autocompleteHistory';
-import { History, X, Check, ChevronDown, Sparkles } from 'lucide-react';
+import { History, X, Check, ChevronDown, Sparkles, Database } from 'lucide-react';
 
 interface AutocompleteInputProps {
   category: keyof AutocompleteStorageMap;
@@ -34,16 +36,36 @@ export const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
   label,
   lang = 'en',
 }) => {
-  const [history, setHistory] = useState<string[]>([]);
+  const [suggestions, setSuggestions] = useState<SuggestionItem[]>([]);
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [highlightIndex, setHighlightIndex] = useState<number>(-1);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const datalistId = useId();
 
-  // Load history on mount
+  // Load synchronous items first, then enrich from IndexedDB
+  const refreshSuggestions = async () => {
+    // 1. Initial fast items
+    const rawLocal = getStoredHistory(category);
+    const initialList: SuggestionItem[] = rawLocal.map(v => ({
+      value: v,
+      source: 'saved',
+    }));
+    setSuggestions(initialList);
+
+    // 2. Load and merge IndexedDB historical orders
+    try {
+      const enriched = await getIndexedDbSuggestions(category);
+      if (enriched.length > 0) {
+        setSuggestions(enriched);
+      }
+    } catch (e) {
+      console.warn('IndexedDB autocomplete load failed:', e);
+    }
+  };
+
   useEffect(() => {
-    setHistory(getStoredHistory(category));
+    refreshSuggestions();
   }, [category]);
 
   // Close dropdown on click outside
@@ -59,30 +81,29 @@ export const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
 
   // Filtered suggestions based on user query
   const query = value.trim().toLowerCase();
-  const filteredSuggestions = history.filter(item => {
+  const filteredSuggestions = suggestions.filter(item => {
     if (!query) return true;
-    return item.toLowerCase().includes(query);
+    return item.value.toLowerCase().includes(query);
   });
 
-  const handleSelect = (selected: string) => {
-    onChange(selected);
-    const updated = saveHistoryEntry(category, selected);
-    setHistory(updated);
+  const handleSelect = (selectedItem: SuggestionItem) => {
+    onChange(selectedItem.value);
+    saveHistoryEntry(category, selectedItem.value);
+    refreshSuggestions();
     setIsOpen(false);
     inputRef.current?.focus();
   };
 
   const handleRemove = (e: React.MouseEvent, itemToRemove: string) => {
     e.stopPropagation();
-    const updated = removeHistoryEntry(category, itemToRemove);
-    setHistory(updated);
+    removeHistoryEntry(category, itemToRemove);
+    refreshSuggestions();
   };
 
   const handleBlur = () => {
-    // If value entered is non-empty, persist it to localStorage
     if (value.trim().length > 0) {
-      const updated = saveHistoryEntry(category, value);
-      setHistory(updated);
+      saveHistoryEntry(category, value);
+      refreshSuggestions();
     }
   };
 
@@ -108,8 +129,8 @@ export const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
           e.preventDefault();
           handleSelect(filteredSuggestions[highlightIndex]);
         } else if (value.trim().length > 0) {
-          const updated = saveHistoryEntry(category, value);
-          setHistory(updated);
+          saveHistoryEntry(category, value);
+          refreshSuggestions();
           setIsOpen(false);
         }
       } else if (e.key === 'Escape') {
@@ -117,6 +138,8 @@ export const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
       }
     }
   };
+
+  const idbCount = suggestions.filter(s => s.source === 'indexeddb').length;
 
   return (
     <div className="relative w-full" ref={containerRef}>
@@ -126,14 +149,26 @@ export const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
             {icon}
             {label}
           </span>
-          {history.length > 0 && (
+          {suggestions.length > 0 && (
             <span 
-              onClick={() => setIsOpen(!isOpen)}
-              className="text-[10px] text-indigo-600 hover:text-indigo-800 font-medium cursor-pointer flex items-center gap-0.5 select-none"
-              title={lang === 'en' ? 'Click to see saved suggestions' : 'পূর্বের হিস্ট্রি তালিকা দেখুন'}
+              onClick={() => {
+                refreshSuggestions();
+                setIsOpen(!isOpen);
+              }}
+              className="text-[10px] text-indigo-600 hover:text-indigo-800 font-medium cursor-pointer flex items-center gap-1 select-none"
+              title={lang === 'en' ? 'Suggestions from IndexedDB & history' : 'হিস্ট্রি ও IndexedDB সাজেশন তালিকা'}
             >
-              <History className="w-2.5 h-2.5" />
-              <span>{history.length} {lang === 'en' ? 'saved' : 'সেভ'}</span>
+              {idbCount > 0 ? (
+                <span className="flex items-center gap-0.5 text-emerald-700 bg-emerald-50 px-1 py-0.2 rounded border border-emerald-200">
+                  <Database className="w-2.5 h-2.5" />
+                  <span>{idbCount} {lang === 'en' ? 'DB' : 'ডিবি'}</span>
+                </span>
+              ) : (
+                <span className="flex items-center gap-0.5">
+                  <History className="w-2.5 h-2.5" />
+                  <span>{suggestions.length}</span>
+                </span>
+              )}
             </span>
           )}
         </label>
@@ -152,6 +187,7 @@ export const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
             setHighlightIndex(-1);
           }}
           onFocus={() => {
+            refreshSuggestions();
             setIsOpen(true);
             setHighlightIndex(-1);
           }}
@@ -167,37 +203,40 @@ export const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
         <button
           type="button"
           tabIndex={-1}
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={() => {
+            refreshSuggestions();
+            setIsOpen(!isOpen);
+          }}
           className="absolute right-1.5 p-1 text-slate-400 hover:text-slate-700 rounded-md transition cursor-pointer"
-          title={lang === 'en' ? 'Show remembered suggestions' : 'পূর্বের নামগুলো দেখুন'}
+          title={lang === 'en' ? 'Show remembered suggestions' : 'সাজেশন তালিকা দেখুন'}
         >
           <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isOpen ? 'rotate-180 text-indigo-600' : ''}`} />
         </button>
 
         {/* HTML5 Native Datalist Fallback */}
         <datalist id={datalistId}>
-          {history.map((item, idx) => (
-            <option key={idx} value={item} />
+          {suggestions.map((item, idx) => (
+            <option key={idx} value={item.value} />
           ))}
         </datalist>
       </div>
 
       {/* Floating Custom Autocomplete Dropdown */}
       {isOpen && filteredSuggestions.length > 0 && (
-        <div className="absolute z-50 left-0 right-0 mt-1 max-h-56 overflow-y-auto bg-white border border-slate-200 rounded-lg shadow-xl divide-y divide-slate-100 animate-in fade-in-50 duration-100">
+        <div className="absolute z-50 left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-white border border-slate-200 rounded-lg shadow-xl divide-y divide-slate-100 animate-in fade-in-50 duration-100">
           <div className="px-2.5 py-1.5 bg-slate-50 flex items-center justify-between text-[10px] font-semibold text-slate-500 border-b border-slate-100">
-            <span className="flex items-center gap-1">
+            <span className="flex items-center gap-1 text-indigo-700">
               <Sparkles className="w-3 h-3 text-indigo-500" />
-              {lang === 'en' ? 'Remembered History' : 'পূর্ববর্তী নামসমূহ'}
+              {lang === 'en' ? 'Suggestions (IndexedDB & History)' : 'সাজেশন (IndexedDB ও হিস্ট্রি)'}
             </span>
-            <span className="text-slate-400">
-              {filteredSuggestions.length} {lang === 'en' ? 'items' : 'টি'}
+            <span className="text-slate-400 font-mono">
+              {filteredSuggestions.length} {lang === 'en' ? 'results' : 'টি'}
             </span>
           </div>
 
           <div className="py-1">
             {filteredSuggestions.map((item, idx) => {
-              const isSelected = item.toLowerCase() === value.trim().toLowerCase();
+              const isSelected = item.value.toLowerCase() === value.trim().toLowerCase();
               const isHighlighted = idx === highlightIndex;
 
               return (
@@ -214,24 +253,38 @@ export const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
                   }`}
                 >
                   <div className="flex items-center gap-2 truncate pr-2">
-                    <History className={`w-3 h-3 shrink-0 ${isHighlighted ? 'text-indigo-600' : 'text-slate-400'}`} />
+                    {item.source === 'indexeddb' ? (
+                      <span title="From IndexedDB Backups">
+                        <Database className={`w-3 h-3 shrink-0 ${isHighlighted ? 'text-emerald-600' : 'text-emerald-500'}`} />
+                      </span>
+                    ) : (
+                      <History className={`w-3 h-3 shrink-0 ${isHighlighted ? 'text-indigo-600' : 'text-slate-400'}`} />
+                    )}
                     <span className={`truncate ${monoFont ? 'font-mono' : ''}`}>
-                      {item}
+                      {item.value}
                     </span>
+                    {item.source === 'indexeddb' && (
+                      <span className="text-[9px] bg-emerald-100 text-emerald-800 font-mono px-1 rounded">
+                        {lang === 'en' ? 'Saved Order' : 'সেভড অর্ডার'}
+                        {item.occurrences && item.occurrences > 1 ? ` (${item.occurrences}x)` : ''}
+                      </span>
+                    )}
                   </div>
 
                   <div className="flex items-center gap-1 shrink-0">
                     {isSelected && (
                       <Check className="w-3.5 h-3.5 text-emerald-600 mr-1" />
                     )}
-                    <button
-                      type="button"
-                      title={lang === 'en' ? 'Delete from history' : 'হিস্ট্রি থেকে মুছে ফেলুন'}
-                      onClick={(e) => handleRemove(e, item)}
-                      className="opacity-40 hover:opacity-100 hover:bg-red-50 hover:text-red-600 p-0.5 rounded transition text-slate-400"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
+                    {item.source !== 'default' && (
+                      <button
+                        type="button"
+                        title={lang === 'en' ? 'Delete from saved' : 'মুছে ফেলুন'}
+                        onClick={(e) => handleRemove(e, item.value)}
+                        className="opacity-40 hover:opacity-100 hover:bg-red-50 hover:text-red-600 p-0.5 rounded transition text-slate-400"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    )}
                   </div>
                 </div>
               );
