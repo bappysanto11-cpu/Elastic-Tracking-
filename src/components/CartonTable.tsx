@@ -3,7 +3,6 @@ import { CartonRow, PackingSheetData } from '../types/calculator';
 import { ElasticDemand } from '../types/elasticDemand';
 import { Language, translations } from '../utils/translations';
 import { QuickFillModal, QuickFillPreset } from './QuickFillModal';
-import { DemandDeviationGuard } from './DemandDeviationGuard';
 import { 
   DemandComplianceReport, 
   analyzeCartonDeviations, 
@@ -715,24 +714,6 @@ export const CartonTable: React.FC<CartonTableProps> = ({
 
   return (
     <div>
-      {/* Elastic Demand Quality & Packing Error Guard Banner */}
-      <DemandDeviationGuard
-        sheetData={sheetData}
-        demands={demands}
-        selectedDemand={activeDemand}
-        onSelectDemand={(demand) => {
-          setSelectedDemandIdState(demand ? demand.id : null);
-          if (onSelectDemand) onSelectDemand(demand);
-        }}
-        report={complianceReport}
-        filterOnlyDeviations={filterOnlyDeviations}
-        onToggleFilterDeviations={() => setFilterOnlyDeviations(!filterOnlyDeviations)}
-        onAutoFixAllDeviations={handleAutoFixAllDeviations}
-        tolerancePercent={tolerancePercent}
-        onChangeTolerance={(tol) => setTolerancePercent(tol)}
-        lang={lang}
-      />
-
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-6">
       
       {/* Table Toolbar */}

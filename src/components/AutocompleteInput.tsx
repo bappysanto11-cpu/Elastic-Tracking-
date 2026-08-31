@@ -21,6 +21,7 @@ interface AutocompleteInputProps {
   bold?: boolean;
   label?: string;
   lang?: 'en' | 'bn';
+  compact?: boolean;
 }
 
 export const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
@@ -35,6 +36,7 @@ export const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
   bold = false,
   label,
   lang = 'en',
+  compact = false,
 }) => {
   const [suggestions, setSuggestions] = useState<SuggestionItem[]>([]);
   const [isOpen, setIsOpen] = useState<boolean>(false);
@@ -144,10 +146,12 @@ export const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
   return (
     <div className="relative w-full" ref={containerRef}>
       {label && (
-        <label className="block text-[11px] font-semibold text-slate-600 mb-1 flex items-center justify-between">
-          <span className="flex items-center gap-1">
+        <label className={`block font-semibold text-slate-600 flex items-center justify-between ${
+          compact ? 'text-[10px] mb-0.5 tracking-tight' : 'text-[11px] mb-1'
+        }`}>
+          <span className="flex items-center gap-1 truncate">
             {icon}
-            {label}
+            <span className="truncate">{label}</span>
           </span>
           {suggestions.length > 0 && (
             <span 
@@ -155,7 +159,7 @@ export const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
                 refreshSuggestions();
                 setIsOpen(!isOpen);
               }}
-              className="text-[10px] text-indigo-600 hover:text-indigo-800 font-medium cursor-pointer flex items-center gap-1 select-none"
+              className="text-[9.5px] text-indigo-600 hover:text-indigo-800 font-medium cursor-pointer flex items-center gap-1 select-none shrink-0"
               title={lang === 'en' ? 'Suggestions from IndexedDB & history' : 'হিস্ট্রি ও IndexedDB সাজেশন তালিকা'}
             >
               {idbCount > 0 ? (
@@ -194,7 +198,11 @@ export const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          className={`w-full px-2.5 py-1.5 pr-7 text-xs text-slate-900 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:outline-none transition ${
+          className={`w-full ${
+            compact 
+              ? 'px-2 py-1 pr-6 text-[11.5px] rounded-md leading-tight' 
+              : 'px-2.5 py-1.5 pr-7 text-xs rounded-lg'
+          } text-slate-900 bg-slate-50/80 border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:border-indigo-400 focus:outline-none transition shadow-2xs ${
             monoFont ? 'font-mono' : ''
           } ${bold ? 'font-bold' : 'font-medium'} ${className}`}
         />
@@ -207,10 +215,14 @@ export const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
             refreshSuggestions();
             setIsOpen(!isOpen);
           }}
-          className="absolute right-1.5 p-1 text-slate-400 hover:text-slate-700 rounded-md transition cursor-pointer"
+          className={`absolute right-1 p-0.5 text-slate-400 hover:text-slate-700 rounded transition cursor-pointer ${
+            compact ? 'top-1/2 -translate-y-1/2' : ''
+          }`}
           title={lang === 'en' ? 'Show remembered suggestions' : 'সাজেশন তালিকা দেখুন'}
         >
-          <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isOpen ? 'rotate-180 text-indigo-600' : ''}`} />
+          <ChevronDown className={`transition-transform duration-200 ${
+            compact ? 'w-3 h-3' : 'w-3.5 h-3.5'
+          } ${isOpen ? 'rotate-180 text-indigo-600' : ''}`} />
         </button>
 
         {/* HTML5 Native Datalist Fallback */}

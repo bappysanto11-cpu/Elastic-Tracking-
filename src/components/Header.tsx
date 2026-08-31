@@ -567,22 +567,6 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
             <span>{t.aiScanPhoto}</span>
           </button>
 
-          {/* Bulk Import CSV/Excel Native Button */}
-          <label
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-semibold shadow-sm border border-emerald-400/30 transition cursor-pointer"
-            title="Directly import CSV or Excel data"
-          >
-            <Upload className="w-4 h-4 text-emerald-200" />
-            <span>{lang === 'en' ? 'Import Data' : 'ফাইল ইমপোর্ট'}</span>
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileSelect}
-              accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
-              className="hidden"
-            />
-          </label>
-
           {/* OneDrive / Excel Access Button */}
           <button
             type="button"

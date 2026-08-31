@@ -37,7 +37,12 @@ import { loadDemands, saveDemands } from './utils/elasticDemandStorage';
 import { useHistory } from './utils/useHistory';
 import { useAuth } from './context/AuthContext';
 import { useRealtimeSync } from './hooks/useRealtimeSync';
-import { Table, LayoutGrid, Tag, Layers, Check, QrCode, BarChart3, Undo2, Redo2, Search, RotateCcw, ClipboardList, Maximize2, Minimize2 } from 'lucide-react';
+import { Table, LayoutGrid, Tag, Layers, Check, QrCode, BarChart3, Undo2, Redo2, Search, RotateCcw, ClipboardList, Maximize2, Minimize2, Upload, FileText, Truck, Package } from 'lucide-react';
+import { ScheduleUploader } from './components/ScheduleUploader';
+import { ScheduleTracker } from './components/ScheduleTracker';
+import { ChallanGenerator } from './components/ChallanGenerator';
+import { TruckManager } from './components/TruckManager';
+import { DailyReportView } from './components/DailyReportView';
 
 const STORAGE_KEY = 'garment_elastic_calculator_v1';
 
@@ -45,7 +50,7 @@ const STORAGE_KEY = 'garment_elastic_calculator_v1';
 
 export default function App() {
   const [lang, setLang] = useState<Language>('bn');
-  const [activeTab, setActiveTab] = useState<'table' | 'sheet' | 'stickers' | 'analytics' | 'demands'>('table');
+  const [activeTab, setActiveTab] = useState<'table' | 'sheet' | 'stickers' | 'analytics' | 'demands' | 'upload' | 'tracker' | 'challan' | 'truck' | 'report'>('table');
   const [isAddDemandModalOpen, setIsAddDemandModalOpen] = useState(false);
 
   // Elastic Demands State
@@ -698,20 +703,6 @@ export default function App() {
 
       {/* Main Content Area */}
       <main className={`flex-1 max-w-7xl w-full mx-auto ${isFocusMode ? 'p-2 sm:p-4' : 'p-4 sm:p-6'}`}>
-        {/* Dashboard Actions - Collapsed in Focus Mode */}
-        {!isFocusMode && (
-          <div className="mb-4 flex flex-col sm:flex-row items-center justify-end gap-4 print:hidden">
-            <button
-              type="button"
-              onClick={() => setIsAddDemandModalOpen(true)}
-              className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-xs font-bold rounded-xl shadow-xs transition-all cursor-pointer"
-            >
-              <Tag className="w-4 h-4" />
-              <span>{lang === 'en' ? 'Add Elastic Demand' : 'ইলাস্টিক চাহিদা যোগ করুন'}</span>
-            </button>
-          </div>
-        )}
-
         {/* Order Header Input Form - Collapsed in Focus Mode */}
         {!isFocusMode && (
           <div className="print:hidden">
@@ -732,8 +723,8 @@ export default function App() {
           <div className="print:hidden">
             <SummaryCards 
               summary={summary} 
+              sheetData={sheetData}
               lang={lang} 
-              matchingDemand={demands.find(d => sheetData.ref && d.ref && d.ref.trim().toLowerCase() === sheetData.ref.trim().toLowerCase())} 
             />
           </div>
         )}
@@ -754,22 +745,6 @@ export default function App() {
               <span>{t.tableView}</span>
               <span className="text-[10px] bg-slate-700 text-slate-200 px-1.5 py-0.2 rounded font-mono">
                 {filteredCartons.length}
-              </span>
-            </button>
-
-            {/* Elastic Demands Tab */}
-            <button
-              onClick={() => setActiveTab('demands')}
-              className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition cursor-pointer shrink-0 ${
-                activeTab === 'demands'
-                  ? 'bg-slate-900 text-white shadow-xs'
-                  : 'bg-white text-slate-600 hover:bg-slate-200 border border-slate-200'
-              }`}
-            >
-              <ClipboardList className="w-4 h-4 text-amber-400" />
-              <span>{t.elasticDemandTab || 'Demands'}</span>
-              <span className="text-[10px] bg-amber-500 text-slate-950 px-1.5 py-0.2 rounded font-mono font-bold">
-                {demands.filter(d => d.status !== 'completed' && d.status !== 'cancelled').length}
               </span>
             </button>
 
@@ -813,6 +788,73 @@ export default function App() {
             >
               <BarChart3 className="w-4 h-4 text-rose-400" />
               <span>{t.analyticsTab || 'Analytics'}</span>
+            </button>
+
+            <div className="w-px h-6 bg-slate-300 mx-2 self-center shrink-0"></div>
+
+            {/* Tracker - Upload Tab */}
+            <button
+              onClick={() => setActiveTab('upload')}
+              className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition cursor-pointer shrink-0 ${
+                activeTab === 'upload'
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'bg-white text-blue-600 hover:bg-blue-50 border border-blue-200'
+              }`}
+            >
+              <Upload className="w-4 h-4" />
+              <span>Upload Schedule</span>
+            </button>
+
+            {/* Tracker - Tracker Tab */}
+            <button
+              onClick={() => setActiveTab('tracker')}
+              className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition cursor-pointer shrink-0 ${
+                activeTab === 'tracker'
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'bg-white text-blue-600 hover:bg-blue-50 border border-blue-200'
+              }`}
+            >
+              <ClipboardList className="w-4 h-4" />
+              <span>Tracker</span>
+            </button>
+
+            {/* Tracker - Challan Tab */}
+            <button
+              onClick={() => setActiveTab('challan')}
+              className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition cursor-pointer shrink-0 ${
+                activeTab === 'challan'
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'bg-white text-blue-600 hover:bg-blue-50 border border-blue-200'
+              }`}
+            >
+              <FileText className="w-4 h-4" />
+              <span>Challans</span>
+            </button>
+
+            {/* Tracker - Truck Tab */}
+            <button
+              onClick={() => setActiveTab('truck')}
+              className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition cursor-pointer shrink-0 ${
+                activeTab === 'truck'
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'bg-white text-blue-600 hover:bg-blue-50 border border-blue-200'
+              }`}
+            >
+              <Truck className="w-4 h-4" />
+              <span>Trucks</span>
+            </button>
+
+            {/* Tracker - Report Tab */}
+            <button
+              onClick={() => setActiveTab('report')}
+              className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition cursor-pointer shrink-0 ${
+                activeTab === 'report'
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'bg-white text-blue-600 hover:bg-blue-50 border border-blue-200'
+              }`}
+            >
+              <BarChart3 className="w-4 h-4" />
+              <span>Daily Report</span>
             </button>
           </div>
         )}
@@ -889,6 +931,33 @@ export default function App() {
               sheetData={filteredSheetData}
               lang={lang}
             />
+          </div>
+        )}
+
+        {/* Tracker Views */}
+        {(!isFocusMode && activeTab === 'upload') && (
+          <div className="print:hidden">
+            <ScheduleUploader />
+          </div>
+        )}
+        {(!isFocusMode && activeTab === 'tracker') && (
+          <div className="print:hidden">
+            <ScheduleTracker />
+          </div>
+        )}
+        {(!isFocusMode && activeTab === 'challan') && (
+          <div className="print:hidden">
+            <ChallanGenerator />
+          </div>
+        )}
+        {(!isFocusMode && activeTab === 'truck') && (
+          <div className="print:hidden">
+            <TruckManager />
+          </div>
+        )}
+        {(!isFocusMode && activeTab === 'report') && (
+          <div className="print:hidden">
+            <DailyReportView />
           </div>
         )}
 
