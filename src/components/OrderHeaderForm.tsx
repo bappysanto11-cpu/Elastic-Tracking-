@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { PackingSheetData } from '../types/calculator';
+import { PackingSheetData, ItemType } from '../types/calculator';
 import { Language, translations } from '../utils/translations';
+import { getItemConfig, ITEM_CONFIGS } from '../utils/calc';
 import { 
   Building2, 
   Hash, 
@@ -16,6 +17,9 @@ import {
   Check, 
   RefreshCw,
   SlidersHorizontal,
+  Package,
+  Layers,
+  Sparkles,
 } from 'lucide-react';
 import { AutocompleteInput } from './AutocompleteInput';
 
@@ -45,9 +49,24 @@ export const OrderHeaderForm: React.FC<OrderHeaderFormProps> = ({
   const [syncApplied, setSyncApplied] = useState(false);
 
   const t = translations[lang];
+  const currentItemKey = (sheetData.itemType || 'elastic').toLowerCase();
+  const currentItemConfig = getItemConfig(sheetData.itemType);
+  const isPcsMode = sheetData.deliveryUnit === 'pcs' || currentItemConfig.defaultDeliveryUnit === 'pcs';
+
+  const handleItemChange = (itemKey: ItemType) => {
+    const config = getItemConfig(itemKey);
+    onChange({
+      itemType: itemKey,
+      deliveryUnit: config.defaultDeliveryUnit,
+      // If user hasn't modified default unit weight or wants the recommended default
+      defaultWtPerUnit: config.defaultWtPerUnit,
+    });
+  };
 
   const handleCopySpec = async () => {
-    const specText = `📦 Order Spec: ${sheetData.ref || 'N/A'} | Buyer: ${sheetData.buyer || 'N/A'} | Cust: ${sheetData.customer || 'N/A'} | Size: ${sheetData.size || 'N/A'} | Color: ${sheetData.color || 'N/A'} | Unit Wt: ${sheetData.defaultWtPerUnit} gm/m | Tare: ${sheetData.defaultTare} Kg`;
+    const itemLabel = currentItemConfig.name;
+    const unitLabel = isPcsMode ? 'gm/pc' : 'gm/m';
+    const specText = `📦 Order Spec: ${sheetData.ref || 'N/A'} | Item: ${itemLabel} (${isPcsMode ? 'Pcs Delivery' : 'Mtr Delivery'}) | Buyer: ${sheetData.buyer || 'N/A'} | Cust: ${sheetData.customer || 'N/A'} | Size: ${sheetData.size || 'N/A'} | Color: ${sheetData.color || 'N/A'} | Unit Wt: ${sheetData.defaultWtPerUnit} ${unitLabel} | Tare: ${sheetData.defaultTare} Kg`;
     try {
       window.focus();
       await navigator.clipboard.writeText(specText);
@@ -83,7 +102,7 @@ export const OrderHeaderForm: React.FC<OrderHeaderFormProps> = ({
             <SlidersHorizontal className="w-3 h-3" />
           </div>
           
-          <div className="flex items-center gap-1.5 min-w-0">
+          <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
             <h2 className="text-xs font-bold tracking-tight text-white truncate">
               {lang === 'en' ? 'Order & Item Specifications' : 'অর্ডার ও আইটেম স্পেসিফিকেশন'}
             </h2>
@@ -92,6 +111,21 @@ export const OrderHeaderForm: React.FC<OrderHeaderFormProps> = ({
             <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-full text-[9.5px] font-semibold bg-indigo-500/20 text-indigo-200 border border-indigo-500/30 shrink-0">
               <span className={`w-1.5 h-1.5 rounded-full ${activeFieldsCount === 6 ? 'bg-emerald-400' : 'bg-amber-400'}`}></span>
               {activeFieldsCount}/6
+            </span>
+
+            {/* Current Item & Delivery Style Tag */}
+            <span className={`inline-flex items-center gap-1 px-2 py-0.2 rounded text-[10px] font-bold border truncate max-w-[200px] ${
+              currentItemKey === 'elastic' 
+                ? 'bg-indigo-500/25 text-indigo-200 border-indigo-400/40' 
+                : currentItemKey === 'drawstring'
+                ? 'bg-amber-500/25 text-amber-200 border-amber-400/40'
+                : currentItemKey === 'bow'
+                ? 'bg-rose-500/25 text-rose-200 border-rose-400/40'
+                : 'bg-emerald-500/25 text-emerald-200 border-emerald-400/40'
+            }`}>
+              <span>{currentItemKey === 'elastic' ? '🧵' : currentItemKey === 'drawstring' ? '🪢' : currentItemKey === 'bow' ? '🎀' : '🏷️'}</span>
+              <span>{currentItemConfig.name}</span>
+              <span className="opacity-75 font-mono text-[9px]">({isPcsMode ? 'Pcs' : 'Mtr'})</span>
             </span>
 
             {sheetData.ref && (
@@ -138,7 +172,107 @@ export const OrderHeaderForm: React.FC<OrderHeaderFormProps> = ({
 
       {/* Main Body */}
       {!isCollapsed ? (
-        <div className="p-2 sm:p-2.5 bg-slate-50/60">
+        <div className="p-2 sm:p-2.5 bg-slate-50/60 space-y-2">
+          
+          {/* 🌟 Items Selection Toolbar (Requested Feature: Elastic -> Mtr, Drawstring -> Pcs, Bow -> Pcs with Live Sticker Sync) */}
+          <div className="bg-white p-2 rounded-lg border border-slate-200/90 shadow-2xs flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-1 text-[11px] font-bold text-slate-700">
+                <Package className="w-3.5 h-3.5 text-indigo-600" />
+                <span>{lang === 'en' ? 'Select Item / Product:' : 'আইটেম নির্বাচন করুন:'}</span>
+              </div>
+
+              {/* 3 Main Requested Items & Presets */}
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {/* 1. Elastic (Mtr delivery) */}
+                <button
+                  type="button"
+                  onClick={() => handleItemChange('elastic')}
+                  className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold transition shadow-2xs cursor-pointer border ${
+                    currentItemKey === 'elastic'
+                      ? 'bg-indigo-600 text-white border-indigo-700 ring-2 ring-indigo-300'
+                      : 'bg-slate-50 hover:bg-indigo-50 text-slate-700 border-slate-200'
+                  }`}
+                >
+                  <span>🧵</span>
+                  <span>{lang === 'en' ? 'Elastic' : 'ইলাস্টিক'}</span>
+                  <span className={`text-[9.5px] px-1 py-0.2 rounded font-mono ${
+                    currentItemKey === 'elastic' ? 'bg-indigo-700 text-indigo-100' : 'bg-slate-200 text-slate-600'
+                  }`}>
+                    {lang === 'en' ? 'Mtr delivery' : 'মিটার'}
+                  </span>
+                </button>
+
+                {/* 2. Drawstring (Pcs delivery) */}
+                <button
+                  type="button"
+                  onClick={() => handleItemChange('drawstring')}
+                  className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold transition shadow-2xs cursor-pointer border ${
+                    currentItemKey === 'drawstring'
+                      ? 'bg-amber-600 text-white border-amber-700 ring-2 ring-amber-300'
+                      : 'bg-slate-50 hover:bg-amber-50 text-slate-700 border-slate-200'
+                  }`}
+                >
+                  <span>🪢</span>
+                  <span>{lang === 'en' ? 'Drawstring' : 'ড্রস্ট্রিং'}</span>
+                  <span className={`text-[9.5px] px-1 py-0.2 rounded font-mono ${
+                    currentItemKey === 'drawstring' ? 'bg-amber-700 text-amber-100' : 'bg-slate-200 text-slate-600'
+                  }`}>
+                    {lang === 'en' ? 'Pcs delivery' : 'পিস'}
+                  </span>
+                </button>
+
+                {/* 3. Bow (Pcs delivery) */}
+                <button
+                  type="button"
+                  onClick={() => handleItemChange('bow')}
+                  className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold transition shadow-2xs cursor-pointer border ${
+                    currentItemKey === 'bow'
+                      ? 'bg-rose-600 text-white border-rose-700 ring-2 ring-rose-300'
+                      : 'bg-slate-50 hover:bg-rose-50 text-slate-700 border-slate-200'
+                  }`}
+                >
+                  <span>🎀</span>
+                  <span>{lang === 'en' ? 'Bow' : 'বো (Bow)'}</span>
+                  <span className={`text-[9.5px] px-1 py-0.2 rounded font-mono ${
+                    currentItemKey === 'bow' ? 'bg-rose-700 text-rose-100' : 'bg-slate-200 text-slate-600'
+                  }`}>
+                    {lang === 'en' ? 'Pcs delivery' : 'পিস'}
+                  </span>
+                </button>
+
+                {/* 4. Tape / Webbing (Mtr delivery) */}
+                <button
+                  type="button"
+                  onClick={() => handleItemChange('tape')}
+                  className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold transition shadow-2xs cursor-pointer border ${
+                    currentItemKey === 'tape'
+                      ? 'bg-emerald-600 text-white border-emerald-700 ring-2 ring-emerald-300'
+                      : 'bg-slate-50 hover:bg-emerald-50 text-slate-700 border-slate-200'
+                  }`}
+                >
+                  <span>🏷️</span>
+                  <span>{lang === 'en' ? 'Tape' : 'টেপ'}</span>
+                  <span className={`text-[9.5px] px-1 py-0.2 rounded font-mono ${
+                    currentItemKey === 'tape' ? 'bg-emerald-700 text-emerald-100' : 'bg-slate-200 text-slate-600'
+                  }`}>
+                    {lang === 'en' ? 'Mtr' : 'মিটার'}
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            {/* Live Sticker Style Sync Confirmation Tag */}
+            <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-600 bg-slate-100 px-2 py-1 rounded-md border border-slate-200">
+              <Sparkles className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+              <span>
+                {lang === 'en'
+                  ? `Sticker Style: ${currentItemConfig.name} (${isPcsMode ? 'Pieces Delivery' : 'Meters Delivery'})`
+                  : `স্টিকার স্টাইল: ${currentItemConfig.nameBn} (${isPcsMode ? 'পিস স্টাইল' : 'মিটার স্টাইল'})`}
+              </span>
+            </div>
+          </div>
+
           {/* Smart Grid of 6 Core Inputs */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-1.5 sm:gap-2">
             {/* 1. Company Name */}
@@ -234,7 +368,7 @@ export const OrderHeaderForm: React.FC<OrderHeaderFormProps> = ({
           </div>
 
           {/* Unified Compact Smart Bar: Parameters + Quick Presets + Sync in One Row */}
-          <div className="mt-1.5 pt-1.5 border-t border-slate-200/70 flex flex-wrap items-center justify-between gap-2">
+          <div className="pt-1.5 border-t border-slate-200/70 flex flex-wrap items-center justify-between gap-2">
             {/* Left: Weight Constants (Tare & Unit Wt) */}
             <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
               {/* Default Tare */}
@@ -252,10 +386,12 @@ export const OrderHeaderForm: React.FC<OrderHeaderFormProps> = ({
                 <span className="text-[9.5px] font-semibold text-slate-400">Kg</span>
               </div>
 
-              {/* Default Unit Weight */}
+              {/* Default Unit Weight (Dynamically adjusts to gm/m or gm/pc) */}
               <div className="flex items-center gap-1 bg-white px-2 py-0.5 rounded-md border border-slate-200 shadow-2xs">
                 <Scale className="w-3 h-3 text-emerald-600 shrink-0" />
-                <span className="text-[10px] font-bold text-slate-600">{t.defaultWtPerUnit}:</span>
+                <span className="text-[10px] font-bold text-slate-600">
+                  {isPcsMode ? (lang === 'en' ? 'Wt/pc:' : 'পিস ওজন:') : `${t.defaultWtPerUnit}:`}
+                </span>
                 <input
                   type="number"
                   step="0.01"
@@ -264,8 +400,28 @@ export const OrderHeaderForm: React.FC<OrderHeaderFormProps> = ({
                   onChange={e => onChange({ defaultWtPerUnit: parseFloat(e.target.value) || 0 })}
                   className="w-14 px-1 py-0.2 text-[11px] font-bold font-mono text-center bg-emerald-50/60 text-emerald-900 border border-emerald-200 rounded focus:ring-1 focus:ring-emerald-500 focus:outline-none"
                 />
-                <span className="text-[9.5px] font-semibold text-slate-400">gm/m</span>
+                <span className="text-[9.5px] font-semibold text-emerald-700">
+                  {isPcsMode ? 'gm/pc' : 'gm/m'}
+                </span>
               </div>
+
+              {/* Optional: Pcs per Packet for Drawstring & Bow */}
+              {isPcsMode && (
+                <div className="flex items-center gap-1 bg-white px-2 py-0.5 rounded-md border border-slate-200 shadow-2xs">
+                  <Package className="w-3 h-3 text-purple-600 shrink-0" />
+                  <span className="text-[10px] font-bold text-slate-600">{lang === 'en' ? 'Pcs/Pkt:' : 'পিস/প্যাকেট:'}</span>
+                  <input
+                    type="number"
+                    step="1"
+                    min="1"
+                    placeholder="e.g. 50"
+                    value={sheetData.pcsPerPkt || ''}
+                    onChange={e => onChange({ pcsPerPkt: parseInt(e.target.value, 10) || undefined })}
+                    className="w-12 px-1 py-0.2 text-[11px] font-bold font-mono text-center bg-purple-50/60 text-purple-900 border border-purple-200 rounded focus:ring-1 focus:ring-purple-500 focus:outline-none"
+                  />
+                  <span className="text-[9.5px] font-semibold text-slate-400">pcs</span>
+                </div>
+              )}
 
               {/* Sync Weights Button */}
               <button
@@ -388,6 +544,11 @@ export const OrderHeaderForm: React.FC<OrderHeaderFormProps> = ({
         /* Collapsed Summary Bar */
         <div className="px-3 py-1.5 bg-slate-50 flex items-center justify-between text-xs text-slate-600 gap-2">
           <div className="flex items-center gap-2 overflow-x-auto py-0.5 text-[11px]">
+            <span className="font-bold text-indigo-700 flex items-center gap-1">
+              <span>{currentItemKey === 'elastic' ? '🧵' : currentItemKey === 'drawstring' ? '🪢' : currentItemKey === 'bow' ? '🎀' : '🏷️'}</span>
+              <span>{currentItemConfig.name} ({isPcsMode ? 'Pcs' : 'Mtr'})</span>
+            </span>
+            <span className="text-slate-300">|</span>
             <span className="font-semibold text-slate-800">{sheetData.companyName || 'No Company'}</span>
             <span className="text-slate-300">|</span>
             <span className="font-mono font-bold text-amber-700">{sheetData.ref || 'No Ref'}</span>
@@ -400,7 +561,7 @@ export const OrderHeaderForm: React.FC<OrderHeaderFormProps> = ({
             <span className="text-slate-300">|</span>
             <span>Tare: <strong>{sheetData.defaultTare} Kg</strong></span>
             <span className="text-slate-300">|</span>
-            <span>Unit Wt: <strong className="text-emerald-700">{sheetData.defaultWtPerUnit} gm/m</strong></span>
+            <span>Unit Wt: <strong className="text-emerald-700">{sheetData.defaultWtPerUnit} {isPcsMode ? 'gm/pc' : 'gm/m'}</strong></span>
           </div>
 
           <button

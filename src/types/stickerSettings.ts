@@ -36,8 +36,11 @@ export interface StickerCustomizationSettings {
   showBarcode: boolean;
   showBuyerBadge: boolean;
   showOrderSpecs: boolean;
+  showTechnicalSpecs?: boolean; // Dynamic extra rows for Style, GSM, Stretch, Tipping, etc.
   showUnitWeight: boolean;
   showFooterBranding: boolean;
+  autoScaleLongText?: boolean; // Automatically scales down font sizes for fields like REF, Customer to prevent overflow
+  showCropMarks?: boolean; // Show dashed cutting lines and corner crop tick marks for manual cutting
 }
 
 export const DEFAULT_STICKER_SETTINGS: StickerCustomizationSettings = {
@@ -69,8 +72,11 @@ export const DEFAULT_STICKER_SETTINGS: StickerCustomizationSettings = {
   showBarcode: true,
   showBuyerBadge: true,
   showOrderSpecs: true,
+  showTechnicalSpecs: true,
   showUnitWeight: true,
   showFooterBranding: true,
+  autoScaleLongText: true,
+  showCropMarks: false,
 };
 
 export const STICKER_THEME_PRESETS: Record<StickerThemePreset, Partial<StickerCustomizationSettings>> = {
@@ -195,3 +201,204 @@ export const FONT_FAMILY_STYLES: Record<StickerFontFamily, { name: string; cssCl
     label: 'Heavy Shipping Label',
   },
 };
+
+export type StickerPaperSize = 
+  | 'a4-grid-4'    // A4 Sheet: 4 Labels per page (2x2 Grid)
+  | 'a4-grid-6'    // A4 Sheet: 6 Labels per page (2x3 Grid)
+  | 'a4-grid-2'    // A4 Sheet: 2 Labels per page (1x2 Large)
+  | 'roll-4x6'     // Thermal Label Roll: 4" x 6" (100mm x 150mm) Single Label
+  | 'roll-4x4'     // Thermal Label Roll: 4" x 4" (100mm x 100mm) Single Label
+  | 'roll-3x2'     // Thermal Label Roll: 3" x 2" (75mm x 50mm) Compact Label
+  | 'auto-flow';   // Auto Responsive Flow
+
+export interface PaperSizeDefinition {
+  id: StickerPaperSize;
+  name: string;
+  nameBn: string;
+  description: string;
+  category: 'sheet' | 'roll' | 'auto';
+  labelsPerPage: number;
+  widthMm: number;
+  heightMm: number;
+  pageCss: string;
+  gridColsClass: string;
+  printGridClass: string;
+  cardMinHeight: string;
+  recommendedPadding: number; // in px
+  recommendedFontScale: number; // multiplier
+}
+
+export const STICKER_PAPER_SIZES: Record<StickerPaperSize, PaperSizeDefinition> = {
+  'a4-grid-4': {
+    id: 'a4-grid-4',
+    name: 'A4 Sheet (4 Labels / 2×2)',
+    nameBn: 'এ৪ শিট (৪টি লেবেল / ২×২)',
+    description: 'Standard 2×2 export packing label layout on A4 paper',
+    category: 'sheet',
+    labelsPerPage: 4,
+    widthMm: 210,
+    heightMm: 297,
+    pageCss: '@page { size: A4 portrait; margin: 5mm; }',
+    gridColsClass: 'grid-cols-1 md:grid-cols-2',
+    printGridClass: 'print:grid-cols-2',
+    cardMinHeight: '260px',
+    recommendedPadding: 14,
+    recommendedFontScale: 1.0,
+  },
+  'a4-grid-6': {
+    id: 'a4-grid-6',
+    name: 'A4 Sheet (6 Labels / 2×3)',
+    nameBn: 'এ৪ শিট (৬টি লেবেল / ২×৩)',
+    description: 'High-density 2×3 carton label layout on A4 paper',
+    category: 'sheet',
+    labelsPerPage: 6,
+    widthMm: 210,
+    heightMm: 297,
+    pageCss: '@page { size: A4 portrait; margin: 4mm; }',
+    gridColsClass: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
+    printGridClass: 'print:grid-cols-2',
+    cardMinHeight: '215px',
+    recommendedPadding: 10,
+    recommendedFontScale: 0.88,
+  },
+  'a4-grid-2': {
+    id: 'a4-grid-2',
+    name: 'A4 Sheet (2 Large Labels)',
+    nameBn: 'এ৪ শিট (২টি বড় লেবেল)',
+    description: 'Extra-large shipping master carton labels (1×2 on A4)',
+    category: 'sheet',
+    labelsPerPage: 2,
+    widthMm: 210,
+    heightMm: 297,
+    pageCss: '@page { size: A4 portrait; margin: 8mm; }',
+    gridColsClass: 'grid-cols-1 md:grid-cols-2',
+    printGridClass: 'print:grid-cols-1',
+    cardMinHeight: '340px',
+    recommendedPadding: 18,
+    recommendedFontScale: 1.15,
+  },
+  'roll-4x6': {
+    id: 'roll-4x6',
+    name: 'Label Roll (4" × 6" / 100×150mm)',
+    nameBn: 'লেবেল রোল (৪" × ৬" / ১০০×১৫০ মিমি)',
+    description: 'Standard 4×6 inch thermal transfer sticker roll (1 label/page)',
+    category: 'roll',
+    labelsPerPage: 1,
+    widthMm: 100,
+    heightMm: 150,
+    pageCss: '@page { size: 100mm 150mm; margin: 2mm; }',
+    gridColsClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
+    printGridClass: 'print:grid-cols-1',
+    cardMinHeight: '320px',
+    recommendedPadding: 14,
+    recommendedFontScale: 1.05,
+  },
+  'roll-4x4': {
+    id: 'roll-4x4',
+    name: 'Label Roll (4" × 4" / 100×100mm)',
+    nameBn: 'লেবেল রোল (৪" × ৪" / ১০০×১০০ মিমি)',
+    description: 'Square 4×4 inch thermal barcode sticker roll (1 label/page)',
+    category: 'roll',
+    labelsPerPage: 1,
+    widthMm: 100,
+    heightMm: 100,
+    pageCss: '@page { size: 100mm 100mm; margin: 2mm; }',
+    gridColsClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
+    printGridClass: 'print:grid-cols-1',
+    cardMinHeight: '260px',
+    recommendedPadding: 11,
+    recommendedFontScale: 0.95,
+  },
+  'roll-3x2': {
+    id: 'roll-3x2',
+    name: 'Compact Roll (3" × 2" / 75×50mm)',
+    nameBn: 'কমপ্যাক্ট রোল (৩" × ২" / ৭৫×৫০ মিমি)',
+    description: 'Compact 3×2 inch thermal label roll (1 label/page)',
+    category: 'roll',
+    labelsPerPage: 1,
+    widthMm: 75,
+    heightMm: 50,
+    pageCss: '@page { size: 75mm 50mm; margin: 1.5mm; }',
+    gridColsClass: 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4',
+    printGridClass: 'print:grid-cols-1',
+    cardMinHeight: '190px',
+    recommendedPadding: 8,
+    recommendedFontScale: 0.78,
+  },
+  'auto-flow': {
+    id: 'auto-flow',
+    name: 'Auto Responsive Grid',
+    nameBn: 'অটো রেসপন্সিভ গ্রিড',
+    description: 'Flows labels dynamically to fill screen and standard printers',
+    category: 'auto',
+    labelsPerPage: 0,
+    widthMm: 0,
+    heightMm: 0,
+    pageCss: '@page { size: auto; margin: 5mm; }',
+    gridColsClass: 'grid-cols-1 md:grid-cols-2',
+    printGridClass: 'print:grid-cols-2',
+    cardMinHeight: '260px',
+    recommendedPadding: 14,
+    recommendedFontScale: 1.0,
+  },
+};
+
+export interface StickerBulkConfig {
+  paperSize: StickerPaperSize;
+  uniformPadding: number;          // in pixels (4px to 28px)
+  fontScale: number;               // multiplier (0.7 to 1.35)
+  forcePageBreakPerLabel: boolean; // each label starts on fresh page (auto for rolls)
+  pageBreakAfterN: number;         // 0 for auto, or 1, 2, 4, 6
+  showPageBreakVisuals: boolean;   // show visual page boundary splitters in UI
+  autoScaleToFitPage: boolean;     // automatically adapt font scale when overflow is detected
+  showCropMarks?: boolean;         // show dashed crop marks and corner cutting guides
+}
+
+export const DEFAULT_BULK_CONFIG: StickerBulkConfig = {
+  paperSize: 'a4-grid-4',
+  uniformPadding: 14,
+  fontScale: 1.0,
+  forcePageBreakPerLabel: false,
+  pageBreakAfterN: 4,
+  showPageBreakVisuals: true,
+  autoScaleToFitPage: true,
+  showCropMarks: false,
+};
+
+export interface RecentStickerConfig {
+  id: string;
+  name: string;
+  timestamp: number;
+  // Core order and packaging details
+  buyer: string;
+  customer: string;
+  ref: string;
+  size: string;
+  color: string;
+  itemType: string;
+  deliveryUnit?: 'mtr' | 'pcs' | 'yds';
+  defaultTare?: number;
+  defaultWtPerUnit?: number;
+  pcsPerPkt?: number;
+  companyName?: string;
+  // Dynamic technical specifications
+  style?: string;
+  gsm?: string;
+  stretch?: string;
+  finish?: string;
+  tipping?: string;
+  pattern?: string;
+  // Sticker appearance & branding settings
+  themePreset?: StickerThemePreset;
+  fontFamily?: StickerFontFamily;
+  fontSizeScale?: StickerFontSizeScale;
+  customCompanyName?: string;
+  customSubtitle?: string;
+  footerBrandingText?: string;
+  showBarcode?: boolean;
+  showTechnicalSpecs?: boolean;
+  autoScaleLongText?: boolean;
+  stickerSettings?: Partial<StickerCustomizationSettings>;
+  bulkConfig?: Partial<StickerBulkConfig>;
+}
+

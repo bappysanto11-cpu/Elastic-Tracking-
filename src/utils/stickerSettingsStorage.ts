@@ -1,6 +1,14 @@
-import { StickerCustomizationSettings, DEFAULT_STICKER_SETTINGS, STICKER_THEME_PRESETS, StickerThemePreset } from '../types/stickerSettings';
+import { 
+  StickerCustomizationSettings, 
+  DEFAULT_STICKER_SETTINGS, 
+  STICKER_THEME_PRESETS, 
+  StickerThemePreset,
+  StickerBulkConfig,
+  DEFAULT_BULK_CONFIG 
+} from '../types/stickerSettings';
 
 const STORAGE_KEY = 'garment_sticker_settings_v2';
+const BULK_CONFIG_KEY = 'garment_sticker_bulk_config_v1';
 
 export function loadStickerSettings(): StickerCustomizationSettings {
   try {
@@ -25,6 +33,29 @@ export function saveStickerSettings(settings: StickerCustomizationSettings): voi
   }
 }
 
+export function loadBulkConfig(): StickerBulkConfig {
+  try {
+    const raw = localStorage.getItem(BULK_CONFIG_KEY);
+    if (!raw) return DEFAULT_BULK_CONFIG;
+    const parsed = JSON.parse(raw);
+    return {
+      ...DEFAULT_BULK_CONFIG,
+      ...parsed,
+    };
+  } catch (err) {
+    console.error('Failed to load bulk config', err);
+    return DEFAULT_BULK_CONFIG;
+  }
+}
+
+export function saveBulkConfig(config: StickerBulkConfig): void {
+  try {
+    localStorage.setItem(BULK_CONFIG_KEY, JSON.stringify(config));
+  } catch (err) {
+    console.error('Failed to save bulk config', err);
+  }
+}
+
 export function applyThemePreset(
   current: StickerCustomizationSettings,
   themePreset: StickerThemePreset
@@ -36,3 +67,4 @@ export function applyThemePreset(
     themePreset,
   };
 }
+

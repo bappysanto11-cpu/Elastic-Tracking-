@@ -4,7 +4,8 @@ import {
   calculateUnitWeightFromSample, 
   calculateRequiredWeight, 
   YARD_TO_METER, 
-  GROSS_UNITS 
+  GROSS_UNITS,
+  parseRawWeightData 
 } from '../utils/calc';
 import { X, Scale, Target, ClipboardPaste, Check, Sparkles } from 'lucide-react';
 
@@ -62,10 +63,7 @@ export const ToolsModal: React.FC<ToolsModalProps> = ({
   };
 
   const handleProcessPaste = () => {
-    const lines = pasteText
-      .split(/[\n,;\t\s]+/)
-      .map(s => parseFloat(s.trim()))
-      .filter(n => !isNaN(n) && n > 0);
+    const lines = parseRawWeightData(pasteText);
 
     if (lines.length === 0) {
       setPasteStatus(lang === 'en' ? 'No valid numbers found.' : 'কোনো সঠিক সংখ্যা পাওয়া যায়নি।');

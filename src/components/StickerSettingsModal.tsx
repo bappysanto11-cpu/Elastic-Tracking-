@@ -15,7 +15,8 @@ import {
   Layers,
   Building2,
   BadgePercent,
-  CheckCircle2
+  CheckCircle2,
+  Scissors
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { 
@@ -29,6 +30,8 @@ import {
 import { applyThemePreset } from '../utils/stickerSettingsStorage';
 import { Language, translations } from '../utils/translations';
 import { PackingSheetData } from '../types/calculator';
+import { getItemTechnicalRows } from '../utils/itemTechnicalSpecs';
+import { AutoFitText } from './AutoFitText';
 
 interface StickerSettingsModalProps {
   isOpen: boolean;
@@ -53,6 +56,7 @@ export const StickerSettingsModal: React.FC<StickerSettingsModalProps> = ({
   const [isDraggingLogo, setIsDraggingLogo] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const t = translations[lang];
+  const technicalRows = getItemTechnicalRows(sheetData, lang);
 
   if (!isOpen) return null;
 
@@ -501,6 +505,26 @@ export const StickerSettingsModal: React.FC<StickerSettingsModalProps> = ({
                       />
                     </button>
                   </div>
+
+                  <div className="pt-2 border-t border-slate-800 flex items-center justify-between">
+                    <div>
+                      <span className="text-xs text-slate-300 font-medium block">Auto-Scale Long Text</span>
+                      <span className="text-[10px] text-slate-500 block">Dynamically scale down font size for long REF, Customer, Buyer to prevent overflow</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleChange('autoScaleLongText', settings.autoScaleLongText === false ? true : false)}
+                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                        settings.autoScaleLongText !== false ? 'bg-indigo-600' : 'bg-slate-700'
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                          settings.autoScaleLongText !== false ? 'translate-x-4.5' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
@@ -683,8 +707,10 @@ export const StickerSettingsModal: React.FC<StickerSettingsModalProps> = ({
                 {[
                   { key: 'showBuyerBadge', label: 'Buyer & Order Highlights Badge', desc: 'Display prominent Buyer badge in header specs' },
                   { key: 'showOrderSpecs', label: 'Order Details Grid (Ref, Cust, Size, Color)', desc: 'Include full garments PO and product specifications' },
+                  { key: 'showTechnicalSpecs', label: 'Dynamic Technical Specs (Style, GSM, Stretch, Tipping)', desc: 'Include adaptive technical rows tailored to item type (Bow vs Elastic)' },
                   { key: 'showUnitWeight', label: 'Unit Weight gm/m Indicator', desc: 'Show gm/m formula verification under barcode' },
                   { key: 'showBarcode', label: 'Decorative Barcode Strip', desc: 'Standard industrial shipping barcode visual' },
+                  { key: 'showCropMarks', label: 'Dashed Crop Marks & Cutting Guides', desc: 'Display dashed border and corner tick marks around sticker for manual scissor cutting' },
                   { key: 'showFooterBranding', label: 'QC Footer Stamp Text', desc: 'Verification tagline at bottom of sticker' },
                 ].map((item) => (
                   <div 
@@ -727,13 +753,28 @@ export const StickerSettingsModal: React.FC<StickerSettingsModalProps> = ({
             </div>
 
             {/* Rendered Live Sticker Sample Card */}
-            <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 flex items-center justify-center flex-1">
+            <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 flex items-center justify-center flex-1">
               <div
-                className={`bg-white shadow-xl flex flex-col justify-between relative overflow-hidden transition-all duration-200 w-full max-w-[340px] p-3 ${fontConfig.cssClass}`}
+                className={`bg-white shadow-xl flex flex-col justify-between relative transition-all duration-200 w-full max-w-[340px] p-3 ${fontConfig.cssClass}`}
                 style={{
                   border: `${settings.borderWidth} solid ${settings.borderColor}`,
                 }}
               >
+                {/* Crop Marks on Live Preview Modal */}
+                {settings.showCropMarks && (
+                  <>
+                    <div className="absolute -inset-2 border-2 border-dashed border-emerald-500/80 pointer-events-none z-20" />
+                    <span className="absolute -top-3.5 -left-3.5 w-3 h-3 border-t-2 border-l-2 border-emerald-400 pointer-events-none z-20" />
+                    <span className="absolute -top-3.5 -right-3.5 w-3 h-3 border-t-2 border-r-2 border-emerald-400 pointer-events-none z-20" />
+                    <span className="absolute -bottom-3.5 -left-3.5 w-3 h-3 border-b-2 border-l-2 border-emerald-400 pointer-events-none z-20" />
+                    <span className="absolute -bottom-3.5 -right-3.5 w-3 h-3 border-b-2 border-r-2 border-emerald-400 pointer-events-none z-20" />
+                    <div className="absolute -top-3 left-2 px-1 bg-slate-900 border border-emerald-500/60 text-[8px] font-mono font-bold text-emerald-400 flex items-center gap-1 z-20 rounded-xs">
+                      <Scissors className="w-2.5 h-2.5 text-emerald-400" />
+                      <span>CROP MARK</span>
+                    </div>
+                  </>
+                )}
+
                 {/* Header with Custom Logo & Company Name */}
                 <div 
                   className="pb-1.5 mb-1.5 flex items-center justify-between"
@@ -749,12 +790,14 @@ export const StickerSettingsModal: React.FC<StickerSettingsModalProps> = ({
                       />
                     )}
                     <div className="min-w-0 flex-1">
-                      <h4 
-                        className={`text-[11px] leading-tight ${settings.headingWeight} ${settings.uppercaseHeaders ? 'uppercase' : ''} truncate`}
+                      <AutoFitText
+                        text={settings.customCompanyName || sheetData.companyName || 'GOOD & FAST Pa. Co. Ltd'}
+                        maxFontSize={11}
+                        minFontSize={7.5}
+                        enabled={settings.autoScaleLongText !== false}
+                        className={`leading-tight ${settings.headingWeight} ${settings.uppercaseHeaders ? 'uppercase' : ''}`}
                         style={{ color: settings.borderColor }}
-                      >
-                        {settings.customCompanyName || sheetData.companyName || 'GOOD & FAST Pa. Co. Ltd'}
-                      </h4>
+                      />
                       <span className="text-[7.5px] text-slate-600 font-semibold block leading-tight truncate">
                         {settings.customSubtitle || 'GARMENT ACCESSORIES & PACKING SPECIFICATION'}
                       </span>
@@ -776,44 +819,250 @@ export const StickerSettingsModal: React.FC<StickerSettingsModalProps> = ({
 
                 {/* Order Specifics */}
                 {settings.showOrderSpecs && (
-                  <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-xs border-b border-slate-300 py-1">
-                    <div>
-                      <span className="text-[7.5px] font-bold text-slate-500 uppercase block">REF / PO:</span>
-                      <span className="font-bold font-mono text-slate-900 text-[10px] truncate block">
-                        {sheetData.ref || 'GF-2026-X88'}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-[7.5px] font-bold text-slate-500 uppercase block">BUYER:</span>
-                      {settings.showBuyerBadge ? (
-                        <span 
-                          className="font-black px-1.5 py-0.2 text-[9px] inline-block truncate max-w-full"
-                          style={{
-                            backgroundColor: settings.badgeBgColor,
-                            color: settings.badgeTextColor,
-                          }}
-                        >
-                          {sheetData.buyer || 'H&M / ZARA'}
+                  sheetData.deliveryUnit === 'pcs' || sheetData.itemType === 'bow' || sheetData.itemType === 'drawstring' ? (
+                    <div className="space-y-0.5 text-xs border-b border-slate-300 py-1">
+                      <div className="flex items-center justify-between border-b border-slate-100 pb-0.5 min-w-0 gap-1.5">
+                        <span className="text-[7.5px] font-bold text-slate-500 uppercase shrink-0">REF:</span>
+                        <div className="min-w-0 flex-1 flex justify-end">
+                          <AutoFitText
+                            text={sheetData.ref || 'LIDA-LO-BOW-26070224'}
+                            maxFontSize={10}
+                            minFontSize={6.5}
+                            isMono={true}
+                            align="right"
+                            enabled={settings.autoScaleLongText !== false}
+                            className="font-bold font-mono text-slate-900"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between border-b border-slate-100 pb-0.5 min-w-0 gap-1.5">
+                        <span className="text-[7.5px] font-bold text-slate-500 uppercase shrink-0">CUSTOMER:</span>
+                        <div className="min-w-0 flex-1 flex justify-end">
+                          <AutoFitText
+                            text={sheetData.customer || 'LIDA'}
+                            maxFontSize={9.5}
+                            minFontSize={6.5}
+                            align="right"
+                            enabled={settings.autoScaleLongText !== false}
+                            className="font-semibold text-slate-800"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between border-b border-slate-100 pb-0.5 min-w-0 gap-1.5">
+                        <span className="text-[7.5px] font-bold text-slate-500 uppercase shrink-0">BUYER:</span>
+                        <div className="min-w-0 flex-1 flex justify-end">
+                          {settings.showBuyerBadge ? (
+                            <span 
+                              className="font-black px-1.5 py-0.2 text-[9px] inline-block max-w-full overflow-hidden"
+                              style={{
+                                backgroundColor: settings.badgeBgColor,
+                                color: settings.badgeTextColor,
+                              }}
+                            >
+                              <AutoFitText
+                                text={sheetData.buyer || 'HCF'}
+                                maxFontSize={9}
+                                minFontSize={6.5}
+                                align="right"
+                                enabled={settings.autoScaleLongText !== false}
+                                className="font-black"
+                              />
+                            </span>
+                          ) : (
+                            <AutoFitText
+                              text={sheetData.buyer || 'HCF'}
+                              maxFontSize={10}
+                              minFontSize={6.5}
+                              align="right"
+                              enabled={settings.autoScaleLongText !== false}
+                              className="font-bold text-slate-900"
+                            />
+                          )}
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-1 border-b border-slate-100 pb-0.5 min-w-0">
+                        <div className="flex items-center justify-between gap-1 min-w-0">
+                          <span className="text-[7.5px] font-bold text-slate-500 uppercase shrink-0">SIZE:</span>
+                          <div className="min-w-0 flex-1 flex justify-end">
+                            <AutoFitText
+                              text={sheetData.size || '3MM'}
+                              maxFontSize={9.5}
+                              minFontSize={6.5}
+                              align="right"
+                              enabled={settings.autoScaleLongText !== false}
+                              className="font-bold text-slate-900"
+                            />
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between gap-1 min-w-0">
+                          <span className="text-[7.5px] font-bold text-slate-500 uppercase shrink-0">COLOUR:</span>
+                          <div className="min-w-0 flex-1 flex justify-end">
+                            <AutoFitText
+                              text={sheetData.color || 'BLACK'}
+                              maxFontSize={9.5}
+                              minFontSize={6.5}
+                              align="right"
+                              enabled={settings.autoScaleLongText !== false}
+                              className="font-bold text-slate-900"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between bg-amber-50 px-1 py-0.5 border border-amber-200 rounded-xs">
+                        <span className="text-[8px] font-black text-amber-950 uppercase">QUANTITY:</span>
+                        <span className="font-mono font-black text-amber-950 text-[10.5px]">
+                          2,000 PCS
                         </span>
-                      ) : (
-                        <span className="font-bold text-slate-900 text-[10px] truncate block">
-                          {sheetData.buyer || 'H&M / ZARA'}
-                        </span>
+                      </div>
+
+                      {/* Preview Dynamic Technical Specs Rows */}
+                      {settings.showTechnicalSpecs !== false && (
+                        <div className="space-y-0.5 pt-0.5 border-t border-slate-200">
+                          {technicalRows.map((row) => (
+                            <div
+                              key={row.id}
+                              className="flex items-center justify-between gap-1 text-[8px] bg-slate-50/90 px-1 py-0.2 rounded border border-slate-200/80"
+                            >
+                              <div className="flex items-center gap-1 min-w-0 flex-1">
+                                <span className="font-black text-slate-500 uppercase tracking-wider text-[7.5px] shrink-0">
+                                  {row.item1.label}
+                                </span>
+                                <div className="min-w-0 flex-1">
+                                  <AutoFitText
+                                    text={row.item1.value}
+                                    maxFontSize={8}
+                                    minFontSize={6}
+                                    enabled={settings.autoScaleLongText !== false}
+                                    className="font-bold text-slate-900"
+                                  />
+                                </div>
+                              </div>
+                              {row.item2 && (
+                                <div className="flex items-center gap-1 shrink-0 pl-1 border-l border-slate-200 max-w-[45%]">
+                                  <span className="font-black text-slate-500 uppercase tracking-wider text-[7.5px] shrink-0">
+                                    {row.item2.label}
+                                  </span>
+                                  <div className="min-w-0 flex-1">
+                                    <AutoFitText
+                                      text={row.item2.value}
+                                      maxFontSize={8}
+                                      minFontSize={6}
+                                      enabled={settings.autoScaleLongText !== false}
+                                      className="font-bold text-slate-900"
+                                    />
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
                       )}
                     </div>
-                    <div>
-                      <span className="text-[7.5px] font-bold text-slate-500 uppercase block">CUSTOMER:</span>
-                      <span className="font-semibold text-slate-800 text-[9.5px] truncate block">
-                        {sheetData.customer || 'Target Global'}
-                      </span>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-xs border-b border-slate-300 py-1 min-w-0">
+                      <div className="min-w-0">
+                        <span className="text-[7.5px] font-bold text-slate-500 uppercase block">REF / PO:</span>
+                        <AutoFitText
+                          text={sheetData.ref || 'GF-2026-X88'}
+                          maxFontSize={10}
+                          minFontSize={6.5}
+                          isMono={true}
+                          enabled={settings.autoScaleLongText !== false}
+                          className="font-bold font-mono text-slate-900"
+                        />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-[7.5px] font-bold text-slate-500 uppercase block">BUYER:</span>
+                        {settings.showBuyerBadge ? (
+                          <span 
+                            className="font-black px-1.5 py-0.2 text-[9px] inline-block max-w-full overflow-hidden"
+                            style={{
+                              backgroundColor: settings.badgeBgColor,
+                              color: settings.badgeTextColor,
+                            }}
+                          >
+                            <AutoFitText
+                              text={sheetData.buyer || 'H&M / ZARA'}
+                              maxFontSize={9}
+                              minFontSize={6.5}
+                              enabled={settings.autoScaleLongText !== false}
+                              className="font-black"
+                            />
+                          </span>
+                        ) : (
+                          <AutoFitText
+                            text={sheetData.buyer || 'H&M / ZARA'}
+                            maxFontSize={10}
+                            minFontSize={6.5}
+                            enabled={settings.autoScaleLongText !== false}
+                            className="font-bold text-slate-900"
+                          />
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-[7.5px] font-bold text-slate-500 uppercase block">CUSTOMER:</span>
+                        <AutoFitText
+                          text={sheetData.customer || 'Target Global'}
+                          maxFontSize={9.5}
+                          minFontSize={6.5}
+                          enabled={settings.autoScaleLongText !== false}
+                          className="font-semibold text-slate-800"
+                        />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-[7.5px] font-bold text-slate-500 uppercase block">SIZE / COLOR:</span>
+                        <AutoFitText
+                          text={`${sheetData.size || '32mm'} | ${sheetData.color || 'Black'}`}
+                          maxFontSize={9.5}
+                          minFontSize={6.5}
+                          enabled={settings.autoScaleLongText !== false}
+                          className="font-bold text-slate-900"
+                        />
+                      </div>
+
+                      {/* Preview Dynamic Technical Specs Rows (Elastic / Tape) */}
+                      {settings.showTechnicalSpecs !== false && (
+                        <div className="col-span-2 pt-0.5 border-t border-slate-200 grid grid-cols-2 gap-x-1.5 gap-y-0.5 min-w-0">
+                          {technicalRows.map((row) => (
+                            <React.Fragment key={row.id}>
+                              <div className="flex items-center justify-between bg-indigo-50/70 px-1 py-0.2 rounded border border-indigo-100 min-w-0 gap-1">
+                                <span className="text-[7px] font-bold text-indigo-900 uppercase shrink-0">
+                                  {row.item1.label}
+                                </span>
+                                <div className="min-w-0 flex-1 flex justify-end">
+                                  <AutoFitText
+                                    text={row.item1.value}
+                                    maxFontSize={8}
+                                    minFontSize={6}
+                                    align="right"
+                                    enabled={settings.autoScaleLongText !== false}
+                                    className="font-black text-indigo-950"
+                                  />
+                                </div>
+                              </div>
+                              {row.item2 && (
+                                <div className="flex items-center justify-between bg-emerald-50/70 px-1 py-0.2 rounded border border-emerald-100 min-w-0 gap-1">
+                                  <span className="text-[7px] font-bold text-emerald-900 uppercase shrink-0">
+                                    {row.item2.label}
+                                  </span>
+                                  <div className="min-w-0 flex-1 flex justify-end">
+                                    <AutoFitText
+                                      text={row.item2.value}
+                                      maxFontSize={8}
+                                      minFontSize={6}
+                                      align="right"
+                                      enabled={settings.autoScaleLongText !== false}
+                                      className="font-black text-emerald-950"
+                                    />
+                                  </div>
+                                </div>
+                              )}
+                            </React.Fragment>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                    <div>
-                      <span className="text-[7.5px] font-bold text-slate-500 uppercase block">SIZE / COLOR:</span>
-                      <span className="font-bold text-slate-900 text-[9.5px]">
-                        {sheetData.size || '32mm'} | {sheetData.color || 'Black'}
-                      </span>
-                    </div>
-                  </div>
+                  )
                 )}
 
                 {/* Measurements Box */}
@@ -834,19 +1083,39 @@ export const StickerSettingsModal: React.FC<StickerSettingsModalProps> = ({
                     <span className="font-black text-xs" style={{ color: settings.borderColor }}>12.00</span>
                     <span className="text-[7px] block text-slate-600">Kg</span>
                   </div>
-                  <div 
-                    className="border-r border-slate-300"
-                    style={{ backgroundColor: settings.lengthBoxBg }}
-                  >
-                    <span className="text-[7px] font-bold uppercase block text-slate-700">MTR</span>
-                    <span className="font-black text-xs text-slate-900">1,500</span>
-                    <span className="text-[7px] text-slate-600 block">Mtr</span>
-                  </div>
-                  <div className="bg-slate-50">
-                    <span className="text-[7px] font-bold text-slate-700 uppercase block">GRY</span>
-                    <span className="font-black text-xs text-slate-900">11.39</span>
-                    <span className="text-[7px] text-slate-600 block">Gry</span>
-                  </div>
+                  {sheetData.deliveryUnit === 'pcs' || sheetData.itemType === 'bow' || sheetData.itemType === 'drawstring' ? (
+                    <>
+                      <div 
+                        className="border-r border-slate-300"
+                        style={{ backgroundColor: settings.lengthBoxBg }}
+                      >
+                        <span className="text-[7px] font-bold uppercase block text-slate-700">QTY</span>
+                        <span className="font-black text-xs text-amber-900">2,000</span>
+                        <span className="text-[7px] text-slate-600 block">Pcs</span>
+                      </div>
+                      <div className="bg-slate-50">
+                        <span className="text-[7px] font-bold text-slate-700 uppercase block">PKTS</span>
+                        <span className="font-black text-xs text-purple-900">20</span>
+                        <span className="text-[7px] text-slate-600 block">Pkt</span>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div 
+                        className="border-r border-slate-300"
+                        style={{ backgroundColor: settings.lengthBoxBg }}
+                      >
+                        <span className="text-[7px] font-bold uppercase block text-slate-700">MTR</span>
+                        <span className="font-black text-xs text-slate-900">1,500</span>
+                        <span className="text-[7px] text-slate-600 block">Mtr</span>
+                      </div>
+                      <div className="bg-slate-50">
+                        <span className="text-[7px] font-bold text-slate-700 uppercase block">GRY</span>
+                        <span className="font-black text-xs text-slate-900">11.39</span>
+                        <span className="text-[7px] text-slate-600 block">Gry</span>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 {/* Footer Section */}
@@ -863,12 +1132,18 @@ export const StickerSettingsModal: React.FC<StickerSettingsModalProps> = ({
                         ))}
                       </div>
                     )}
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="text-[8px] font-mono tracking-wider font-bold" style={{ color: settings.borderColor }}>
-                        *{sheetData.ref || 'GF-2026'}-1*
-                      </span>
+                    <div className="flex items-center gap-1.5 flex-wrap min-w-0">
+                      <AutoFitText
+                        text={`*${sheetData.ref || 'GF-2026'}-1*`}
+                        maxFontSize={8}
+                        minFontSize={6}
+                        isMono={true}
+                        enabled={settings.autoScaleLongText !== false}
+                        className="font-mono tracking-wider font-bold"
+                        style={{ color: settings.borderColor }}
+                      />
                       {settings.showUnitWeight && (
-                        <span className="text-[7.5px] text-slate-500 font-mono">
+                        <span className="text-[7.5px] text-slate-500 font-mono shrink-0">
                           (8.00 gm/m)
                         </span>
                       )}

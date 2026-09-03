@@ -106,6 +106,8 @@ export const FactorySheetView: React.FC<FactorySheetViewProps> = ({
   };
 
   // Total summary block component (reusable either inside grid or in footer)
+  const isPcsMode = sheetData.deliveryUnit === 'pcs';
+
   const renderTotalSummaryBlock = (isInline: boolean = false) => (
     <div 
       className={`border-2 border-slate-900 bg-slate-100 flex flex-col justify-between carton-print-block ${
@@ -130,31 +132,59 @@ export const FactorySheetView: React.FC<FactorySheetViewProps> = ({
           </div>
         </div>
 
-        {/* Total Length (Mtr) */}
-        <div className="flex min-h-[22px] items-stretch bg-indigo-50/40">
-          <div className="w-[42px] sm:w-[46px] shrink-0 border-r border-slate-800 px-1 py-0.5 font-black uppercase text-slate-900 bg-slate-200 flex items-center justify-start text-[9px] sm:text-[10px]">
-            Total
+        {/* Row 2: Total Mtr OR Total Pcs */}
+        {isPcsMode ? (
+          <div className="flex min-h-[22px] items-stretch bg-amber-50/50">
+            <div className="w-[42px] sm:w-[46px] shrink-0 border-r border-slate-800 px-1 py-0.5 font-black uppercase text-slate-900 bg-amber-200 flex items-center justify-start text-[9px] sm:text-[10px]">
+              Total
+            </div>
+            <div className="flex-1 px-1 py-0.5 font-mono font-black text-center text-amber-950 text-[11px] sm:text-xs flex items-center justify-center">
+              {summary.totalQtyPcs || (summary.totalNetWt > 0 && sheetData.defaultWtPerUnit > 0 ? Math.round((summary.totalNetWt * 1000) / sheetData.defaultWtPerUnit) : 0)}
+            </div>
+            <div className="w-7 shrink-0 border-l border-slate-800 px-0.5 py-0.5 font-bold text-center text-slate-800 flex items-center justify-center text-[9px] sm:text-[10px]">
+              Pcs
+            </div>
           </div>
-          <div className="flex-1 px-1 py-0.5 font-mono font-black text-center text-indigo-950 text-[11px] sm:text-xs flex items-center justify-center">
-            {summary.totalMtr.toFixed(1)}
+        ) : (
+          <div className="flex min-h-[22px] items-stretch bg-indigo-50/40">
+            <div className="w-[42px] sm:w-[46px] shrink-0 border-r border-slate-800 px-1 py-0.5 font-black uppercase text-slate-900 bg-slate-200 flex items-center justify-start text-[9px] sm:text-[10px]">
+              Total
+            </div>
+            <div className="flex-1 px-1 py-0.5 font-mono font-black text-center text-indigo-950 text-[11px] sm:text-xs flex items-center justify-center">
+              {summary.totalMtr.toFixed(1)}
+            </div>
+            <div className="w-7 shrink-0 border-l border-slate-800 px-0.5 py-0.5 font-bold text-center text-slate-800 flex items-center justify-center text-[9px] sm:text-[10px]">
+              Mtr
+            </div>
           </div>
-          <div className="w-7 shrink-0 border-l border-slate-800 px-0.5 py-0.5 font-bold text-center text-slate-800 flex items-center justify-center text-[9px] sm:text-[10px]">
-            Mtr
-          </div>
-        </div>
+        )}
 
-        {/* Total Length (Gry) */}
-        <div className="flex min-h-[22px] items-stretch bg-purple-50/40">
-          <div className="w-[42px] sm:w-[46px] shrink-0 border-r border-slate-800 px-1 py-0.5 font-black uppercase text-slate-900 bg-slate-200 flex items-center justify-start text-[9px] sm:text-[10px]">
-            Total
+        {/* Row 3: Total Gry OR Total Packets */}
+        {isPcsMode ? (
+          <div className="flex min-h-[22px] items-stretch bg-purple-50/50">
+            <div className="w-[42px] sm:w-[46px] shrink-0 border-r border-slate-800 px-1 py-0.5 font-black uppercase text-slate-900 bg-purple-200 flex items-center justify-start text-[9px] sm:text-[10px]">
+              Total
+            </div>
+            <div className="flex-1 px-1 py-0.5 font-mono font-black text-center text-purple-950 text-[11px] sm:text-xs flex items-center justify-center">
+              {summary.totalPkts || (sheetData.pcsPerPkt ? Math.round((summary.totalQtyPcs || 0) / sheetData.pcsPerPkt) : '-')}
+            </div>
+            <div className="w-7 shrink-0 border-l border-slate-800 px-0.5 py-0.5 font-bold text-center text-slate-800 flex items-center justify-center text-[9px] sm:text-[10px]">
+              {sheetData.pcsPerPkt ? 'Pkt' : 'Pcs'}
+            </div>
           </div>
-          <div className="flex-1 px-1 py-0.5 font-mono font-black text-center text-purple-950 text-[11px] sm:text-xs flex items-center justify-center">
-            {summary.totalGry.toFixed(2)}
+        ) : (
+          <div className="flex min-h-[22px] items-stretch bg-purple-50/40">
+            <div className="w-[42px] sm:w-[46px] shrink-0 border-r border-slate-800 px-1 py-0.5 font-black uppercase text-slate-900 bg-slate-200 flex items-center justify-start text-[9px] sm:text-[10px]">
+              Total
+            </div>
+            <div className="flex-1 px-1 py-0.5 font-mono font-black text-center text-purple-950 text-[11px] sm:text-xs flex items-center justify-center">
+              {summary.totalGry.toFixed(2)}
+            </div>
+            <div className="w-7 shrink-0 border-l border-slate-800 px-0.5 py-0.5 font-bold text-center text-slate-800 flex items-center justify-center text-[9px] sm:text-[10px]">
+              Gry
+            </div>
           </div>
-          <div className="w-7 shrink-0 border-l border-slate-800 px-0.5 py-0.5 font-bold text-center text-slate-800 flex items-center justify-center text-[9px] sm:text-[10px]">
-            Gry
-          </div>
-        </div>
+        )}
 
         {/* Total Cartons */}
         <div className="flex min-h-[24px] items-stretch bg-slate-900 text-white">
@@ -479,31 +509,63 @@ export const FactorySheetView: React.FC<FactorySheetViewProps> = ({
                       </div>
                     </div>
 
-                    {/* Length (Mtr) */}
-                    <div className="flex min-h-[20px] items-stretch bg-indigo-50/40">
-                      <div className="w-[38px] sm:w-[42px] shrink-0 border-r border-slate-800 px-1 py-0.5 font-bold text-slate-800 text-[9px] sm:text-[9.5px] flex items-center justify-start">
-                        Length
+                    {/* Row 8: Length (Mtr) for Elastic/Tape OR Qty (Pcs) for Drawstring/Bow */}
+                    {isPcsMode ? (
+                      <div className="flex min-h-[20px] items-stretch bg-amber-50/40">
+                        <div className="w-[38px] sm:w-[42px] shrink-0 border-r border-slate-800 px-1 py-0.5 font-bold text-slate-800 text-[9px] sm:text-[9.5px] flex items-center justify-start">
+                          Qty
+                        </div>
+                        <div className="flex-1 px-1 py-0.5 font-mono text-center font-black text-amber-950 text-[10px] sm:text-[11px] flex items-center justify-center">
+                          {hasData ? (c.qtyPcs || (c.wtPerUnit > 0 ? Math.round((c.netWt * 1000) / c.wtPerUnit) : 0)) : '0'}
+                        </div>
+                        <div className="w-6 shrink-0 border-l border-slate-800 px-0.5 py-0.5 font-semibold text-center text-slate-700 text-[9px] sm:text-[9.5px] flex items-center justify-center">
+                          Pcs
+                        </div>
                       </div>
-                      <div className="flex-1 px-1 py-0.5 font-mono text-center font-black text-indigo-950 text-[10px] sm:text-[11px] flex items-center justify-center">
-                        {hasData ? c.lengthMtr.toFixed(2) : '0.00'}
+                    ) : (
+                      <div className="flex min-h-[20px] items-stretch bg-indigo-50/40">
+                        <div className="w-[38px] sm:w-[42px] shrink-0 border-r border-slate-800 px-1 py-0.5 font-bold text-slate-800 text-[9px] sm:text-[9.5px] flex items-center justify-start">
+                          Length
+                        </div>
+                        <div className="flex-1 px-1 py-0.5 font-mono text-center font-black text-indigo-950 text-[10px] sm:text-[11px] flex items-center justify-center">
+                          {hasData ? c.lengthMtr.toFixed(2) : '0.00'}
+                        </div>
+                        <div className="w-6 shrink-0 border-l border-slate-800 px-0.5 py-0.5 font-semibold text-center text-slate-700 text-[9px] sm:text-[9.5px] flex items-center justify-center">
+                          Mtr
+                        </div>
                       </div>
-                      <div className="w-6 shrink-0 border-l border-slate-800 px-0.5 py-0.5 font-semibold text-center text-slate-700 text-[9px] sm:text-[9.5px] flex items-center justify-center">
-                        Mtr
-                      </div>
-                    </div>
+                    )}
 
-                    {/* Length (Gry) */}
-                    <div className="flex min-h-[20px] items-stretch bg-purple-50/40">
-                      <div className="w-[38px] sm:w-[42px] shrink-0 border-r border-slate-800 px-1 py-0.5 font-bold text-slate-800 text-[9px] sm:text-[9.5px] flex items-center justify-start">
-                        Length
+                    {/* Row 9: Length (Gry) for Elastic/Tape OR Packets / Unit wt for Drawstring/Bow */}
+                    {isPcsMode ? (
+                      <div className="flex min-h-[20px] items-stretch bg-purple-50/40">
+                        <div className="w-[38px] sm:w-[42px] shrink-0 border-r border-slate-800 px-1 py-0.5 font-bold text-slate-800 text-[9px] sm:text-[9.5px] flex items-center justify-start">
+                          {sheetData.pcsPerPkt ? 'Packets' : 'Unit Wt'}
+                        </div>
+                        <div className="flex-1 px-1 py-0.5 font-mono text-center font-black text-purple-950 text-[10px] sm:text-[11px] flex items-center justify-center">
+                          {hasData ? (
+                            sheetData.pcsPerPkt 
+                              ? (c.pkts || Math.round((c.qtyPcs || (c.wtPerUnit > 0 ? (c.netWt * 1000) / c.wtPerUnit : 0)) / sheetData.pcsPerPkt))
+                              : c.wtPerUnit.toFixed(2)
+                          ) : '0'}
+                        </div>
+                        <div className="w-6 shrink-0 border-l border-slate-800 px-0.5 py-0.5 font-semibold text-center text-slate-700 text-[9px] sm:text-[9.5px] flex items-center justify-center">
+                          {sheetData.pcsPerPkt ? 'Pkt' : 'gm'}
+                        </div>
                       </div>
-                      <div className="flex-1 px-1 py-0.5 font-mono text-center font-black text-purple-950 text-[10px] sm:text-[11px] flex items-center justify-center">
-                        {hasData ? c.lengthGry.toFixed(2) : '0.00'}
+                    ) : (
+                      <div className="flex min-h-[20px] items-stretch bg-purple-50/40">
+                        <div className="w-[38px] sm:w-[42px] shrink-0 border-r border-slate-800 px-1 py-0.5 font-bold text-slate-800 text-[9px] sm:text-[9.5px] flex items-center justify-start">
+                          Length
+                        </div>
+                        <div className="flex-1 px-1 py-0.5 font-mono text-center font-black text-purple-950 text-[10px] sm:text-[11px] flex items-center justify-center">
+                          {hasData ? c.lengthGry.toFixed(2) : '0.00'}
+                        </div>
+                        <div className="w-6 shrink-0 border-l border-slate-800 px-0.5 py-0.5 font-semibold text-center text-slate-700 text-[9px] sm:text-[9.5px] flex items-center justify-center">
+                          Gry
+                        </div>
                       </div>
-                      <div className="w-6 shrink-0 border-l border-slate-800 px-0.5 py-0.5 font-semibold text-center text-slate-700 text-[9px] sm:text-[9.5px] flex items-center justify-center">
-                        Gry
-                      </div>
-                    </div>
+                    )}
                   </div>
                 </div>
               );

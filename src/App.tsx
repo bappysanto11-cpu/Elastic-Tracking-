@@ -26,7 +26,6 @@ import { ApkDownloadModal } from './components/ApkDownloadModal';
 import { IndexedDbBackupModal } from './components/IndexedDbBackupModal';
 import { AuthModal } from './components/AuthModal';
 import { triggerIndexedDbBackup, openIndexedDB } from './utils/indexedDbBackup';
-import { FloatingSummaryBadge } from './components/FloatingSummaryBadge';
 import { WorkspaceModal } from './components/WorkspaceModal';
 import { DEFAULT_WORKSPACE_ID, loadWorkspaceData, saveWorkspaceData } from './utils/workspaceManager';
 import { AnalyticsView } from './components/AnalyticsView';
@@ -37,7 +36,7 @@ import { loadDemands, saveDemands } from './utils/elasticDemandStorage';
 import { useHistory } from './utils/useHistory';
 import { useAuth } from './context/AuthContext';
 import { useRealtimeSync } from './hooks/useRealtimeSync';
-import { Table, LayoutGrid, Tag, Layers, Check, QrCode, BarChart3, Undo2, Redo2, Search, RotateCcw, ClipboardList, Maximize2, Minimize2, Upload, FileText, Truck, Package } from 'lucide-react';
+import { Table, LayoutGrid, Tag, Layers, Check, QrCode, BarChart3, Undo2, Redo2, Search, RotateCcw, ClipboardList, Upload, FileText, Truck, Package } from 'lucide-react';
 import { ScheduleUploader } from './components/ScheduleUploader';
 import { ScheduleTracker } from './components/ScheduleTracker';
 import { ChallanGenerator } from './components/ChallanGenerator';
@@ -75,7 +74,6 @@ export default function App() {
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState<boolean>(false);
   const [printOrientation, setPrintOrientation] = useState<'landscape' | 'portrait'>('landscape');
   const [isPrintToastVisible, setIsPrintToastVisible] = useState<boolean>(false);
-  const [isFocusMode, setIsFocusMode] = useState<boolean>(false);
 
   // QR Code Carton Inspection Modal
   const [isCartonQrModalOpen, setIsCartonQrModalOpen] = useState<boolean>(false);
@@ -183,14 +181,12 @@ export default function App() {
       } else if ((e.metaKey || e.ctrlKey) && e.key === 'y') {
         e.preventDefault();
         if (canRedo) redoSheetData();
-      } else if (e.key === 'Escape' && isFocusMode) {
-        setIsFocusMode(false);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [canUndo, canRedo, undoSheetData, redoSheetData, isFocusMode]);
+  }, [canUndo, canRedo, undoSheetData, redoSheetData]);
 
   // Compute live summary
   const summary = calculateSummary(sheetData.cartons);
@@ -226,10 +222,49 @@ export default function App() {
 
   // Update order header fields
   const handleUpdateHeader = (updated: Partial<PackingSheetData>) => {
-    setSheetData(prev => ({
-      ...prev,
-      ...updated,
-    }));
+    setSheetData(prev => {
+      const nextData = {
+        ...prev,
+        ...updated,
+      };
+
+      // If itemType, deliveryUnit, pcsPerPkt, defaultTare, or defaultWtPerUnit changed, recompute cartons
+      const shouldRecompute = 
+        updated.itemType !== undefined || 
+        updated.deliveryUnit !== undefined || 
+        updated.pcsPerPkt !== undefined ||
+        updated.defaultTare !== undefined ||
+        updated.defaultWtPerUnit !== undefined;
+
+      if (shouldRecompute) {
+        const tare = nextData.defaultTare || 0.5;
+        const unitWt = nextData.defaultWtPerUnit || 8.0;
+        const delivUnit = nextData.deliveryUnit || 'mtr';
+        const pcsPerPkt = nextData.pcsPerPkt;
+
+        const recomputedCartons = nextData.cartons.map((c, idx) =>
+          recomputeCarton(
+            {
+              ...c,
+              tareWt: c.tareWt !== undefined && c.tareWt > 0 ? c.tareWt : tare,
+              wtPerUnit: c.wtPerUnit !== undefined && c.wtPerUnit > 0 ? c.wtPerUnit : unitWt,
+            },
+            idx,
+            tare,
+            unitWt,
+            delivUnit,
+            pcsPerPkt
+          )
+        );
+
+        return {
+          ...nextData,
+          cartons: recomputedCartons,
+        };
+      }
+
+      return nextData;
+    });
   };
 
   // Demand handlers
@@ -296,7 +331,9 @@ export default function App() {
           },
           idx,
           prev.defaultTare,
-          prev.defaultWtPerUnit
+          prev.defaultWtPerUnit,
+          prev.deliveryUnit || 'mtr',
+          prev.pcsPerPkt
         )
       );
       return {
@@ -320,7 +357,9 @@ export default function App() {
             },
             idx,
             prev.defaultTare,
-            prev.defaultWtPerUnit
+            prev.defaultWtPerUnit,
+            prev.deliveryUnit || 'mtr',
+            prev.pcsPerPkt
           );
         }
         return c;
@@ -346,7 +385,9 @@ export default function App() {
         },
         prev.cartons.length,
         prev.defaultTare,
-        prev.defaultWtPerUnit
+        prev.defaultWtPerUnit,
+        prev.deliveryUnit || 'mtr',
+        prev.pcsPerPkt
       );
       return {
         ...prev,
@@ -372,7 +413,9 @@ export default function App() {
             },
             newCartons.length + i,
             prev.defaultTare,
-            prev.defaultWtPerUnit
+            prev.defaultWtPerUnit,
+            prev.deliveryUnit || 'mtr',
+            prev.pcsPerPkt
           )
         );
       }
@@ -412,7 +455,9 @@ export default function App() {
         },
         prev.cartons.length,
         prev.defaultTare,
-        prev.defaultWtPerUnit
+        prev.defaultWtPerUnit,
+        prev.deliveryUnit || 'mtr',
+        prev.pcsPerPkt
       );
       return {
         ...prev,
@@ -433,7 +478,9 @@ export default function App() {
             },
             idx,
             prev.defaultTare,
-            prev.defaultWtPerUnit
+            prev.defaultWtPerUnit,
+            prev.deliveryUnit || 'mtr',
+            prev.pcsPerPkt
           );
         }
         return c;
@@ -451,7 +498,7 @@ export default function App() {
     setSheetData(prev => {
       const filtered = prev.cartons.filter(c => !ids.includes(c.id));
       const renumbered = (filtered.length > 0 ? filtered : [
-        recomputeCarton({ cartonNo: 1, grossWt: 0 }, 0, prev.defaultTare, prev.defaultWtPerUnit)
+        recomputeCarton({ cartonNo: 1, grossWt: 0 }, 0, prev.defaultTare, prev.defaultWtPerUnit, prev.deliveryUnit || 'mtr', prev.pcsPerPkt)
       ]).map((c, idx) => ({
         ...c,
         cartonNo: idx + 1,
@@ -478,7 +525,9 @@ export default function App() {
           { ...c, cartonNo: idx + 1 },
           idx,
           prev.defaultTare,
-          prev.defaultWtPerUnit
+          prev.defaultWtPerUnit,
+          prev.deliveryUnit || 'mtr',
+          prev.pcsPerPkt
         )
       );
       return {
@@ -488,10 +537,27 @@ export default function App() {
     });
   };
 
+  // Reorder cartons sequence (from drag-and-drop or sort tools)
+  const handleReorderCartons = (newCartons: CartonRow[]) => {
+    setSheetData(prev => {
+      const nonReordered = prev.cartons.filter(c => !newCartons.some(nc => nc.id === c.id));
+      const combined = [...newCartons, ...nonReordered];
+      const renumbered = combined.map((c, idx) => ({
+        ...c,
+        cartonNo: idx + 1,
+      }));
+      return {
+        ...prev,
+        cartons: renumbered,
+        logs: [...(prev.logs || []), createLog('BATCH', `Reordered printing sequence of ${newCartons.length} cartons`)].slice(-50),
+      };
+    });
+  };
+
   // Remove empty rows
   const handleClearEmpty = () => {
     setSheetData(prev => {
-      const filtered = prev.cartons.filter(c => c.grossWt > 0 || c.netWt > 0 || c.lengthMtr > 0);
+      const filtered = prev.cartons.filter(c => c.grossWt > 0 || c.netWt > 0 || c.lengthMtr > 0 || (c.qtyPcs && c.qtyPcs > 0));
       const renumbered = filtered.map((c, idx) => ({
         ...c,
         cartonNo: idx + 1,
@@ -499,7 +565,7 @@ export default function App() {
       return {
         ...prev,
         cartons: renumbered.length > 0 ? renumbered : [
-          recomputeCarton({ cartonNo: 1, grossWt: 0 }, 0, prev.defaultTare, prev.defaultWtPerUnit)
+          recomputeCarton({ cartonNo: 1, grossWt: 0 }, 0, prev.defaultTare, prev.defaultWtPerUnit, prev.deliveryUnit || 'mtr', prev.pcsPerPkt)
         ],
       };
     });
@@ -525,7 +591,9 @@ export default function App() {
             },
             idx,
             prev.defaultTare * multiplier,
-            prev.defaultWtPerUnit
+            prev.defaultWtPerUnit,
+            prev.deliveryUnit || 'mtr',
+            prev.pcsPerPkt
           );
         });
         return {
@@ -545,7 +613,9 @@ export default function App() {
             },
             idx,
             prev.defaultTare,
-            newUnit
+            newUnit,
+            prev.deliveryUnit || 'mtr',
+            prev.pcsPerPkt
           );
         });
         return {
@@ -559,25 +629,105 @@ export default function App() {
   };
 
   // Bulk paste weights handler
-  const handleBulkPasteWeights = (weights: number[]) => {
+  const handleBulkPasteWeights = (
+    weights: number[],
+    mode: 'append' | 'replace' | 'fromIndex' = 'replace',
+    startIndex: number = 0,
+    customTare?: number,
+    customUnitWt?: number
+  ) => {
     setSheetData(prev => {
-      const newCartons = weights.map((grossWt, idx) => {
-        return recomputeCarton(
-          {
-            cartonNo: idx + 1,
-            grossWt,
-            tareWt: prev.defaultTare,
-            wtPerUnit: prev.defaultWtPerUnit,
-          },
-          idx,
-          prev.defaultTare,
-          prev.defaultWtPerUnit
-        );
-      });
+      const tare = customTare !== undefined ? customTare : prev.defaultTare;
+      const unitWt = customUnitWt !== undefined ? customUnitWt : prev.defaultWtPerUnit;
+      const delivUnit = prev.deliveryUnit || 'mtr';
+      const pcsPerPkt = prev.pcsPerPkt;
+
+      let updatedCartons: CartonRow[] = [];
+
+      if (mode === 'replace') {
+        updatedCartons = weights.map((grossWt, idx) => {
+          return recomputeCarton(
+            {
+              cartonNo: idx + 1,
+              grossWt,
+              tareWt: tare,
+              wtPerUnit: unitWt,
+            },
+            idx,
+            tare,
+            unitWt,
+            delivUnit,
+            pcsPerPkt
+          );
+        });
+      } else if (mode === 'append') {
+        const existing = [...prev.cartons];
+        const newRows = weights.map((grossWt, idx) => {
+          return recomputeCarton(
+            {
+              cartonNo: existing.length + idx + 1,
+              grossWt,
+              tareWt: tare,
+              wtPerUnit: unitWt,
+            },
+            existing.length + idx,
+            tare,
+            unitWt,
+            delivUnit,
+            pcsPerPkt
+          );
+        });
+        updatedCartons = [...existing, ...newRows];
+      } else if (mode === 'fromIndex') {
+        const existing = [...prev.cartons];
+        const sIdx = Math.max(0, startIndex);
+
+        // Ensure array is long enough
+        while (existing.length < sIdx + weights.length) {
+          existing.push(
+            recomputeCarton(
+              {
+                cartonNo: existing.length + 1,
+                grossWt: 0,
+                tareWt: tare,
+                wtPerUnit: unitWt,
+              },
+              existing.length,
+              tare,
+              unitWt,
+              delivUnit,
+              pcsPerPkt
+            )
+          );
+        }
+
+        weights.forEach((grossWt, wIdx) => {
+          const targetIdx = sIdx + wIdx;
+          existing[targetIdx] = recomputeCarton(
+            {
+              ...existing[targetIdx],
+              cartonNo: targetIdx + 1,
+              grossWt,
+              tareWt: tare,
+              wtPerUnit: unitWt,
+            },
+            targetIdx,
+            tare,
+            unitWt,
+            delivUnit,
+            pcsPerPkt
+          );
+        });
+
+        updatedCartons = existing.map((c, i) => ({ ...c, cartonNo: i + 1 }));
+      }
 
       return {
         ...prev,
-        cartons: newCartons,
+        defaultTare: tare,
+        defaultWtPerUnit: unitWt,
+        cartons: updatedCartons,
+        logs: [...(prev.logs || []), createLog('UPDATE', `Imported ${weights.length} carton weights (${mode})`)].slice(-50),
       };
     });
   };
@@ -624,114 +774,64 @@ export default function App() {
   const t = translations[lang];
 
   return (
-    <div className={`min-h-screen bg-slate-100 text-slate-900 flex flex-col font-sans selection:bg-indigo-500 selection:text-white ${isFocusMode ? 'focus-mode-active' : ''}`}>
-      {/* Header Bar - Collapsed in Focus Mode */}
-      {!isFocusMode && (
-        <Header
-          lang={lang}
-          setLang={setLang}
-          onOpenAiScan={() => setIsAiScanOpen(true)}
-          onOpenHelp={() => setIsHelpOpen(true)}
-          onOpenActivityLog={() => setIsActivityLogOpen(true)}
-          onOpenTools={() => setIsToolsOpen(true)}
-          onOpenExcelDrive={() => setIsExcelDriveOpen(true)}
-          onOpenApk={() => setIsApkModalOpen(true)}
-          onOpenIndexedDbBackups={() => setIsIndexedDbModalOpen(true)}
-          onOpenAuthModal={() => setIsAuthModalOpen(true)}
-          onPrint={() => handleRequestPrint(activeTab === 'stickers' ? 'portrait' : 'landscape')}
-          onExportCsv={() => exportPackingSheetToCsv(sheetData, summary)}
-          onReset={handleReset}
-          onImportData={handleImportExcelData}
-          onUndo={undoSheetData}
-          onRedo={redoSheetData}
-          canUndo={canUndo}
-          canRedo={canRedo}
-          sheetData={sheetData}
-          summary={summary}
-          lastSavedTime={lastSavedTime}
-          isSaving={isSaving}
-          isOnline={isOnline}
-          syncStatus={syncStatus}
-          lastCloudSyncTime={lastCloudSyncTime}
-          pendingOfflineChanges={pendingOfflineChanges}
-          onManualSync={triggerManualSync}
-        />
-      )}
-
-      {/* Focus Mode Floating Top Bar */}
-      {isFocusMode && (
-        <div className="sticky top-0 z-40 bg-slate-900 text-white px-4 py-2.5 shadow-md flex items-center justify-between animate-in slide-in-from-top-2 duration-200">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-500/20 text-amber-300 border border-amber-500/40 rounded-lg text-xs font-bold font-mono">
-              <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
-              <span>{t.focusMode || 'Focus Mode'}</span>
-            </div>
-            <div className="text-xs text-slate-300 font-medium hidden sm:flex items-center gap-2">
-              <span>{sheetData.companyName || 'Packing Sheet'}</span>
-              <span>•</span>
-              <span>Buyer: <strong className="text-white">{sheetData.buyer || 'N/A'}</strong></span>
-              <span>•</span>
-              <span>Ref: <strong className="text-white">{sheetData.ref || 'N/A'}</strong></span>
-              <span>•</span>
-              <span>Size: <strong className="text-white">{sheetData.size || 'N/A'}</strong></span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <div className="text-xs bg-slate-800 text-slate-200 px-3 py-1 rounded-lg border border-slate-700 font-mono hidden md:flex items-center gap-3">
-              <span>Cartons: <strong className="text-white">{summary.totalCtn}</strong></span>
-              <span>•</span>
-              <span>Net: <strong className="text-emerald-400">{summary.totalNetWt.toFixed(2)} Kg</strong></span>
-              <span>•</span>
-              <span>Mtr: <strong className="text-indigo-400">{Math.round(summary.totalMtr).toLocaleString()} m</strong></span>
-            </div>
-
-            <button
-              onClick={() => setIsFocusMode(false)}
-              className="flex items-center gap-1.5 px-3 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-lg transition cursor-pointer shadow-sm"
-              title="Exit Focus Mode (Restore full UI) [Esc]"
-            >
-              <Minimize2 className="w-3.5 h-3.5" />
-              <span>{t.exitFocusMode || 'Exit Focus Mode'}</span>
-              <kbd className="hidden sm:inline-block ml-1 px-1.5 py-0.2 bg-slate-950/20 text-slate-950 rounded text-[10px] font-mono">
-                Esc
-              </kbd>
-            </button>
-          </div>
-        </div>
-      )}
+    <div className="min-h-screen bg-slate-100 text-slate-900 flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
+      {/* Header Bar */}
+      <Header
+        lang={lang}
+        setLang={setLang}
+        onOpenAiScan={() => setIsAiScanOpen(true)}
+        onOpenHelp={() => setIsHelpOpen(true)}
+        onOpenActivityLog={() => setIsActivityLogOpen(true)}
+        onOpenTools={() => setIsToolsOpen(true)}
+        onOpenExcelDrive={() => setIsExcelDriveOpen(true)}
+        onOpenApk={() => setIsApkModalOpen(true)}
+        onOpenIndexedDbBackups={() => setIsIndexedDbModalOpen(true)}
+        onOpenAuthModal={() => setIsAuthModalOpen(true)}
+        onPrint={() => handleRequestPrint(activeTab === 'stickers' ? 'portrait' : 'landscape')}
+        onExportCsv={() => exportPackingSheetToCsv(sheetData, summary)}
+        onReset={handleReset}
+        onImportData={handleImportExcelData}
+        onUndo={undoSheetData}
+        onRedo={redoSheetData}
+        canUndo={canUndo}
+        canRedo={canRedo}
+        sheetData={sheetData}
+        summary={summary}
+        lastSavedTime={lastSavedTime}
+        isSaving={isSaving}
+        isOnline={isOnline}
+        syncStatus={syncStatus}
+        lastCloudSyncTime={lastCloudSyncTime}
+        pendingOfflineChanges={pendingOfflineChanges}
+        onManualSync={triggerManualSync}
+      />
 
       {/* Main Content Area */}
-      <main className={`flex-1 max-w-7xl w-full mx-auto ${isFocusMode ? 'p-2 sm:p-4' : 'p-4 sm:p-6'}`}>
-        {/* Order Header Input Form - Collapsed in Focus Mode */}
-        {!isFocusMode && (
-          <div className="print:hidden">
-            <OrderHeaderForm
-              sheetData={sheetData}
-              onChange={handleUpdateHeader}
-              onApplyDefaultWeights={handleApplyDefaultWeights}
-              lang={lang}
-              demands={demands}
-              onSelectDemand={handleLoadDemandIntoSheet}
-              onOpenDemandsView={() => setActiveTab('demands')}
-            />
-          </div>
-        )}
+      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6">
+        {/* Order Header Input Form */}
+        <div className="print:hidden">
+          <OrderHeaderForm
+            sheetData={sheetData}
+            onChange={handleUpdateHeader}
+            onApplyDefaultWeights={handleApplyDefaultWeights}
+            lang={lang}
+            demands={demands}
+            onSelectDemand={handleLoadDemandIntoSheet}
+            onOpenDemandsView={() => setActiveTab('demands')}
+          />
+        </div>
 
-        {/* Real-time Summary Cards - Collapsed in Focus Mode */}
-        {!isFocusMode && (
-          <div className="print:hidden">
-            <SummaryCards 
-              summary={summary} 
-              sheetData={sheetData}
-              lang={lang} 
-            />
-          </div>
-        )}
+        {/* Real-time Summary Cards */}
+        <div className="print:hidden">
+          <SummaryCards 
+            summary={summary} 
+            sheetData={sheetData}
+            lang={lang} 
+          />
+        </div>
 
-        {/* View Switcher Tabs - Collapsed in Focus Mode */}
-        {!isFocusMode && (
-          <div className="flex items-center gap-2 mb-4 border-b border-slate-300 pb-2 print:hidden overflow-x-auto">
+        {/* View Switcher Tabs */}
+        <div className="flex items-center gap-2 mb-4 border-b border-slate-300 pb-2 print:hidden overflow-x-auto">
             {/* Table View Tab */}
             <button
               onClick={() => setActiveTab('table')}
@@ -857,10 +957,9 @@ export default function App() {
               <span>Daily Report</span>
             </button>
           </div>
-        )}
 
         {/* Tab Views */}
-        {(!isFocusMode && activeTab === 'demands') && (
+        {activeTab === 'demands' && (
           <div className="print:hidden">
             <ElasticDemandView
               demands={demands}
@@ -873,7 +972,7 @@ export default function App() {
           </div>
         )}
 
-        {(isFocusMode || activeTab === 'table') && (
+        {activeTab === 'table' && (
           <div className="print:hidden">
             <CartonTable
               sheetData={filteredSheetData}
@@ -889,18 +988,17 @@ export default function App() {
               onOpenCartonQr={handleOpenCartonQr}
               lang={lang}
               demands={demands}
+              onBulkPasteWeights={handleBulkPasteWeights}
               onSelectDemand={(demand) => {
                 if (demand) {
                   handleLoadDemandIntoSheet(demand);
                 }
               }}
-              isFocusMode={isFocusMode}
-              onToggleFocusMode={() => setIsFocusMode(prev => !prev)}
             />
           </div>
         )}
 
-        {(!isFocusMode && activeTab === 'sheet') && (
+        {activeTab === 'sheet' && (
           <div>
             <FactorySheetView
               sheetData={filteredSheetData}
@@ -913,7 +1011,7 @@ export default function App() {
           </div>
         )}
 
-        {(!isFocusMode && activeTab === 'stickers') && (
+        {activeTab === 'stickers' && (
           <div>
             <StickerLabelsView
               sheetData={filteredSheetData}
@@ -921,11 +1019,18 @@ export default function App() {
               lang={lang}
               onRequestPrint={orientation => handleRequestPrint(orientation || 'portrait')}
               onOpenCartonQr={handleOpenCartonQr}
+              onUpdateHeader={handleUpdateHeader}
+              onUpdateCarton={handleUpdateCarton}
+              onAddCarton={handleAddCarton}
+              onDeleteCarton={handleDeleteCarton}
+              onDuplicateCarton={handleDuplicateCarton}
+              onAddBulk={handleAddBulk}
+              onReorderCartons={handleReorderCartons}
             />
           </div>
         )}
 
-        {(!isFocusMode && activeTab === 'analytics') && (
+        {activeTab === 'analytics' && (
           <div className="print:hidden">
             <AnalyticsView
               sheetData={filteredSheetData}
@@ -935,27 +1040,27 @@ export default function App() {
         )}
 
         {/* Tracker Views */}
-        {(!isFocusMode && activeTab === 'upload') && (
+        {activeTab === 'upload' && (
           <div className="print:hidden">
             <ScheduleUploader />
           </div>
         )}
-        {(!isFocusMode && activeTab === 'tracker') && (
+        {activeTab === 'tracker' && (
           <div className="print:hidden">
             <ScheduleTracker />
           </div>
         )}
-        {(!isFocusMode && activeTab === 'challan') && (
+        {activeTab === 'challan' && (
           <div className="print:hidden">
             <ChallanGenerator />
           </div>
         )}
-        {(!isFocusMode && activeTab === 'truck') && (
+        {activeTab === 'truck' && (
           <div className="print:hidden">
             <TruckManager />
           </div>
         )}
-        {(!isFocusMode && activeTab === 'report') && (
+        {activeTab === 'report' && (
           <div className="print:hidden">
             <DailyReportView />
           </div>
@@ -982,26 +1087,21 @@ export default function App() {
         </div>
       </main>
 
-      {/* Floating summary badge - Collapsed in Focus Mode */}
-      {!isFocusMode && <FloatingSummaryBadge summary={summary} lang={lang} />}
-
-      {/* Footer - Collapsed in Focus Mode */}
-      {!isFocusMode && (
-        <footer className="bg-white border-t border-slate-200 py-3 px-4 text-center text-xs text-slate-500 print:hidden">
-          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-            <p>
-              {sheetData.companyName || 'GOOD & FAST Pa. Co. Ltd'} — Export Garment Packing & Elastic Calculation System
-            </p>
-            <div className="flex items-center gap-4 text-[11px] text-slate-400">
-              <span>Net Wt = Gross − Tare</span>
-              <span>•</span>
-              <span>Mtr = (Net × 1000) / Wt/unit</span>
-              <span>•</span>
-              <span>Gry = (Mtr / 0.9144) / 144</span>
-            </div>
+      {/* Footer */}
+      <footer className="bg-white border-t border-slate-200 py-3 px-4 text-center text-xs text-slate-500 print:hidden">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+          <p>
+            {sheetData.companyName || 'GOOD & FAST Pa. Co. Ltd'} — Export Garment Packing & Elastic Calculation System
+          </p>
+          <div className="flex items-center gap-4 text-[11px] text-slate-400">
+            <span>Net Wt = Gross − Tare</span>
+            <span>•</span>
+            <span>Mtr = (Net × 1000) / Wt/unit</span>
+            <span>•</span>
+            <span>Gry = (Mtr / 0.9144) / 144</span>
           </div>
-        </footer>
-      )}
+        </div>
+      </footer>
 
       {/* Modals */}
       <CartonQrDetailModal
