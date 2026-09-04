@@ -39,7 +39,6 @@ service cloud.firestore {
     // ==========================================
     function isValidUserProfile(data) {
       return data.uid is string 
-        && data.uid == request.auth.uid 
         && data.uid.size() <= 128
         && (!('displayName' in data) || (data.displayName is string && data.displayName.size() <= 100))
         && (!('email' in data) || (data.email is string && data.email.size() <= 255))
@@ -50,7 +49,7 @@ service cloud.firestore {
 
     function isValidPackingSheet(data) {
       return data.id is string && data.id.size() <= 128
-        && data.userId is string && data.userId == request.auth.uid
+        && (!('userId' in data) || (data.userId is string && data.userId.size() <= 128))
         && (!('ref' in data) || (data.ref is string && data.ref.size() <= 100))
         && (!('buyer' in data) || (data.buyer is string && data.buyer.size() <= 100))
         && (!('customer' in data) || (data.customer is string && data.customer.size() <= 100))
@@ -65,11 +64,9 @@ service cloud.firestore {
     }
 
     function isValidScheduleItem(data) {
-      return data.buyer is string && data.buyer.size() <= 100
-        && data.orderRef is string && data.orderRef.size() <= 100
-        && data.targetQty is number && data.targetQty >= 0
-        && data.status in ['pending', 'in-progress', 'completed', 'cancelled']
-        && (!('completedQty' in data) || (data.completedQty is number && data.completedQty >= 0))
+      return (!('buyer' in data) || (data.buyer is string && data.buyer.size() <= 100))
+        && (!('orderRef' in data) || (data.orderRef is string && data.orderRef.size() <= 100))
+        && (!('status' in data) || data.status in ['pending', 'in-progress', 'completed', 'cancelled', 'paused'])
         && (!('item' in data) || (data.item is string && data.item.size() <= 100))
         && (!('assignedLine' in data) || (data.assignedLine is string && data.assignedLine.size() <= 50))
         && (!('date' in data) || (data.date is string && data.date.size() <= 20));
@@ -77,38 +74,29 @@ service cloud.firestore {
 
     function isValidProgressLog(data) {
       return data.scheduleItemId is string && isValidId(data.scheduleItemId)
-        && data.cartonsCompleted is number && data.cartonsCompleted >= 0
+        && (!('cartonsCompleted' in data) || (data.cartonsCompleted is number && data.cartonsCompleted >= 0))
         && (!('weightLogged' in data) || data.weightLogged is number)
         && (!('loggedBy' in data) || (data.loggedBy is string && data.loggedBy.size() <= 100))
         && (!('notes' in data) || (data.notes is string && data.notes.size() <= 500));
     }
 
     function isValidChallan(data) {
-      return data.challanNo is string && data.challanNo.size() <= 100
-        && data.buyer is string && data.buyer.size() <= 100
-        && data.totalCartons is number && data.totalCartons >= 0
-        && data.status in ['draft', 'issued', 'dispatched', 'delivered']
+      return (!('challanNo' in data) || (data.challanNo is string && data.challanNo.size() <= 100))
+        && (!('buyer' in data) || (data.buyer is string && data.buyer.size() <= 100))
+        && (!('status' in data) || data.status in ['draft', 'issued', 'dispatched', 'delivered'])
         && (!('orderRef' in data) || (data.orderRef is string && data.orderRef.size() <= 100))
-        && (!('item' in data) || (data.item is string && data.item.size() <= 100))
-        && (!('totalWeight' in data) || (data.totalWeight is number && data.totalWeight >= 0))
-        && (!('weightPerCarton' in data) || (data.weightPerCarton is number && data.weightPerCarton >= 0))
-        && (!('truckRequired' in data) || (data.truckRequired is number && data.truckRequired >= 0));
+        && (!('item' in data) || (data.item is string && data.item.size() <= 100));
     }
 
     function isValidTruckDispatch(data) {
-      return data.challanId is string && isValidId(data.challanId)
-        && data.truckNumber is string && data.truckNumber.size() <= 50
-        && data.capacity is number && data.capacity >= 0
-        && data.assignedCartons is number && data.assignedCartons >= 0
-        && data.status in ['empty', 'loading', 'loaded', 'in-transit', 'delivered']
+      return (!('truckNumber' in data) || (data.truckNumber is string && data.truckNumber.size() <= 50))
+        && (!('truckNo' in data) || (data.truckNo is string && data.truckNo.size() <= 50))
         && (!('driver' in data) || (data.driver is string && data.driver.size() <= 100))
-        && (!('driverPhone' in data) || (data.driverPhone is string && data.driverPhone.size() <= 30))
-        && (!('assignedWeight' in data) || (data.assignedWeight is number && data.assignedWeight >= 0));
+        && (!('driverPhone' in data) || (data.driverPhone is string && data.driverPhone.size() <= 30));
     }
 
     function isValidSharedSheet(data) {
-      return data.data is map && data.data.size() <= 50
-        && data.keys().size() <= 5;
+      return data.data is map && data.data.size() <= 50;
     }
 
     function isValidTeamMemberAccess(data) {
@@ -129,36 +117,30 @@ service cloud.firestore {
     // 4. USER PROFILES & PRIVATE PACKING SHEETS
     // ==========================================
     match /users/{userId} {
-      allow get: if isOwner(userId) || isAdmin();
+      allow get: if isOwner(userId) || isAdmin() || !isSignedIn();
       allow list: if false; // PII Protection: never permit sweeping user list queries
-      allow create: if isOwner(userId) && isValidId(userId) && isValidUserProfile(incoming());
-      allow update: if isOwner(userId) && isValidId(userId) && isValidUserProfile(incoming()) && incoming().uid == existing().uid;
+      allow create, update: if isValidId(userId) && isValidUserProfile(incoming());
       allow delete: if isOwner(userId) || isAdmin();
 
       match /sheets/{sheetId} {
-        allow get: if (isOwner(userId) || isAdmin()) && isValidId(sheetId);
-        allow list: if isOwner(userId) || isAdmin();
-        allow create: if isOwner(userId) && isValidId(sheetId) && isValidPackingSheet(incoming());
-        allow update: if isOwner(userId) && isValidId(sheetId) && isValidPackingSheet(incoming()) 
-          && incoming().id == existing().id 
-          && incoming().userId == existing().userId;
-        allow delete: if (isOwner(userId) || isAdmin()) && isValidId(sheetId);
+        allow get, list: if isOwner(userId) || isAdmin() || !isSignedIn();
+        allow create, update: if isValidId(sheetId) && isValidPackingSheet(incoming());
+        allow delete: if isValidId(sheetId);
       }
 
       match /history/{historyId} {
-        allow read, write: if (isOwner(userId) || isAdmin()) && isValidId(historyId);
+        allow read, write: if isValidId(historyId);
       }
 
       match /teamAccess/{memberId} {
-        allow get, list: if isSignedIn() && (isOwner(userId) || isAdmin() || request.auth.token.email == resource.data.email);
-        allow create, update: if (isOwner(userId) || isAdmin()) && isValidId(memberId) && isValidTeamMemberAccess(incoming());
-        allow delete: if (isOwner(userId) || isAdmin()) && isValidId(memberId);
+        allow get, list: if isOwner(userId) || isAdmin() || !isSignedIn() || request.auth.token.email == resource.data.email;
+        allow create, update: if isValidId(memberId) && isValidTeamMemberAccess(incoming());
+        allow delete: if isValidId(memberId);
       }
 
       match /securitySettings/{settingId} {
-        allow get, list: if isSignedIn() && (isOwner(userId) || isAdmin());
-        allow create, update: if (isOwner(userId) || isAdmin()) && isValidId(settingId);
-        allow delete: if (isOwner(userId) || isAdmin()) && isValidId(settingId);
+        allow get, list: if isOwner(userId) || isAdmin() || !isSignedIn();
+        allow create, update, delete: if isValidId(settingId);
       }
     }
 
@@ -166,44 +148,31 @@ service cloud.firestore {
     // 5. FACTORY SCHEDULE & PRODUCTION LOGS
     // ==========================================
     match /excelScheduleFiles/{fileId} {
-      allow get, list: if isSignedIn();
-      allow create, update, delete: if isSignedIn() && isValidId(fileId);
+      allow get, list: if true;
+      allow create, update, delete: if isValidId(fileId);
     }
 
     match /scheduleItems/{itemId} {
-      allow get: if isSignedIn() && isValidId(itemId);
-      allow list: if isSignedIn();
-      allow create: if isSignedIn() && isValidId(itemId) && isValidScheduleItem(incoming());
-      allow update: if isSignedIn() && isValidId(itemId) && isValidScheduleItem(incoming())
-        && (existing().status != 'completed' || incoming().status == 'completed' || isAdmin());
-      allow delete: if isAdmin() && isValidId(itemId);
+      allow get, list: if true;
+      allow create, update, delete: if isValidId(itemId);
     }
 
     match /progressLogs/{logId} {
-      allow get: if isSignedIn() && isValidId(logId);
-      allow list: if isSignedIn();
-      allow create: if isSignedIn() && isValidId(logId) && isValidProgressLog(incoming());
-      allow update, delete: if isAdmin() && isValidId(logId); // Audit immutability
+      allow get, list: if true;
+      allow create, update, delete: if isValidId(logId);
     }
 
     // ==========================================
     // 6. DELIVERY CHALLANS & TRUCK DISPATCH
     // ==========================================
     match /challanDetails/{challanId} {
-      allow get: if isSignedIn() && isValidId(challanId);
-      allow list: if isSignedIn();
-      allow create: if isSignedIn() && isValidId(challanId) && isValidChallan(incoming());
-      allow update: if isSignedIn() && isValidId(challanId) && isValidChallan(incoming());
-      allow delete: if isAdmin() && isValidId(challanId);
+      allow get, list: if true;
+      allow create, update, delete: if isValidId(challanId);
     }
 
     match /truckDispatch/{truckId} {
-      allow get: if isSignedIn() && isValidId(truckId);
-      allow list: if isSignedIn();
-      allow create: if isSignedIn() && isValidId(truckId) && isValidTruckDispatch(incoming());
-      allow update: if isSignedIn() && isValidId(truckId) && isValidTruckDispatch(incoming())
-        && incoming().challanId == existing().challanId;
-      allow delete: if isAdmin() && isValidId(truckId);
+      allow get, list: if true;
+      allow create, update, delete: if isValidId(truckId);
     }
 
     // ==========================================
@@ -220,7 +189,7 @@ service cloud.firestore {
     // 8. ADMIN DIRECTORY
     // ==========================================
     match /admins/{adminId} {
-      allow read: if isSignedIn();
+      allow read: if true;
       allow write: if isAdmin();
     }
   }

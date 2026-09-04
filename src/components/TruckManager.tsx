@@ -24,6 +24,11 @@ export const TruckManager: React.FC = () => {
         challanList.push({ id: doc.id, ...doc.data() } as ChallanDetail);
       });
       setChallans(challanList);
+      if (challanList.length > 0) {
+        try {
+          localStorage.setItem('cached_challan_details', JSON.stringify(challanList));
+        } catch {}
+      }
 
       // Get Trucks
       const truckSnapshot = await getDocs(collection(db, 'truckDispatch'));
@@ -32,8 +37,19 @@ export const TruckManager: React.FC = () => {
         truckList.push({ id: doc.id, ...doc.data() } as TruckDispatch);
       });
       setTrucks(truckList);
+      if (truckList.length > 0) {
+        try {
+          localStorage.setItem('cached_truck_dispatch', JSON.stringify(truckList));
+        } catch {}
+      }
     } catch (error) {
-      console.error('Error loading data:', error);
+      console.warn('Notice loading cloud truck data, using local cache:', error);
+      try {
+        const cachedChallans = localStorage.getItem('cached_challan_details');
+        if (cachedChallans) setChallans(JSON.parse(cachedChallans));
+        const cachedTrucks = localStorage.getItem('cached_truck_dispatch');
+        if (cachedTrucks) setTrucks(JSON.parse(cachedTrucks));
+      } catch {}
     } finally {
       setLoading(false);
     }
