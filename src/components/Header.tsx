@@ -39,6 +39,7 @@ import { PackingSheetData, SummaryStats, CartonRow } from '../types/calculator';
 import { parseExcelOrCsvFile } from '../utils/export';
 import { useAuth } from '../context/AuthContext';
 import { SyncStatus } from '../hooks/useRealtimeSync';
+import { BrandTitle3D } from './BrandTitle3D';
 
 interface HeaderProps {
   lang: Language;
@@ -252,19 +253,12 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
 
   if (isCollapsed) {
     return (
-      <header className="bg-slate-900 text-white sticky top-0 z-40 shadow-md border-b border-slate-800">
+      <header className="bg-slate-900 text-white sticky top-0 z-40 shadow-md border-b border-slate-800 print:hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-2 flex items-center justify-between gap-3">
           {/* Left: Brand / Title */}
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-emerald-400 shrink-0">
-              <Calculator className="w-4 h-4" />
-            </div>
-            <div className="min-w-0">
-              <h1 className="text-xs sm:text-sm font-bold tracking-tight text-white truncate flex items-center gap-2">
-                <span>{t.appTitle}</span>
-                <span className={`w-2 h-2 rounded-full shrink-0 ${isOnline ? 'bg-emerald-400' : 'bg-amber-400'}`} title={isOnline ? 'Online' : 'Offline'} />
-              </h1>
-            </div>
+            <BrandTitle3D title={t.appTitle} isCollapsed={true} />
+            <span className={`w-2 h-2 rounded-full shrink-0 ${isOnline ? 'bg-emerald-400' : 'bg-amber-400'}`} title={isOnline ? 'Online' : 'Offline'} />
           </div>
 
           {/* Right: Quick actions + Expand Button */}
@@ -327,29 +321,13 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
   }
 
   return (
-    <header className="bg-slate-900 text-white sticky top-0 z-40 shadow-md">
+    <header className="bg-slate-900 text-white sticky top-0 z-40 shadow-md print:hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-col md:flex-row items-center justify-between gap-3 sm:gap-4">
         {/* Left: Brand / Title & Status Indicators */}
         <div className="flex items-center gap-3 w-full md:w-auto">
-          <div className="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-emerald-400 shrink-0 shadow-xs">
-            <Calculator className="w-5 h-5" />
-          </div>
           <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-base sm:text-lg font-bold tracking-tight text-white flex items-center gap-2">
-                {t.appTitle}
-              </h1>
-
-              {/* Hide Option for Header */}
-              <button
-                type="button"
-                onClick={toggleCollapse}
-                className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-[11px] font-medium border border-slate-700 transition cursor-pointer shadow-xs"
-                title={lang === 'en' ? 'Hide header' : 'হেডার লুকান'}
-              >
-                <span>{lang === 'en' ? 'Hide' : 'লুকান'}</span>
-                <ChevronUp className="w-3.5 h-3.5" />
-              </button>
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <BrandTitle3D title={t.appTitle} />
 
               {/* Online / Offline & Realtime Sync Status Badge */}
               <div 

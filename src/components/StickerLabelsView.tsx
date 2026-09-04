@@ -3509,7 +3509,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
 
       {/* Floating Reorder Notification Toast */}
       {reorderNotice && (
-        <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-2xl border border-slate-700/80 flex items-center gap-2.5 text-xs font-semibold animate-in fade-in slide-in-from-bottom-3 duration-200">
+        <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-2xl border border-slate-700/80 flex items-center gap-2.5 text-xs font-semibold animate-in fade-in slide-in-from-bottom-3 duration-200 print:hidden">
           <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
           <ArrowUpDown className="w-4 h-4 text-indigo-400" />
           <span>{reorderNotice}</span>

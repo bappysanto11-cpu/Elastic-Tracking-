@@ -6,6 +6,16 @@
 }
 
 @media print {
+  /* Force hide all top chrome, headers, navigation bars, footers, buttons, and floating UI */
+  header,
+  footer,
+  nav,
+  aside,
+  .no-print,
+  .print\:hidden {
+    display: none !important;
+  }
+
   body {
     background-color: #ffffff !important;
     color: #000000 !important;
@@ -21,8 +31,9 @@
     print-color-adjust: exact !important;
   }
 
-  /* Avoid page breaks inside carton blocks */
-  .carton-print-block {
+  /* Avoid page breaks inside carton blocks and sticker cards */
+  .carton-print-block,
+  .sticker-print-card {
     page-break-inside: avoid !important;
     break-inside: avoid !important;
   }

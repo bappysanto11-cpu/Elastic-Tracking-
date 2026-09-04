@@ -2,8 +2,8 @@ export type Language = 'en' | 'bn';
 
 export const translations = {
   en: {
-    appTitle: 'Garment Elastic & Trim Packing Calculator',
-    appSubtitle: 'Weight-to-Length (Mtr & Gry) Auto Calculator, Factory Sheet & Sticker Label System',
+    appTitle: 'GOOD & FAST Pa. Co. Ltd',
+    appSubtitle: 'Garment Elastic & Trim Packing Calculator, Factory Sheet & Sticker System',
     companyName: 'Company Name',
     ref: 'REF / PO No',
     customer: 'Customer (Cust)',
@@ -174,8 +174,8 @@ export const translations = {
     stickerStyleSyncBadge: 'Sticker Style Auto-Synced with Item',
   },
   bn: {
-    appTitle: 'গার্মেন্টস ইলাস্টিক ও ট্রিম প্যাকিং ক্যালকুলেটর',
-    appSubtitle: 'ওজন থেকে দৈর্ঘ্য (মিটার ও গ্রস ইয়ার্ড) অটো ক্যালকুলেটর, ফ্যাক্টরি শিট ও স্টিকার সিস্টেম',
+    appTitle: 'GOOD & FAST Pa. Co. Ltd',
+    appSubtitle: 'গার্মেন্টস ইলাস্টিক ও ট্রিম প্যাকিং ক্যালকুলেটর, ফ্যাক্টরি শিট ও স্টিকার সিস্টেম',
     companyName: 'কোম্পানির নাম (Company)',
     ref: 'রেফারেন্স / পিও (REF)',
     customer: 'কাস্টমার (Cust)',
