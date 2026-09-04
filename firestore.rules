@@ -1,31 +1,227 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Users can only access their own user profile and data
+
+    // ==========================================
+    // 1. GLOBAL HELPER PRIMITIVES
+    // ==========================================
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Prevents ID Poisoning and traversal attacks
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // High security administrative check with email verification
+    function isAdmin() {
+      return isSignedIn() && (
+        (request.auth.token.email == 'bappysanto11@gmail.com' && request.auth.token.email_verified == true) ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    // ==========================================
+    // 2. VALIDATION BLUEPRINTS (ANTI-UPDATE-GAP)
+    // ==========================================
+    function isValidUserProfile(data) {
+      return data.uid is string 
+        && data.uid == request.auth.uid 
+        && data.uid.size() <= 128
+        && (!('displayName' in data) || (data.displayName is string && data.displayName.size() <= 100))
+        && (!('email' in data) || (data.email is string && data.email.size() <= 255))
+        && (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() <= 500))
+        && (!('isAnonymous' in data) || data.isAnonymous is bool)
+        && (!('role' in data) || isAdmin()); // Prevents self-assigned privilege escalation
+    }
+
+    function isValidPackingSheet(data) {
+      return data.id is string && data.id.size() <= 128
+        && data.userId is string && data.userId == request.auth.uid
+        && (!('ref' in data) || (data.ref is string && data.ref.size() <= 100))
+        && (!('buyer' in data) || (data.buyer is string && data.buyer.size() <= 100))
+        && (!('customer' in data) || (data.customer is string && data.customer.size() <= 100))
+        && (!('companyName' in data) || (data.companyName is string && data.companyName.size() <= 150))
+        && (!('size' in data) || (data.size is string && data.size.size() <= 50))
+        && (!('color' in data) || (data.color is string && data.color.size() <= 50))
+        && (!('totalCtn' in data) || data.totalCtn is number)
+        && (!('totalNetWt' in data) || data.totalNetWt is number)
+        && (!('totalMtr' in data) || data.totalMtr is number)
+        && (!('totalGry' in data) || data.totalGry is number)
+        && data.sheetData is map && data.sheetData.size() <= 50;
+    }
+
+    function isValidScheduleItem(data) {
+      return data.buyer is string && data.buyer.size() <= 100
+        && data.orderRef is string && data.orderRef.size() <= 100
+        && data.targetQty is number && data.targetQty >= 0
+        && data.status in ['pending', 'in-progress', 'completed', 'cancelled']
+        && (!('completedQty' in data) || (data.completedQty is number && data.completedQty >= 0))
+        && (!('item' in data) || (data.item is string && data.item.size() <= 100))
+        && (!('assignedLine' in data) || (data.assignedLine is string && data.assignedLine.size() <= 50))
+        && (!('date' in data) || (data.date is string && data.date.size() <= 20));
+    }
+
+    function isValidProgressLog(data) {
+      return data.scheduleItemId is string && isValidId(data.scheduleItemId)
+        && data.cartonsCompleted is number && data.cartonsCompleted >= 0
+        && (!('weightLogged' in data) || data.weightLogged is number)
+        && (!('loggedBy' in data) || (data.loggedBy is string && data.loggedBy.size() <= 100))
+        && (!('notes' in data) || (data.notes is string && data.notes.size() <= 500));
+    }
+
+    function isValidChallan(data) {
+      return data.challanNo is string && data.challanNo.size() <= 100
+        && data.buyer is string && data.buyer.size() <= 100
+        && data.totalCartons is number && data.totalCartons >= 0
+        && data.status in ['draft', 'issued', 'dispatched', 'delivered']
+        && (!('orderRef' in data) || (data.orderRef is string && data.orderRef.size() <= 100))
+        && (!('item' in data) || (data.item is string && data.item.size() <= 100))
+        && (!('totalWeight' in data) || (data.totalWeight is number && data.totalWeight >= 0))
+        && (!('weightPerCarton' in data) || (data.weightPerCarton is number && data.weightPerCarton >= 0))
+        && (!('truckRequired' in data) || (data.truckRequired is number && data.truckRequired >= 0));
+    }
+
+    function isValidTruckDispatch(data) {
+      return data.challanId is string && isValidId(data.challanId)
+        && data.truckNumber is string && data.truckNumber.size() <= 50
+        && data.capacity is number && data.capacity >= 0
+        && data.assignedCartons is number && data.assignedCartons >= 0
+        && data.status in ['empty', 'loading', 'loaded', 'in-transit', 'delivered']
+        && (!('driver' in data) || (data.driver is string && data.driver.size() <= 100))
+        && (!('driverPhone' in data) || (data.driverPhone is string && data.driverPhone.size() <= 30))
+        && (!('assignedWeight' in data) || (data.assignedWeight is number && data.assignedWeight >= 0));
+    }
+
+    function isValidSharedSheet(data) {
+      return data.data is map && data.data.size() <= 50
+        && data.keys().size() <= 5;
+    }
+
+    function isValidTeamMemberAccess(data) {
+      return data.email is string && data.email.size() <= 150
+        && data.role in ['view-only', 'editor', 'admin']
+        && (!('displayName' in data) || (data.displayName is string && data.displayName.size() <= 100))
+        && (!('status' in data) || data.status in ['active', 'suspended']);
+    }
+
+    // ==========================================
+    // 3. DEFAULT-DENY CATCH-ALL SAFETY NET
+    // ==========================================
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // ==========================================
+    // 4. USER PROFILES & PRIVATE PACKING SHEETS
+    // ==========================================
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-      
+      allow get: if isOwner(userId) || isAdmin();
+      allow list: if false; // PII Protection: never permit sweeping user list queries
+      allow create: if isOwner(userId) && isValidId(userId) && isValidUserProfile(incoming());
+      allow update: if isOwner(userId) && isValidId(userId) && isValidUserProfile(incoming()) && incoming().uid == existing().uid;
+      allow delete: if isOwner(userId) || isAdmin();
+
       match /sheets/{sheetId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow get: if (isOwner(userId) || isAdmin()) && isValidId(sheetId);
+        allow list: if isOwner(userId) || isAdmin();
+        allow create: if isOwner(userId) && isValidId(sheetId) && isValidPackingSheet(incoming());
+        allow update: if isOwner(userId) && isValidId(sheetId) && isValidPackingSheet(incoming()) 
+          && incoming().id == existing().id 
+          && incoming().userId == existing().userId;
+        allow delete: if (isOwner(userId) || isAdmin()) && isValidId(sheetId);
       }
-      
+
       match /history/{historyId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read, write: if (isOwner(userId) || isAdmin()) && isValidId(historyId);
+      }
+
+      match /teamAccess/{memberId} {
+        allow get, list: if isSignedIn() && (isOwner(userId) || isAdmin() || request.auth.token.email == resource.data.email);
+        allow create, update: if (isOwner(userId) || isAdmin()) && isValidId(memberId) && isValidTeamMemberAccess(incoming());
+        allow delete: if (isOwner(userId) || isAdmin()) && isValidId(memberId);
+      }
+
+      match /securitySettings/{settingId} {
+        allow get, list: if isSignedIn() && (isOwner(userId) || isAdmin());
+        allow create, update: if (isOwner(userId) || isAdmin()) && isValidId(settingId);
+        allow delete: if (isOwner(userId) || isAdmin()) && isValidId(settingId);
       }
     }
 
-    // Global tracking collections (accessible for real-time factory operations)
-    match /scheduleItems/{document=**} {
-      allow read, write: if true;
+    // ==========================================
+    // 5. FACTORY SCHEDULE & PRODUCTION LOGS
+    // ==========================================
+    match /excelScheduleFiles/{fileId} {
+      allow get, list: if isSignedIn();
+      allow create, update, delete: if isSignedIn() && isValidId(fileId);
     }
-    match /progressLogs/{document=**} {
-      allow read, write: if true;
+
+    match /scheduleItems/{itemId} {
+      allow get: if isSignedIn() && isValidId(itemId);
+      allow list: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(itemId) && isValidScheduleItem(incoming());
+      allow update: if isSignedIn() && isValidId(itemId) && isValidScheduleItem(incoming())
+        && (existing().status != 'completed' || incoming().status == 'completed' || isAdmin());
+      allow delete: if isAdmin() && isValidId(itemId);
     }
-    match /challanDetails/{document=**} {
-      allow read, write: if true;
+
+    match /progressLogs/{logId} {
+      allow get: if isSignedIn() && isValidId(logId);
+      allow list: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(logId) && isValidProgressLog(incoming());
+      allow update, delete: if isAdmin() && isValidId(logId); // Audit immutability
     }
-    match /truckDispatch/{document=**} {
-      allow read, write: if true;
+
+    // ==========================================
+    // 6. DELIVERY CHALLANS & TRUCK DISPATCH
+    // ==========================================
+    match /challanDetails/{challanId} {
+      allow get: if isSignedIn() && isValidId(challanId);
+      allow list: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(challanId) && isValidChallan(incoming());
+      allow update: if isSignedIn() && isValidId(challanId) && isValidChallan(incoming());
+      allow delete: if isAdmin() && isValidId(challanId);
+    }
+
+    match /truckDispatch/{truckId} {
+      allow get: if isSignedIn() && isValidId(truckId);
+      allow list: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(truckId) && isValidTruckDispatch(incoming());
+      allow update: if isSignedIn() && isValidId(truckId) && isValidTruckDispatch(incoming())
+        && incoming().challanId == existing().challanId;
+      allow delete: if isAdmin() && isValidId(truckId);
+    }
+
+    // ==========================================
+    // 7. PUBLIC SHARED SHEETS (IMMUTABLE SNAPSHOTS)
+    // ==========================================
+    match /sharedSheets/{shareId} {
+      allow get: if isValidId(shareId); // Anyone with the exact direct link can read
+      allow list: if false; // Anti-Scraping: Bulk directory enumeration strictly blocked
+      allow create: if isValidId(shareId) && isValidSharedSheet(incoming());
+      allow update, delete: if false; // Strictly immutable: cannot be tampered with or deleted once shared
+    }
+
+    // ==========================================
+    // 8. ADMIN DIRECTORY
+    // ==========================================
+    match /admins/{adminId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
     }
   }
 }

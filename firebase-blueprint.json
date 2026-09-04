@@ -2,13 +2,15 @@
   "entities": {
     "UserProfile": {
       "title": "UserProfile",
-      "description": "User profile information",
+      "description": "User profile information and identity metadata",
       "type": "object",
       "properties": {
-        "uid": { "type": "string" },
-        "email": { "type": "string" },
-        "displayName": { "type": "string" },
-        "photoURL": { "type": "string" },
+        "uid": { "type": "string", "maxLength": 128 },
+        "email": { "type": "string", "format": "email", "maxLength": 255 },
+        "displayName": { "type": "string", "maxLength": 100 },
+        "photoURL": { "type": "string", "maxLength": 500 },
+        "providerIds": { "type": "array" },
+        "isAnonymous": { "type": "boolean" },
         "createdAt": { "type": "string", "format": "date-time" },
         "lastLoginAt": { "type": "string", "format": "date-time" }
       },
@@ -16,31 +18,141 @@
     },
     "PackingSheet": {
       "title": "PackingSheet",
-      "description": "Cloud synced packing sheets for the user",
+      "description": "Cloud synced packing sheets for the authenticated user",
       "type": "object",
       "properties": {
-        "id": { "type": "string" },
-        "userId": { "type": "string" },
-        "ref": { "type": "string" },
-        "buyer": { "type": "string" },
-        "customer": { "type": "string" },
-        "companyName": { "type": "string" },
-        "size": { "type": "string" },
-        "color": { "type": "string" },
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "ref": { "type": "string", "maxLength": 100 },
+        "buyer": { "type": "string", "maxLength": 100 },
+        "customer": { "type": "string", "maxLength": 100 },
+        "companyName": { "type": "string", "maxLength": 150 },
+        "size": { "type": "string", "maxLength": 50 },
+        "color": { "type": "string", "maxLength": 50 },
+        "totalCtn": { "type": "number" },
+        "totalNetWt": { "type": "number" },
+        "totalMtr": { "type": "number" },
+        "totalGry": { "type": "number" },
         "sheetData": { "type": "object" },
+        "createdAt": { "type": "string", "format": "date-time" },
         "updatedAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["userId", "sheetData"]
+      "required": ["id", "userId", "sheetData"]
+    },
+    "ScheduleItem": {
+      "title": "ScheduleItem",
+      "description": "Daily factory production packing schedule item",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "buyer": { "type": "string", "maxLength": 100 },
+        "orderRef": { "type": "string", "maxLength": 100 },
+        "item": { "type": "string", "maxLength": 100 },
+        "targetQty": { "type": "number" },
+        "completedQty": { "type": "number" },
+        "status": { "type": "string", "enum": ["pending", "in-progress", "completed", "cancelled"] },
+        "assignedLine": { "type": "string", "maxLength": 50 },
+        "date": { "type": "string", "maxLength": 20 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["buyer", "orderRef", "targetQty", "status"]
+    },
+    "ProgressLog": {
+      "title": "ProgressLog",
+      "description": "Real-time production progress update logs",
+      "type": "object",
+      "properties": {
+        "scheduleItemId": { "type": "string", "maxLength": 128 },
+        "cartonsCompleted": { "type": "number" },
+        "weightLogged": { "type": "number" },
+        "loggedBy": { "type": "string", "maxLength": 100 },
+        "notes": { "type": "string", "maxLength": 500 },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["scheduleItemId", "cartonsCompleted"]
+    },
+    "ChallanDetail": {
+      "title": "ChallanDetail",
+      "description": "Delivery Challan records and dispatch specifications",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "challanNo": { "type": "string", "maxLength": 100 },
+        "buyer": { "type": "string", "maxLength": 100 },
+        "orderRef": { "type": "string", "maxLength": 100 },
+        "item": { "type": "string", "maxLength": 100 },
+        "totalCartons": { "type": "number" },
+        "totalWeight": { "type": "number" },
+        "weightPerCarton": { "type": "number" },
+        "truckRequired": { "type": "number" },
+        "truckCapacity": { "type": "number" },
+        "status": { "type": "string", "enum": ["draft", "issued", "dispatched", "delivered"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["challanNo", "buyer", "totalCartons", "status"]
+    },
+    "TruckDispatch": {
+      "title": "TruckDispatch",
+      "description": "Truck allocation, driver assignments, and delivery tracking",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "challanId": { "type": "string", "maxLength": 128 },
+        "truckNumber": { "type": "string", "maxLength": 50 },
+        "driver": { "type": "string", "maxLength": 100 },
+        "driverPhone": { "type": "string", "maxLength": 30 },
+        "capacity": { "type": "number" },
+        "assignedCartons": { "type": "number" },
+        "assignedWeight": { "type": "number" },
+        "status": { "type": "string", "enum": ["empty", "loading", "loaded", "in-transit", "delivered"] },
+        "departureTime": { "type": "string", "format": "date-time" },
+        "deliveryTime": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["challanId", "truckNumber", "capacity", "assignedCartons", "status"]
+    },
+    "SharedSheet": {
+      "title": "SharedSheet",
+      "description": "Publicly accessible immutable packing sheet snapshots",
+      "type": "object",
+      "properties": {
+        "data": { "type": "object" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["data"]
     }
   },
   "firestore": {
     "/users/{userId}": {
-      "entity": "UserProfile",
-      "description": "User document storing profile"
+      "schema": "UserProfile",
+      "description": "User document storing authentication profile"
     },
     "/users/{userId}/sheets/{sheetId}": {
-      "entity": "PackingSheet",
+      "schema": "PackingSheet",
       "description": "Packing sheet document stored per user"
+    },
+    "/scheduleItems/{itemId}": {
+      "schema": "ScheduleItem",
+      "description": "Daily factory production schedule items"
+    },
+    "/progressLogs/{logId}": {
+      "schema": "ProgressLog",
+      "description": "Real-time production progress updates and carton logs"
+    },
+    "/challanDetails/{challanId}": {
+      "schema": "ChallanDetail",
+      "description": "Generated delivery challan specifications"
+    },
+    "/truckDispatch/{truckId}": {
+      "schema": "TruckDispatch",
+      "description": "Truck loading and dispatch records"
+    },
+    "/sharedSheets/{shareId}": {
+      "schema": "SharedSheet",
+      "description": "Publicly viewable immutable shared packing sheets"
     }
   }
 }

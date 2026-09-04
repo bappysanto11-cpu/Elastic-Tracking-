@@ -34,6 +34,7 @@ export interface ScheduleItem {
   totalTimeSpent?: number;
   
   // Additional
+  challanRef?: string;
   notes?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -60,6 +61,26 @@ export interface StickerStatus {
   createdAt: Date;
   updatedAt: Date;
 }
+
+// ==========================================
+// TRACKED EXCEL FILE MODEL
+// ==========================================
+export interface TrackedExcelFile {
+  id: string;
+  fileName: string;
+  fileSize?: number;
+  uploadedAt: string; // ISO string
+  updatedAt: string; // ISO string
+  uploadedBy?: string;
+  totalRows: number;
+  totalDemand: number;
+  unit: string;
+  uniqueBuyers: string[];
+  status: 'active' | 'in-progress' | 'completed' | 'archived';
+  notes?: string;
+  items: ScheduleItem[];
+}
+
 
 export interface ChallanDetail {
   id: string;

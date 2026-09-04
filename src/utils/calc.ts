@@ -131,7 +131,8 @@ export function recomputeCarton(
   defaultTare: number = 0.50,
   defaultWtPerUnit: number = 30.00,
   deliveryUnit: 'mtr' | 'pcs' | 'yds' = 'mtr',
-  pcsPerPkt?: number
+  pcsPerPkt?: number,
+  weightUnit: 'kg' | 'gm' = 'kg'
 ): CartonRow {
   const grossWt = typeof carton.grossWt === 'number' && !isNaN(carton.grossWt) ? Math.max(0, carton.grossWt) : 0;
   const tareWt = typeof carton.tareWt === 'number' && !isNaN(carton.tareWt) ? Math.max(0, carton.tareWt) : defaultTare;
@@ -141,21 +142,22 @@ export function recomputeCarton(
   // If gross weight is 0, net weight is 0 unless manually specified.
   let netWt = 0;
   if (grossWt > 0) {
-    netWt = Number((grossWt - tareWt).toFixed(2));
+    netWt = Number((grossWt - tareWt).toFixed(3));
   } else if (typeof carton.netWt === 'number' && !isNaN(carton.netWt) && carton.netWt !== 0) {
     netWt = carton.netWt;
   }
 
   const wtPerUnit = typeof carton.wtPerUnit === 'number' && carton.wtPerUnit > 0 ? carton.wtPerUnit : defaultWtPerUnit;
-  const lengthMtr = netWt > 0 ? calculateLengthMeters(netWt, wtPerUnit) : 0;
+  const netWtKg = weightUnit === 'gm' ? netWt / 1000 : netWt;
+  const lengthMtr = netWt > 0 ? calculateLengthMeters(netWtKg, wtPerUnit) : 0;
   const lengthGry = netWt > 0 ? calculateLengthGry(lengthMtr) : 0;
   const lengthYds = netWt > 0 ? calculateLengthYards(lengthMtr) : 0;
 
   // Pieces calculation for Drawstring / Bow / Pcs mode
-  // If wtPerUnit is gm/pc: qtyPcs = (netWt * 1000) / wtPerUnit
+  // If wtPerUnit is gm/pc: qtyPcs = (netWtKg * 1000) / wtPerUnit
   let qtyPcs: number = 0;
   if (netWt > 0 && wtPerUnit > 0) {
-    qtyPcs = Math.round((netWt * 1000) / wtPerUnit);
+    qtyPcs = Math.round((netWtKg * 1000) / wtPerUnit);
   } else if (typeof carton.qtyPcs === 'number') {
     qtyPcs = carton.qtyPcs;
   }
@@ -165,9 +167,9 @@ export function recomputeCarton(
   return {
     id: carton.id || `carton-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
     cartonNo: carton.cartonNo || index + 1,
-    grossWt: Number(grossWt.toFixed(2)),
-    tareWt: Number(tareWt.toFixed(2)),
-    netWt: Number(netWt.toFixed(2)),
+    grossWt: Number(grossWt.toFixed(3)),
+    tareWt: Number(tareWt.toFixed(3)),
+    netWt: Number(netWt.toFixed(3)),
     wtPerUnit: Number(wtPerUnit.toFixed(2)),
     lengthMtr,
     lengthGry,

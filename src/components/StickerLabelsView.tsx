@@ -73,7 +73,6 @@ import {
 import { recordStickerUsage } from '../utils/recentStickerConfigsStorage';
 import { StickerSettingsModal } from './StickerSettingsModal';
 import { StickerBulkConfigPanel } from './StickerBulkConfigPanel';
-import { RecentlyUsedStickers } from './RecentlyUsedStickers';
 import { AutoFitText } from './AutoFitText';
 import { 
   getItemTechnicalRows, 
@@ -120,6 +119,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
   const [showQrCode, setShowQrCode] = useState<boolean>(true);
   const [qrSize, setQrSize] = useState<number>(48);
   const [densityMode, setDensityMode] = useState<'compact' | 'comfort'>('compact');
+  const wUnit = sheetData.weightUnit === 'gm' ? 'gm' : 'kg';
   const isCompact = densityMode === 'compact';
   const isComfort = densityMode === 'comfort';
   const [isExportingAll, setIsExportingAll] = useState<boolean>(false);
@@ -1469,18 +1469,6 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
         totalLabelsCount={activeCartons.length}
       />
 
-      {/* Recently Used Sticker Configurations Section */}
-      <RecentlyUsedStickers
-        sheetData={sheetData}
-        stickerSettings={stickerSettings}
-        lang={lang}
-        onApplyConfig={handleApplyRecentConfig}
-        onNotification={(msg) => {
-          setRecentlyNotification(msg);
-          setTimeout(() => setRecentlyNotification(null), 4000);
-        }}
-      />
-
       {/* Render function for a single sticker card (reusable across Full Preview Grid and Live Side Inspector) */}
       {(() => {
         // Internal render helper
@@ -1537,99 +1525,6 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
           </div>
         ) : (
           <>
-            {/* Visual Grid Header Banner */}
-            <div className="bg-white border border-slate-200 rounded-xl p-3 flex flex-wrap items-center justify-between gap-3 text-xs print:hidden shadow-xs">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold">
-                  <LayoutGrid className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h4 className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                      <span>{lang === 'en' ? 'Preview Mode: Rendered Visual Grid' : 'প্রিভিউ মোড: রেন্ডারড ভিজ্যুয়াল গ্রিড'}</span>
-                    </h4>
-                    <span className="text-[10px] bg-indigo-100 text-indigo-700 font-mono px-2 py-0.5 rounded-full font-bold">
-                      {STICKER_PAPER_SIZES[bulkConfig.paperSize]?.name || 'A4 Paper'} • {activePaperDef.isRoll ? '1 / Page' : '2 × 2 Grid'}
-                    </span>
-                    <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-semibold">
-                      {activeCartons.length} {lang === 'en' ? 'Labels Ready' : 'লেবেল প্রস্তুত'}
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-slate-500">
-                    {lang === 'en'
-                      ? 'Displaying true-to-print final sticker labels with live barcodes, weights, and styling.'
-                      : 'প্রিন্টের চূড়ান্ত সাইজ, লাইভ বারকোড, ওজন ও স্টাইলিং সহ স্টিকার প্রদর্শিত হচ্ছে।'}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                {/* Density Quick Switcher */}
-                <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs">
-                  <button
-                    type="button"
-                    onClick={() => setDensityMode('compact')}
-                    className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold transition cursor-pointer ${
-                      densityMode === 'compact'
-                        ? 'bg-white text-emerald-700 font-bold shadow-2xs border border-emerald-200/80'
-                        : 'text-slate-600 hover:text-slate-900'
-                    }`}
-                    title="Compact Density: More labels per page, compact card footprint"
-                  >
-                    <Minimize2 className="w-3 h-3 text-emerald-600" />
-                    <span>Compact</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setDensityMode('comfort')}
-                    className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold transition cursor-pointer ${
-                      densityMode === 'comfort'
-                        ? 'bg-white text-indigo-700 font-bold shadow-2xs border border-indigo-200/80'
-                        : 'text-slate-600 hover:text-slate-900'
-                    }`}
-                    title="Comfort Density: Larger typography & high-contrast barcodes for easy scanning"
-                  >
-                    <Maximize2 className="w-3 h-3 text-indigo-600" />
-                    <span>Comfort</span>
-                  </button>
-                </div>
-
-                {/* Crop Marks Quick Button */}
-                <button
-                  type="button"
-                  onClick={handleToggleCropMarks}
-                  className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer shadow-2xs border ${
-                    showCropMarks
-                      ? 'bg-emerald-50 text-emerald-800 border-emerald-300 font-bold'
-                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300'
-                  }`}
-                  title={lang === 'en' ? 'Toggle dashed crop marks & corner cut guides' : 'ড্যাশড ক্রপ মার্ক ও কর্নার কাটিং গাইড টগল করুন'}
-                >
-                  <Scissors className={`w-3.5 h-3.5 ${showCropMarks ? 'text-emerald-600' : 'text-slate-600'}`} />
-                  <span>{lang === 'en' ? (showCropMarks ? 'Crop Marks (ON)' : 'Crop Marks') : (showCropMarks ? 'কাটিং মার্ক (অন)' : 'কাটিং মার্ক')}</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setShowPreview(false)}
-                  className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer shadow-2xs"
-                  title="Switch back to Sticker Settings & Data List View"
-                >
-                  <FileSpreadsheet className="w-3.5 h-3.5 text-slate-600" />
-                  <span>{lang === 'en' ? 'Switch to Settings List' : 'সেটিংস লিস্টে যান'}</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setIsBulkPanelOpen(true)}
-                  className="px-2.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer shadow-2xs"
-                >
-                  <SlidersHorizontal className="w-3.5 h-3.5" />
-                  <span>{lang === 'en' ? 'Paper & Layout' : 'পেপার ও লেআউট'}</span>
-                </button>
-              </div>
-            </div>
-
             {/* Interactive Drag-and-Drop Sequence Notice Banner */}
             <div className="bg-gradient-to-r from-indigo-50 via-slate-50 to-indigo-50 border border-indigo-100/80 rounded-xl p-2.5 flex flex-wrap items-center justify-between gap-2.5 text-xs print:hidden shadow-2xs">
               <div className="flex items-center gap-2 text-indigo-950 font-medium">
@@ -2145,7 +2040,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                       <span className={`font-black text-slate-900 ${isCompact ? 'text-xs' : 'text-xs sm:text-sm'}`}>
                         {c.grossWt.toFixed(2)}
                       </span>
-                      <span className="text-[8px] text-slate-500 block">Kg</span>
+                      <span className="text-[8px] text-slate-500 block">{wUnit}</span>
                     </div>
 
                     {/* Box 2: Net Weight */}
@@ -2165,7 +2060,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                       >
                         {c.netWt.toFixed(2)}
                       </span>
-                      <span className="text-[8px] block text-slate-600">Kg</span>
+                      <span className="text-[8px] block text-slate-600">{wUnit}</span>
                     </div>
 
                     {/* Box 3: Length (Mtr) or Quantity (Pcs) */}
@@ -2642,7 +2537,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                     </div>
                     <div className="flex justify-between">
                       <span className="text-slate-500">Default Tare:</span>
-                      <span className="font-mono text-slate-800">{sheetData.defaultTare || 0.5} kg</span>
+                      <span className="font-mono text-slate-800">{sheetData.defaultTare || 0.5} {wUnit}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-slate-500">Default Unit Wt:</span>
@@ -2847,7 +2742,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                                 onFocus={() => setSelectedCartonId(c.id)}
                                 className="w-24 px-2 py-1 bg-white border border-slate-300 rounded font-mono font-bold text-slate-900 text-xs focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                               />
-                              <span className="text-[10px] font-bold text-slate-400 ml-1">kg</span>
+                              <span className="text-[10px] font-bold text-slate-400 ml-1">{wUnit}</span>
                             </div>
                           </td>
 
@@ -2866,7 +2761,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                                 onFocus={() => setSelectedCartonId(c.id)}
                                 className="w-20 px-2 py-1 bg-slate-50 border border-slate-200 rounded font-mono text-slate-700 text-xs focus:ring-1 focus:ring-indigo-500"
                               />
-                              <span className="text-[10px] text-slate-400 ml-1">kg</span>
+                              <span className="text-[10px] text-slate-400 ml-1">{wUnit}</span>
                             </div>
                           </td>
 
@@ -2883,7 +2778,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                                 Gross ≤ Tare
                               </span>
                             ) : (
-                              <span className="text-slate-400 text-xs">0.00 kg</span>
+                              <span className="text-slate-400 text-xs">0.00 {wUnit}</span>
                             )}
                           </td>
 
@@ -3024,11 +2919,11 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                   </span>
                   <span>•</span>
                   <span>
-                    Gross Wt: <strong className="font-mono text-slate-900">{summary.totalGrossWt.toFixed(2)} kg</strong>
+                    Gross Wt: <strong className="font-mono text-slate-900">{summary.totalGrossWt.toFixed(2)} {wUnit}</strong>
                   </span>
                   <span>•</span>
                   <span>
-                    Net Wt: <strong className="font-mono text-emerald-700">{summary.totalNetWt.toFixed(2)} kg</strong>
+                    Net Wt: <strong className="font-mono text-emerald-700">{summary.totalNetWt.toFixed(2)} {wUnit}</strong>
                   </span>
                   <span>•</span>
                   <span>
@@ -3444,7 +3339,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                             <span className={`font-black text-slate-900 ${isCompact ? 'text-xs' : 'text-xs sm:text-sm'}`}>
                               {c.grossWt.toFixed(2)}
                             </span>
-                            <span className="text-[8px] text-slate-500 block">Kg</span>
+                            <span className="text-[8px] text-slate-500 block">{wUnit}</span>
                           </div>
 
                           <div 
@@ -3463,7 +3358,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                             >
                               {c.netWt.toFixed(2)}
                             </span>
-                            <span className="text-[8px] block text-slate-600">Kg</span>
+                            <span className="text-[8px] block text-slate-600">{wUnit}</span>
                           </div>
 
                           <div 

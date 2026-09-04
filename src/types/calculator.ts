@@ -21,6 +21,8 @@ export interface CartonRow {
   qtyPcs?: number; // in Pieces (Pcs) for Drawstring / Bow delivery
   pkts?: number; // Packets / Bundles count
   notes?: string;
+  color?: string;
+  size?: string;
 }
 
 export interface PackingSheetData {
@@ -37,6 +39,7 @@ export interface PackingSheetData {
   defaultTare: number;
   defaultWtPerUnit: number;
   unitSystem: 'metric' | 'yards';
+  weightUnit?: 'kg' | 'gm';
   // Dynamic Item Technical Specs (e.g., Elastic vs Bow vs Drawstring)
   style?: string; // e.g. "Woven Jacquard" (elastic), "Satin Ribbon Bow" (bow), "Braided Round Cord" (drawstring)
   gsm?: string; // e.g. "240 GSM" (elastic), "320 GSM" (tape)

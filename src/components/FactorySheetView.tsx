@@ -47,6 +47,8 @@ export const FactorySheetView: React.FC<FactorySheetViewProps> = ({
 
   // Calculate slots needed: Default 12 blocks for a full A4 sheet
   const minSlots = 12;
+  const wUnit = sheetData.weightUnit === "gm" ? "GM" : "KG";
+  const wUnitLabel = sheetData.weightUnit === "gm" ? "Gms" : "KGs";
   const targetCount = Math.max(minSlots, Math.ceil(sheetData.cartons.length / 6) * 6);
   
   // Clone active cartons and pad with empty blocks
@@ -202,7 +204,7 @@ export const FactorySheetView: React.FC<FactorySheetViewProps> = ({
 
       {isInline && (
         <div className="p-1 bg-slate-200 border-t border-slate-900 text-[8.5px] sm:text-[9px] text-center font-mono font-bold text-slate-800 leading-tight">
-          Net: {summary.totalNetWt.toFixed(2)} Kg ({summary.totalNetWtLbs.toFixed(1)} Lbs) • {summary.activeNetCartonCount} Active CTN
+          Net: {summary.totalNetWt.toFixed(2)} {wUnit} ({summary.totalNetWtLbs.toFixed(1)} Lbs) • {summary.activeNetCartonCount} Active CTN
         </div>
       )}
     </div>
@@ -579,7 +581,7 @@ export const FactorySheetView: React.FC<FactorySheetViewProps> = ({
 
               {/* Additional details on printable sheet */}
               <div className="text-right text-[10px] text-slate-600 space-y-0.5 font-mono">
-                <p className="font-bold text-slate-900">Total Gross: {summary.totalGrossWt.toFixed(2)} Kg | Tare: {summary.totalTareWt.toFixed(2)} Kg</p>
+                <p className="font-bold text-slate-900">Total Gross: {summary.totalGrossWt.toFixed(2)} {wUnit} | Tare: {summary.totalTareWt.toFixed(2)} {wUnit}</p>
                 <p>Total Yards: <span className="font-bold text-slate-900">{summary.totalYds.toFixed(1)} Yds</span> (1 Mtr = 1.0936 Yds | 1 Gry = 144 Yds)</p>
                 <p className="text-slate-400">Generated: {new Date().toLocaleDateString()} {new Date().toLocaleTimeString()}</p>
               </div>

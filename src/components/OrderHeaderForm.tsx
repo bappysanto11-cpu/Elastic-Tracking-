@@ -52,6 +52,7 @@ export const OrderHeaderForm: React.FC<OrderHeaderFormProps> = ({
   const currentItemKey = (sheetData.itemType || 'elastic').toLowerCase();
   const currentItemConfig = getItemConfig(sheetData.itemType);
   const isPcsMode = sheetData.deliveryUnit === 'pcs' || currentItemConfig.defaultDeliveryUnit === 'pcs';
+  const weightUnitLabel = sheetData.weightUnit === 'gm' ? 'Gm' : 'Kg';
 
   const handleItemChange = (itemKey: ItemType) => {
     const config = getItemConfig(itemKey);
@@ -66,7 +67,7 @@ export const OrderHeaderForm: React.FC<OrderHeaderFormProps> = ({
   const handleCopySpec = async () => {
     const itemLabel = currentItemConfig.name;
     const unitLabel = isPcsMode ? 'gm/pc' : 'gm/m';
-    const specText = `📦 Order Spec: ${sheetData.ref || 'N/A'} | Item: ${itemLabel} (${isPcsMode ? 'Pcs Delivery' : 'Mtr Delivery'}) | Buyer: ${sheetData.buyer || 'N/A'} | Cust: ${sheetData.customer || 'N/A'} | Size: ${sheetData.size || 'N/A'} | Color: ${sheetData.color || 'N/A'} | Unit Wt: ${sheetData.defaultWtPerUnit} ${unitLabel} | Tare: ${sheetData.defaultTare} Kg`;
+    const specText = `📦 Order Spec: ${sheetData.ref || 'N/A'} | Item: ${itemLabel} (${isPcsMode ? 'Pcs Delivery' : 'Mtr Delivery'}) | Buyer: ${sheetData.buyer || 'N/A'} | Cust: ${sheetData.customer || 'N/A'} | Size: ${sheetData.size || 'N/A'} | Color: ${sheetData.color || 'N/A'} | Unit Wt: ${sheetData.defaultWtPerUnit} ${unitLabel} | Tare: ${sheetData.defaultTare} ${weightUnitLabel}`;
     try {
       window.focus();
       await navigator.clipboard.writeText(specText);
@@ -368,28 +369,28 @@ export const OrderHeaderForm: React.FC<OrderHeaderFormProps> = ({
           </div>
 
           {/* Unified Compact Smart Bar: Parameters + Quick Presets + Sync in One Row */}
-          <div className="pt-1.5 border-t border-slate-200/70 flex flex-wrap items-center justify-between gap-2">
+          <div className="pt-2 border-t border-slate-200/80 flex flex-wrap items-center justify-between gap-2.5">
             {/* Left: Weight Constants (Tare & Unit Wt) */}
-            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+            <div className="flex items-center gap-2 flex-wrap">
               {/* Default Tare */}
-              <div className="flex items-center gap-1 bg-white px-2 py-0.5 rounded-md border border-slate-200 shadow-2xs">
-                <Box className="w-3 h-3 text-amber-600 shrink-0" />
-                <span className="text-[10px] font-bold text-slate-600">{t.defaultTare}:</span>
+              <div className="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs">
+                <Box className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                <span className="text-xs font-bold text-slate-700">{t.defaultTare}:</span>
                 <input
                   type="number"
                   step="0.01"
                   min="0"
                   value={sheetData.defaultTare}
                   onChange={e => onChange({ defaultTare: parseFloat(e.target.value) || 0 })}
-                  className="w-14 px-1 py-0.2 text-[11px] font-bold font-mono text-center bg-amber-50/60 text-amber-900 border border-amber-200 rounded focus:ring-1 focus:ring-amber-500 focus:outline-none"
+                  className="w-16 px-1.5 py-0.5 text-xs font-bold font-mono text-center bg-amber-50/60 text-amber-900 border border-amber-200 rounded focus:ring-1 focus:ring-amber-500 focus:outline-none"
                 />
-                <span className="text-[9.5px] font-semibold text-slate-400">Kg</span>
+                <span className="text-xs font-semibold text-slate-500">{weightUnitLabel}</span>
               </div>
 
               {/* Default Unit Weight (Dynamically adjusts to gm/m or gm/pc) */}
-              <div className="flex items-center gap-1 bg-white px-2 py-0.5 rounded-md border border-slate-200 shadow-2xs">
-                <Scale className="w-3 h-3 text-emerald-600 shrink-0" />
-                <span className="text-[10px] font-bold text-slate-600">
+              <div className="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs">
+                <Scale className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                <span className="text-xs font-bold text-slate-700">
                   {isPcsMode ? (lang === 'en' ? 'Wt/pc:' : 'পিস ওজন:') : `${t.defaultWtPerUnit}:`}
                 </span>
                 <input
@@ -398,18 +399,18 @@ export const OrderHeaderForm: React.FC<OrderHeaderFormProps> = ({
                   min="0.01"
                   value={sheetData.defaultWtPerUnit}
                   onChange={e => onChange({ defaultWtPerUnit: parseFloat(e.target.value) || 0 })}
-                  className="w-14 px-1 py-0.2 text-[11px] font-bold font-mono text-center bg-emerald-50/60 text-emerald-900 border border-emerald-200 rounded focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+                  className="w-16 px-1.5 py-0.5 text-xs font-bold font-mono text-center bg-emerald-50/60 text-emerald-900 border border-emerald-200 rounded focus:ring-1 focus:ring-emerald-500 focus:outline-none"
                 />
-                <span className="text-[9.5px] font-semibold text-emerald-700">
+                <span className="text-xs font-semibold text-emerald-700">
                   {isPcsMode ? 'gm/pc' : 'gm/m'}
                 </span>
               </div>
 
               {/* Optional: Pcs per Packet for Drawstring & Bow */}
               {isPcsMode && (
-                <div className="flex items-center gap-1 bg-white px-2 py-0.5 rounded-md border border-slate-200 shadow-2xs">
-                  <Package className="w-3 h-3 text-purple-600 shrink-0" />
-                  <span className="text-[10px] font-bold text-slate-600">{lang === 'en' ? 'Pcs/Pkt:' : 'পিস/প্যাকেট:'}</span>
+                <div className="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs">
+                  <Package className="w-3.5 h-3.5 text-purple-600 shrink-0" />
+                  <span className="text-xs font-bold text-slate-700">{lang === 'en' ? 'Pcs/Pkt:' : 'পিস/প্যাকেট:'}</span>
                   <input
                     type="number"
                     step="1"
@@ -417,9 +418,9 @@ export const OrderHeaderForm: React.FC<OrderHeaderFormProps> = ({
                     placeholder="e.g. 50"
                     value={sheetData.pcsPerPkt || ''}
                     onChange={e => onChange({ pcsPerPkt: parseInt(e.target.value, 10) || undefined })}
-                    className="w-12 px-1 py-0.2 text-[11px] font-bold font-mono text-center bg-purple-50/60 text-purple-900 border border-purple-200 rounded focus:ring-1 focus:ring-purple-500 focus:outline-none"
+                    className="w-14 px-1.5 py-0.5 text-xs font-bold font-mono text-center bg-purple-50/60 text-purple-900 border border-purple-200 rounded focus:ring-1 focus:ring-purple-500 focus:outline-none"
                   />
-                  <span className="text-[9.5px] font-semibold text-slate-400">pcs</span>
+                  <span className="text-xs font-semibold text-slate-500">pcs</span>
                 </div>
               )}
 
@@ -427,7 +428,7 @@ export const OrderHeaderForm: React.FC<OrderHeaderFormProps> = ({
               <button
                 type="button"
                 onClick={handleSyncClick}
-                className={`flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-bold transition shadow-2xs cursor-pointer ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition shadow-xs cursor-pointer ${
                   syncApplied
                     ? 'bg-emerald-600 text-white'
                     : 'bg-indigo-600 hover:bg-indigo-700 text-white'
@@ -436,12 +437,12 @@ export const OrderHeaderForm: React.FC<OrderHeaderFormProps> = ({
               >
                 {syncApplied ? (
                   <>
-                    <Check className="w-3 h-3" />
+                    <Check className="w-3.5 h-3.5" />
                     <span>{lang === 'en' ? 'Synced!' : 'সিঙ্ক হয়েছে!'}</span>
                   </>
                 ) : (
                   <>
-                    <RefreshCw className="w-3 h-3" />
+                    <RefreshCw className="w-3.5 h-3.5" />
                     <span>{lang === 'en' ? 'Sync All' : 'সব সিঙ্ক'}</span>
                   </>
                 )}
@@ -449,13 +450,15 @@ export const OrderHeaderForm: React.FC<OrderHeaderFormProps> = ({
             </div>
 
             {/* Right: Quick Preset Switchers */}
-            <div className="flex items-center gap-1 overflow-x-auto py-0.5 max-w-full">
-              <div className="flex items-center gap-0.5 bg-slate-200/80 p-0.5 rounded-md shrink-0">
+            <div className="flex items-center gap-1.5 overflow-x-auto py-1 max-w-full">
+              <div className="flex items-center gap-1 bg-slate-200/90 p-1 rounded-lg shrink-0 shadow-inner">
                 <button
                   type="button"
                   onClick={() => setActiveChipTray(activeChipTray === 'buyer' ? 'none' : 'buyer')}
-                  className={`px-1.5 py-0.2 rounded text-[9.5px] font-bold transition cursor-pointer ${
-                    activeChipTray === 'buyer' ? 'bg-white text-violet-700 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                  className={`px-3 py-1.5 rounded-md text-xs sm:text-sm font-bold transition cursor-pointer ${
+                    activeChipTray === 'buyer' 
+                      ? 'bg-white text-violet-800 shadow-xs ring-1 ring-violet-300 font-extrabold' 
+                      : 'text-slate-700 hover:text-slate-950'
                   }`}
                 >
                   {t.buyer}
@@ -463,8 +466,10 @@ export const OrderHeaderForm: React.FC<OrderHeaderFormProps> = ({
                 <button
                   type="button"
                   onClick={() => setActiveChipTray(activeChipTray === 'size' ? 'none' : 'size')}
-                  className={`px-1.5 py-0.2 rounded text-[9.5px] font-bold transition cursor-pointer ${
-                    activeChipTray === 'size' ? 'bg-white text-emerald-700 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                  className={`px-3 py-1.5 rounded-md text-xs sm:text-sm font-bold transition cursor-pointer ${
+                    activeChipTray === 'size' 
+                      ? 'bg-white text-emerald-800 shadow-xs ring-1 ring-emerald-300 font-extrabold' 
+                      : 'text-slate-700 hover:text-slate-950'
                   }`}
                 >
                   {t.size}
@@ -472,8 +477,10 @@ export const OrderHeaderForm: React.FC<OrderHeaderFormProps> = ({
                 <button
                   type="button"
                   onClick={() => setActiveChipTray(activeChipTray === 'color' ? 'none' : 'color')}
-                  className={`px-1.5 py-0.2 rounded text-[9.5px] font-bold transition cursor-pointer ${
-                    activeChipTray === 'color' ? 'bg-white text-rose-700 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                  className={`px-3 py-1.5 rounded-md text-xs sm:text-sm font-bold transition cursor-pointer ${
+                    activeChipTray === 'color' 
+                      ? 'bg-white text-rose-800 shadow-xs ring-1 ring-rose-300 font-extrabold' 
+                      : 'text-slate-700 hover:text-slate-950'
                   }`}
                 >
                   {t.color}
@@ -482,16 +489,16 @@ export const OrderHeaderForm: React.FC<OrderHeaderFormProps> = ({
 
               {/* Chips */}
               {activeChipTray === 'buyer' && (
-                <div className="flex items-center gap-1 overflow-x-auto">
+                <div className="flex items-center gap-1.5 overflow-x-auto py-0.5">
                   {COMMON_BUYERS.slice(0, 7).map(b => (
                     <button
                       key={b}
                       type="button"
                       onClick={() => onChange({ buyer: b })}
-                      className={`px-1.5 py-0.2 rounded text-[9.5px] font-semibold whitespace-nowrap transition cursor-pointer ${
+                      className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition cursor-pointer shadow-xs border ${
                         sheetData.buyer === b
-                          ? 'bg-violet-900 text-white font-bold'
-                          : 'bg-white hover:bg-violet-50 text-slate-700 border border-slate-200'
+                          ? 'bg-violet-900 text-white font-bold border-violet-900 shadow-xs'
+                          : 'bg-white hover:bg-violet-50 text-slate-800 border-slate-300'
                       }`}
                     >
                       {b}
@@ -501,16 +508,16 @@ export const OrderHeaderForm: React.FC<OrderHeaderFormProps> = ({
               )}
 
               {activeChipTray === 'size' && (
-                <div className="flex items-center gap-1 overflow-x-auto">
+                <div className="flex items-center gap-1.5 overflow-x-auto py-0.5">
                   {COMMON_SIZES.slice(0, 8).map(s => (
                     <button
                       key={s}
                       type="button"
                       onClick={() => onChange({ size: s })}
-                      className={`px-1.5 py-0.2 rounded text-[9.5px] font-mono whitespace-nowrap transition cursor-pointer ${
+                      className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-mono whitespace-nowrap transition cursor-pointer shadow-xs border ${
                         sheetData.size === s
-                          ? 'bg-emerald-900 text-white font-bold'
-                          : 'bg-white hover:bg-emerald-50 text-slate-700 border border-slate-200'
+                          ? 'bg-emerald-900 text-white font-bold border-emerald-900 shadow-xs'
+                          : 'bg-white hover:bg-emerald-50 text-slate-800 border-slate-300'
                       }`}
                     >
                       {s}
@@ -520,16 +527,16 @@ export const OrderHeaderForm: React.FC<OrderHeaderFormProps> = ({
               )}
 
               {activeChipTray === 'color' && (
-                <div className="flex items-center gap-1 overflow-x-auto">
+                <div className="flex items-center gap-1.5 overflow-x-auto py-0.5">
                   {COMMON_COLORS.slice(0, 6).map(c => (
                     <button
                       key={c}
                       type="button"
                       onClick={() => onChange({ color: c })}
-                      className={`px-1.5 py-0.2 rounded text-[9.5px] whitespace-nowrap transition cursor-pointer ${
+                      className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm whitespace-nowrap transition cursor-pointer shadow-xs border ${
                         sheetData.color === c
-                          ? 'bg-rose-900 text-white font-bold'
-                          : 'bg-white hover:bg-rose-50 text-slate-700 border border-slate-200'
+                          ? 'bg-rose-900 text-white font-bold border-rose-900 shadow-xs'
+                          : 'bg-white hover:bg-rose-50 text-slate-800 border-slate-300'
                       }`}
                     >
                       {c}

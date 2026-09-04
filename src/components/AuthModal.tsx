@@ -177,16 +177,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const hasPassword = user?.providerData.some(p => p.providerId === 'password');
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
+      <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-150 shadow-2xl border border-slate-200 text-slate-800">
         {/* Modal Header */}
-        <div className="bg-slate-900 text-white px-5 py-4 flex items-center justify-between">
+        <div className="bg-slate-900 text-white px-5 py-4 flex items-center justify-between border-b border-slate-800">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-indigo-500/20 text-indigo-400 rounded-lg">
+            <div className="p-2 bg-slate-800 text-indigo-400 rounded-xl border border-slate-700">
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold">
+              <h3 className="text-base font-bold text-white">
                 {user ? (lang === 'en' ? 'Account & Cloud Sync' : 'একাউন্ট ও ক্লাউড সিঙ্ক') : (lang === 'en' ? 'Login or Connect Account' : 'লগইন ও একাউন্ট সংযোগ')}
               </h3>
               <p className="text-xs text-slate-400">
@@ -198,9 +198,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition cursor-pointer"
+            className="text-slate-400 hover:text-white p-2 rounded-xl hover:bg-slate-800 transition cursor-pointer"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
@@ -209,7 +209,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           <div className="mx-5 mt-4 p-3 bg-red-50 border border-red-200 rounded-xl flex items-center gap-2 text-xs text-red-700">
             <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
             <span className="flex-1">{error}</span>
-            <button onClick={clearError} className="text-red-400 hover:text-red-700 font-bold">×</button>
+            <button onClick={clearError} className="text-red-500 hover:text-red-800 font-bold">×</button>
           </div>
         )}
 
@@ -232,7 +232,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     <img 
                       src={user.photoURL} 
                       alt="User avatar" 
-                      className="w-12 h-12 rounded-full border-2 border-indigo-500 object-cover shadow-xs" 
+                      className="w-12 h-12 rounded-full border-2 border-indigo-400 object-cover shadow-xs" 
                     />
                   ) : (
                     <div className="w-12 h-12 rounded-full bg-indigo-600 text-white font-black text-lg flex items-center justify-center shadow-xs">
@@ -243,7 +243,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     <h4 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
                       {user.displayName || (user.isAnonymous ? 'Guest User' : 'Packing Specialist')}
                       {user.isAnonymous && (
-                        <span className="text-[10px] bg-amber-100 text-amber-800 font-semibold px-1.5 py-0.2 rounded">
+                        <span className="text-[10px] bg-amber-50 text-amber-700 font-semibold px-1.5 py-0.5 rounded border border-amber-200">
                           Guest
                         </span>
                       )}
@@ -258,7 +258,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                         </span>
                       )}
                       {hasGithub && (
-                        <span className="text-[9px] bg-slate-200 text-slate-800 font-semibold px-1.5 py-0.5 rounded">
+                        <span className="text-[9px] bg-slate-100 text-slate-700 font-semibold px-1.5 py-0.5 rounded border border-slate-200">
                           GitHub
                         </span>
                       )}
@@ -273,7 +273,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
                 <button
                   onClick={logout}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 text-xs font-semibold transition cursor-pointer"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 text-xs font-semibold transition cursor-pointer"
                   title="Logout from all devices"
                 >
                   <LogOut className="w-3.5 h-3.5" />
@@ -287,8 +287,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   onClick={() => setActiveTab('profile')}
                   className={`px-3 py-2 border-b-2 transition cursor-pointer flex items-center gap-1.5 ${
                     activeTab === 'profile'
-                      ? 'border-indigo-600 text-indigo-600'
-                      : 'border-transparent text-slate-500 hover:text-slate-700'
+                      ? 'border-indigo-600 text-indigo-600 font-bold'
+                      : 'border-transparent text-slate-500 hover:text-slate-800'
                   }`}
                 >
                   <User className="w-3.5 h-3.5" />
@@ -298,13 +298,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   onClick={() => setActiveTab('cloud_sheets')}
                   className={`px-3 py-2 border-b-2 transition cursor-pointer flex items-center gap-1.5 ${
                     activeTab === 'cloud_sheets'
-                      ? 'border-indigo-600 text-indigo-600'
-                      : 'border-transparent text-slate-500 hover:text-slate-700'
+                      ? 'border-indigo-600 text-indigo-600 font-bold'
+                      : 'border-transparent text-slate-500 hover:text-slate-800'
                   }`}
                 >
                   <Cloud className="w-3.5 h-3.5" />
                   <span>{lang === 'en' ? 'Cloud Sheets' : 'ক্লাউড শিট'}</span>
-                  <span className="text-[10px] bg-indigo-100 text-indigo-700 px-1.5 py-0.2 rounded-full font-mono">
+                  <span className="text-[10px] bg-indigo-50 text-indigo-700 border border-indigo-200 px-1.5 py-0.2 rounded-full font-mono">
                     {cloudSheets.length}
                   </span>
                 </button>
@@ -312,8 +312,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   onClick={() => setActiveTab('connected_accounts')}
                   className={`px-3 py-2 border-b-2 transition cursor-pointer flex items-center gap-1.5 ${
                     activeTab === 'connected_accounts'
-                      ? 'border-indigo-600 text-indigo-600'
-                      : 'border-transparent text-slate-500 hover:text-slate-700'
+                      ? 'border-indigo-600 text-indigo-600 font-bold'
+                      : 'border-transparent text-slate-500 hover:text-slate-800'
                   }`}
                 >
                   <Link className="w-3.5 h-3.5" />
@@ -324,20 +324,20 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               {/* Tab 1: Overview & Quick Save */}
               {activeTab === 'profile' && (
                 <div className="space-y-3 pt-2">
-                  <div className="p-4 bg-indigo-50/70 border border-indigo-100 rounded-xl flex items-center justify-between gap-3">
+                  <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between gap-3 shadow-xs">
                     <div>
-                      <h5 className="text-xs font-bold text-indigo-950 flex items-center gap-1.5">
+                      <h5 className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
                         <CloudUpload className="w-4 h-4 text-indigo-600" />
                         {lang === 'en' ? 'Backup Active Sheet to Cloud' : 'বর্তমান শিট ক্লাউডে ব্যাকআপ নিন'}
                       </h5>
-                      <p className="text-[11px] text-indigo-800/80 mt-0.5 font-mono">
+                      <p className="text-[11px] text-slate-500 mt-0.5 font-mono">
                         Ref: {currentSheetData.ref || 'Untitled'} | Cartons: {currentSheetData.cartons.length}
                       </p>
                     </div>
                     <button
                       onClick={handleSaveCurrentToCloud}
                       disabled={actionLoading}
-                      className="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold shadow-xs transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                      className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-xs transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
                     >
                       <CloudUpload className="w-3.5 h-3.5" />
                       <span>{actionLoading ? 'Saving...' : (lang === 'en' ? 'Save to Cloud' : 'ক্লাউডে সেভ')}</span>
@@ -513,11 +513,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             /* Logged Out / Login View */
             <div className="space-y-4">
               {/* Primary OAuth Options: Google & GitHub */}
-              <div className="space-y-2">
+              <div className="space-y-2.5">
                 <button
                   onClick={handleGoogleLogin}
                   disabled={actionLoading}
-                  className="w-full py-2.5 px-4 bg-white hover:bg-slate-50 text-slate-800 font-bold text-xs rounded-xl border border-slate-300 shadow-xs flex items-center justify-center gap-3 transition cursor-pointer hover:shadow-sm"
+                  className="w-full py-2.5 px-4 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-semibold text-xs rounded-xl shadow-xs flex items-center justify-center gap-3 transition cursor-pointer"
                 >
                   <svg className="w-4 h-4" viewBox="0 0 24 24">
                     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -531,9 +531,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 <button
                   onClick={handleGithubLogin}
                   disabled={actionLoading}
-                  className="w-full py-2.5 px-4 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-xs flex items-center justify-center gap-3 transition cursor-pointer"
+                  className="w-full py-2.5 px-4 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs rounded-xl shadow-xs flex items-center justify-center gap-3 transition cursor-pointer"
                 >
-                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 fill-white" viewBox="0 0 24 24">
                     <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
                   </svg>
                   <span>{lang === 'en' ? 'Continue with GitHub' : 'গিটহাব একাউন্ট দিয়ে এগিয়ে যান'}</span>
@@ -541,20 +541,20 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </div>
 
               {/* Divider */}
-              <div className="relative flex items-center justify-center">
+              <div className="relative flex items-center justify-center my-1">
                 <div className="border-t border-slate-200 w-full" />
-                <span className="bg-white px-3 text-[10px] uppercase font-bold text-slate-400">
+                <span className="bg-white px-3 text-[10px] uppercase font-bold text-slate-400 tracking-wider">
                   {lang === 'en' ? 'or use email' : 'অথবা ইমেইল ব্যবহার করুন'}
                 </span>
               </div>
 
               {/* Mode Switcher: Sign In vs Sign Up */}
-              <div className="flex bg-slate-100 p-1 rounded-xl text-xs font-bold">
+              <div className="flex bg-slate-100 p-1 rounded-xl text-xs font-semibold">
                 <button
                   type="button"
                   onClick={() => setAuthMode('signin')}
                   className={`flex-1 py-1.5 rounded-lg transition cursor-pointer ${
-                    authMode === 'signin' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-800'
+                    authMode === 'signin' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-900'
                   }`}
                 >
                   {lang === 'en' ? 'Sign In' : 'সাইন ইন'}
@@ -563,7 +563,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   type="button"
                   onClick={() => setAuthMode('signup')}
                   className={`flex-1 py-1.5 rounded-lg transition cursor-pointer ${
-                    authMode === 'signup' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-800'
+                    authMode === 'signup' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-900'
                   }`}
                 >
                   {lang === 'en' ? 'Create Account' : 'নতুন একাউন্ট'}
@@ -574,7 +574,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <form onSubmit={handleEmailSubmit} className="space-y-3">
                 {authMode === 'signup' && (
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">
                       {lang === 'en' ? 'Full Name' : 'পূর্ণ নাম'}
                     </label>
                     <div className="relative flex items-center">
@@ -584,14 +584,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                         value={displayName}
                         onChange={e => setDisplayName(e.target.value)}
                         placeholder="John Doe"
-                        className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:outline-none"
+                        className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
                       />
                     </div>
                   </div>
                 )}
 
                 <div>
-                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">
                     {lang === 'en' ? 'Email Address' : 'ইমেইল এড্রেস'}
                   </label>
                   <div className="relative flex items-center">
@@ -602,13 +602,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       value={email}
                       onChange={e => setEmail(e.target.value)}
                       placeholder="user@garmentsfactory.com"
-                      className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:outline-none"
+                      className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">
                     {lang === 'en' ? 'Password' : 'পাসওয়ার্ড'}
                   </label>
                   <div className="relative flex items-center">
@@ -619,7 +619,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       value={password}
                       onChange={e => setPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:outline-none"
+                      className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
                     />
                   </div>
                 </div>
@@ -627,7 +627,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 <button
                   type="submit"
                   disabled={actionLoading}
-                  className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer flex items-center justify-center gap-2"
+                  className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   <LogIn className="w-3.5 h-3.5" />
                   <span>
@@ -645,7 +645,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 <button
                   type="button"
                   onClick={handleGuestLogin}
-                  className="text-xs text-slate-500 hover:text-indigo-600 font-medium underline underline-offset-2 cursor-pointer"
+                  className="text-xs text-slate-500 hover:text-indigo-600 font-medium underline underline-offset-2 cursor-pointer transition"
                 >
                   {lang === 'en' ? 'Or continue as Guest (Instant Access)' : 'অথবা অতিথি হিসেবে ব্যবহার করুন (গেস্ট মোড)'}
                 </button>

@@ -87,17 +87,40 @@ export const AuthProviderComponent: React.FC<{ children: React.ReactNode }> = ({
   };
 
   useEffect(() => {
+    let isMounted = true;
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (!isMounted) return;
+
+      if (!currentUser) {
+        // Zero-Trust: Auto-authenticate session anonymously so all Firestore operations carry cryptographic auth tokens
+        try {
+          const guestResult = await signInAnonymously(auth);
+          if (isMounted) {
+            setUser(guestResult.user);
+            await syncUserProfile(guestResult.user);
+            setLoading(false);
+          }
+          return;
+        } catch (anonErr: any) {
+          console.warn('Anonymous zero-trust auth fallback notice:', anonErr?.message);
+        }
+      }
+
       setUser(currentUser);
       if (currentUser) {
         await syncUserProfile(currentUser);
       } else {
         setUserProfile(null);
       }
-      setLoading(false);
+      if (isMounted) {
+        setLoading(false);
+      }
     });
 
-    return () => unsubscribe();
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
   }, []);
 
   const clearError = () => setError(null);

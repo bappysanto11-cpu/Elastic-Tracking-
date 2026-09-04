@@ -21,6 +21,7 @@ import { FormulaHelpModal } from './components/FormulaHelpModal';
 import { PrintPreviewModal } from './components/PrintPreviewModal';
 import { PrintToast } from './components/PrintToast';
 import { ExcelDriveModal } from './components/ExcelDriveModal';
+import { ShareSheetModal } from './components/ShareSheetModal';
 import { CartonQrDetailModal } from './components/CartonQrDetailModal';
 import { ApkDownloadModal } from './components/ApkDownloadModal';
 import { IndexedDbBackupModal } from './components/IndexedDbBackupModal';
@@ -36,12 +37,15 @@ import { loadDemands, saveDemands } from './utils/elasticDemandStorage';
 import { useHistory } from './utils/useHistory';
 import { useAuth } from './context/AuthContext';
 import { useRealtimeSync } from './hooks/useRealtimeSync';
-import { Table, LayoutGrid, Tag, Layers, Check, QrCode, BarChart3, Undo2, Redo2, Search, RotateCcw, ClipboardList, Upload, FileText, Truck, Package } from 'lucide-react';
+import { Table, LayoutGrid, Tag, Layers, Check, QrCode, BarChart3, Undo2, Redo2, Search, RotateCcw, ClipboardList, Upload, FileText, Truck, Package, FileSpreadsheet } from 'lucide-react';
+import { ExcelScheduleManager } from './components/ExcelScheduleManager';
 import { ScheduleUploader } from './components/ScheduleUploader';
 import { ScheduleTracker } from './components/ScheduleTracker';
 import { ChallanGenerator } from './components/ChallanGenerator';
 import { TruckManager } from './components/TruckManager';
 import { DailyReportView } from './components/DailyReportView';
+import { ScheduleItem } from './types/schedule';
+import { getSharedPackingSheet } from './utils/shareSheet';
 
 const STORAGE_KEY = 'garment_elastic_calculator_v1';
 
@@ -63,7 +67,16 @@ export default function App() {
   // Modals
   const [isAiScanOpen, setIsAiScanOpen] = useState<boolean>(false);
   const [isToolsOpen, setIsToolsOpen] = useState<boolean>(false);
+  const [toolsModalTab, setToolsModalTab] = useState<'tools' | 'security'>('tools');
+  const [isViewOnlyMode, setIsViewOnlyMode] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('mode') === 'view-only' || params.get('viewOnly') === 'true';
+    }
+    return false;
+  });
   const [isExcelDriveOpen, setIsExcelDriveOpen] = useState<boolean>(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState<boolean>(false);
   const [isApkModalOpen, setIsApkModalOpen] = useState<boolean>(false);
   const [isIndexedDbModalOpen, setIsIndexedDbModalOpen] = useState<boolean>(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
@@ -149,14 +162,33 @@ export default function App() {
     details
   });
 
-  // Handle scanned QR Code redirection from URL parameters
+  // Handle scanned QR Code redirection and Share URL from URL parameters
   useEffect(() => {
     const scanned = parseCartonFromUrl();
     if (scanned) {
       setDirectQrPayload(scanned);
       setIsCartonQrModalOpen(true);
     }
-  }, []);
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const shareId = urlParams.get('shareId');
+    if (shareId) {
+      getSharedPackingSheet(shareId)
+        .then(sharedData => {
+          if (sharedData) {
+            setSheetData(sharedData);
+            const url = new URL(window.location.href);
+            url.searchParams.delete('shareId');
+            window.history.replaceState({}, '', url.toString());
+          } else {
+            alert(lang === 'en' ? 'Shared sheet not found.' : 'শেয়ার করা শীট পাওয়া যায়নি।');
+          }
+        })
+        .catch(err => {
+          console.error('Failed to load shared sheet:', err);
+        });
+    }
+  }, [lang]);
 
   // Keyboard shortcuts for Undo/Redo
   useEffect(() => {
@@ -220,6 +252,38 @@ export default function App() {
     }
   };
 
+  const handleToggleWeightUnit = () => {
+    setSheetData(prev => {
+      const currentUnit = prev.weightUnit || 'kg';
+      const isToGm = currentUnit === 'kg';
+      const nextUnit = isToGm ? 'gm' : 'kg';
+      const factor = isToGm ? 1000 : 0.001;
+
+      const tare = Number((prev.defaultTare * factor).toFixed(3));
+      
+      const newCartons = prev.cartons.map((c, idx) => {
+        const newGross = Number((c.grossWt * factor).toFixed(3));
+        const newTare = Number((c.tareWt * factor).toFixed(3));
+        return recomputeCarton(
+          { ...c, grossWt: newGross, tareWt: newTare },
+          idx,
+          tare,
+          c.wtPerUnit,
+          prev.deliveryUnit || 'mtr',
+          prev.pcsPerPkt,
+          nextUnit
+        );
+      });
+
+      return {
+        ...prev,
+        weightUnit: nextUnit,
+        defaultTare: tare,
+        cartons: newCartons,
+      };
+    });
+  };
+
   // Update order header fields
   const handleUpdateHeader = (updated: Partial<PackingSheetData>) => {
     setSheetData(prev => {
@@ -253,7 +317,8 @@ export default function App() {
             tare,
             unitWt,
             delivUnit,
-            pcsPerPkt
+            pcsPerPkt,
+            nextData.weightUnit || 'kg'
           )
         );
 
@@ -298,7 +363,10 @@ export default function App() {
           },
           idx,
           defaultTare,
-          defaultWtPerUnit
+          defaultWtPerUnit,
+          'mtr',
+          undefined,
+          prev.weightUnit || 'kg'
         )
       );
 
@@ -319,6 +387,24 @@ export default function App() {
     setActiveTab('table');
   };
 
+  const handleLoadScheduleItemIntoSheet = (item: ScheduleItem) => {
+    setSheetData(prev => ({
+      ...prev,
+      buyer: item.buyer || prev.buyer,
+      customer: item.customer || prev.customer,
+      ref: item.customerRefPO || item.jobNo || prev.ref,
+      item: item.itemDescription || prev.item,
+      color: item.color || prev.color,
+      size: item.size || prev.size,
+      logs: [
+        ...(prev.logs || []),
+        createLog('SYSTEM', `Loaded Schedule Order for ${item.buyer} (${item.customerRefPO || item.jobNo} - ${item.demandQty} ${item.unit})`),
+      ].slice(-50),
+    }));
+
+    setActiveTab('table');
+  };
+
   // Cascade default tare & unit weight to cartons
   const handleApplyDefaultWeights = () => {
     setSheetData(prev => {
@@ -334,7 +420,7 @@ export default function App() {
           prev.defaultWtPerUnit,
           prev.deliveryUnit || 'mtr',
           prev.pcsPerPkt
-        )
+        , prev.weightUnit || 'kg')
       );
       return {
         ...prev,
@@ -359,7 +445,8 @@ export default function App() {
             prev.defaultTare,
             prev.defaultWtPerUnit,
             prev.deliveryUnit || 'mtr',
-            prev.pcsPerPkt
+            prev.pcsPerPkt,
+            prev.weightUnit || 'kg'
           );
         }
         return c;
@@ -388,7 +475,7 @@ export default function App() {
         prev.defaultWtPerUnit,
         prev.deliveryUnit || 'mtr',
         prev.pcsPerPkt
-      );
+      , prev.weightUnit || 'kg');
       return {
         ...prev,
         cartons: [...prev.cartons, newCarton],
@@ -416,7 +503,7 @@ export default function App() {
             prev.defaultWtPerUnit,
             prev.deliveryUnit || 'mtr',
             prev.pcsPerPkt
-          )
+          , prev.weightUnit || 'kg')
         );
       }
       return {
@@ -457,7 +544,8 @@ export default function App() {
         prev.defaultTare,
         prev.defaultWtPerUnit,
         prev.deliveryUnit || 'mtr',
-        prev.pcsPerPkt
+        prev.pcsPerPkt,
+        prev.weightUnit || 'kg'
       );
       return {
         ...prev,
@@ -481,7 +569,7 @@ export default function App() {
             prev.defaultWtPerUnit,
             prev.deliveryUnit || 'mtr',
             prev.pcsPerPkt
-          );
+          , prev.weightUnit || 'kg');
         }
         return c;
       });
@@ -498,7 +586,7 @@ export default function App() {
     setSheetData(prev => {
       const filtered = prev.cartons.filter(c => !ids.includes(c.id));
       const renumbered = (filtered.length > 0 ? filtered : [
-        recomputeCarton({ cartonNo: 1, grossWt: 0 }, 0, prev.defaultTare, prev.defaultWtPerUnit, prev.deliveryUnit || 'mtr', prev.pcsPerPkt)
+        recomputeCarton({ cartonNo: 1, grossWt: 0 }, 0, prev.defaultTare, prev.defaultWtPerUnit, prev.deliveryUnit || 'mtr', prev.pcsPerPkt, prev.weightUnit || 'kg')
       ]).map((c, idx) => ({
         ...c,
         cartonNo: idx + 1,
@@ -527,7 +615,8 @@ export default function App() {
           prev.defaultTare,
           prev.defaultWtPerUnit,
           prev.deliveryUnit || 'mtr',
-          prev.pcsPerPkt
+          prev.pcsPerPkt,
+          prev.weightUnit || 'kg'
         )
       );
       return {
@@ -565,7 +654,7 @@ export default function App() {
       return {
         ...prev,
         cartons: renumbered.length > 0 ? renumbered : [
-          recomputeCarton({ cartonNo: 1, grossWt: 0 }, 0, prev.defaultTare, prev.defaultWtPerUnit, prev.deliveryUnit || 'mtr', prev.pcsPerPkt)
+          recomputeCarton({ cartonNo: 1, grossWt: 0 }, 0, prev.defaultTare, prev.defaultWtPerUnit, prev.deliveryUnit || 'mtr', prev.pcsPerPkt, prev.weightUnit || 'kg')
         ],
       };
     });
@@ -593,7 +682,8 @@ export default function App() {
             prev.defaultTare * multiplier,
             prev.defaultWtPerUnit,
             prev.deliveryUnit || 'mtr',
-            prev.pcsPerPkt
+            prev.pcsPerPkt,
+            prev.weightUnit || 'kg'
           );
         });
         return {
@@ -615,7 +705,8 @@ export default function App() {
             prev.defaultTare,
             newUnit,
             prev.deliveryUnit || 'mtr',
-            prev.pcsPerPkt
+            prev.pcsPerPkt,
+            prev.weightUnit || 'kg'
           );
         });
         return {
@@ -658,7 +749,7 @@ export default function App() {
             unitWt,
             delivUnit,
             pcsPerPkt
-          );
+          , prev.weightUnit || 'kg');
         });
       } else if (mode === 'append') {
         const existing = [...prev.cartons];
@@ -675,7 +766,7 @@ export default function App() {
             unitWt,
             delivUnit,
             pcsPerPkt
-          );
+          , prev.weightUnit || 'kg');
         });
         updatedCartons = [...existing, ...newRows];
       } else if (mode === 'fromIndex') {
@@ -697,7 +788,7 @@ export default function App() {
               unitWt,
               delivUnit,
               pcsPerPkt
-            )
+            , prev.weightUnit || 'kg')
           );
         }
 
@@ -716,7 +807,7 @@ export default function App() {
             unitWt,
             delivUnit,
             pcsPerPkt
-          );
+          , prev.weightUnit || 'kg');
         });
 
         updatedCartons = existing.map((c, i) => ({ ...c, cartonNo: i + 1 }));
@@ -783,7 +874,9 @@ export default function App() {
         onOpenHelp={() => setIsHelpOpen(true)}
         onOpenActivityLog={() => setIsActivityLogOpen(true)}
         onOpenTools={() => setIsToolsOpen(true)}
+        onOpenScheduleUpload={() => setActiveTab('upload')}
         onOpenExcelDrive={() => setIsExcelDriveOpen(true)}
+        onOpenShareSheet={() => setIsShareModalOpen(true)}
         onOpenApk={() => setIsApkModalOpen(true)}
         onOpenIndexedDbBackups={() => setIsIndexedDbModalOpen(true)}
         onOpenAuthModal={() => setIsAuthModalOpen(true)}
@@ -804,10 +897,54 @@ export default function App() {
         lastCloudSyncTime={lastCloudSyncTime}
         pendingOfflineChanges={pendingOfflineChanges}
         onManualSync={triggerManualSync}
+        onToggleWeightUnit={handleToggleWeightUnit}
+        weightUnit={sheetData.weightUnit || 'kg'}
       />
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6">
+        {/* View-Only Security Mode Banner */}
+        {isViewOnlyMode && (
+          <div className="mb-4 p-3 sm:p-3.5 rounded-xl bg-indigo-950 text-white border border-indigo-800 flex items-center justify-between shadow-lg print:hidden animate-in fade-in">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-indigo-900 border border-indigo-700 flex items-center justify-center text-indigo-300 shrink-0">
+                <span className="text-sm">🔒</span>
+              </div>
+              <div>
+                <p className="text-xs sm:text-sm font-bold text-white flex items-center gap-2">
+                  <span>{lang === 'en' ? 'View-Only Access Enforced' : 'টিম ভিউ-অনলি মোড সক্রিয়'}</span>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/30 text-indigo-200 border border-indigo-500/40">
+                    Firebase Auth
+                  </span>
+                </p>
+                <p className="text-[11px] text-indigo-200">
+                  {lang === 'en' 
+                    ? 'Read-only access level active for this team session. Weight modifications are restricted.' 
+                    : 'এই সেশনের জন্য শুধুমাত্র দেখার অনুমতি দেওয়া হয়েছে। কোনো পরিমাপ পরিবর্তন করা যাবে না।'}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={() => {
+                  setToolsModalTab('security');
+                  setIsToolsOpen(true);
+                }}
+                className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white transition shadow-xs cursor-pointer"
+              >
+                {lang === 'en' ? 'Security Settings' : 'সিকিউরিটি সেটিংস'}
+              </button>
+              <button
+                onClick={() => setIsViewOnlyMode(false)}
+                className="p-1.5 rounded-lg text-indigo-300 hover:text-white hover:bg-indigo-900 transition cursor-pointer"
+                title="Dismiss Banner"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Order Header Input Form */}
         <div className="print:hidden">
           <OrderHeaderForm
@@ -845,6 +982,22 @@ export default function App() {
               <span>{t.tableView}</span>
               <span className="text-[10px] bg-slate-700 text-slate-200 px-1.5 py-0.2 rounded font-mono">
                 {filteredCartons.length}
+              </span>
+            </button>
+
+            {/* Elevated: Upload Schedule & Live Editor Tab */}
+            <button
+              onClick={() => setActiveTab('upload')}
+              className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition cursor-pointer shrink-0 ${
+                activeTab === 'upload'
+                  ? 'bg-blue-600 text-white shadow-md ring-2 ring-blue-400/40'
+                  : 'bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200'
+              }`}
+            >
+              <Upload className="w-4 h-4 text-blue-500" />
+              <span>{lang === 'en' ? 'Upload Schedule' : 'শিডিউল আপলোড'}</span>
+              <span className="text-[10px] bg-blue-600 text-white px-1.5 py-0.2 rounded font-mono font-bold">
+                Excel Track & Edit
               </span>
             </button>
 
@@ -891,19 +1044,6 @@ export default function App() {
             </button>
 
             <div className="w-px h-6 bg-slate-300 mx-2 self-center shrink-0"></div>
-
-            {/* Tracker - Upload Tab */}
-            <button
-              onClick={() => setActiveTab('upload')}
-              className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition cursor-pointer shrink-0 ${
-                activeTab === 'upload'
-                  ? 'bg-blue-600 text-white shadow-xs'
-                  : 'bg-white text-blue-600 hover:bg-blue-50 border border-blue-200'
-              }`}
-            >
-              <Upload className="w-4 h-4" />
-              <span>Upload Schedule</span>
-            </button>
 
             {/* Tracker - Tracker Tab */}
             <button
@@ -1042,7 +1182,11 @@ export default function App() {
         {/* Tracker Views */}
         {activeTab === 'upload' && (
           <div className="print:hidden">
-            <ScheduleUploader />
+            <ExcelScheduleManager
+              lang={lang}
+              onLoadRowToPackingSheet={handleLoadScheduleItemIntoSheet}
+              onNavigateToTab={tab => setActiveTab(tab)}
+            />
           </div>
         )}
         {activeTab === 'tracker' && (
@@ -1122,8 +1266,12 @@ export default function App() {
 
       <ToolsModal
         isOpen={isToolsOpen}
-        onClose={() => setIsToolsOpen(false)}
+        onClose={() => {
+          setIsToolsOpen(false);
+          setToolsModalTab('tools');
+        }}
         lang={lang}
+        initialTab={toolsModalTab}
         defaultWtPerUnit={sheetData.defaultWtPerUnit}
         onApplyUnitWeight={wt => {
           handleUpdateHeader({ defaultWtPerUnit: wt });
@@ -1209,6 +1357,13 @@ export default function App() {
         isVisible={isPrintToastVisible}
         onClose={() => setIsPrintToastVisible(false)}
         orientation={printOrientation}
+        lang={lang}
+      />
+
+      <ShareSheetModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        sheetData={sheetData}
         lang={lang}
       />
     </div>

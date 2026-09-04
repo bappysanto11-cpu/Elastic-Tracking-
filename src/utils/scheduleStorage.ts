@@ -231,3 +231,28 @@ export async function completeJob(scheduleItemId: string) {
     throw error;
   }
 }
+
+// ==========================================
+// BULK UPDATE SCHEDULE ITEMS
+// ==========================================
+export async function bulkUpdateScheduleItems(
+  ids: string[],
+  updates: Partial<ScheduleItem>
+) {
+  try {
+    const updatePromises = ids.map(id => {
+      const itemRef = doc(db, 'scheduleItems', id);
+      return updateDoc(itemRef, {
+        ...updates,
+        updatedAt: serverTimestamp(),
+      });
+    });
+
+    await Promise.all(updatePromises);
+    console.log(`✅ Bulk updated ${ids.length} schedule items`);
+  } catch (error) {
+    console.error('❌ Error in bulk update:', error);
+    throw error;
+  }
+}
+

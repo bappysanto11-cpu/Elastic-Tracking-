@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { SummaryStats, PackingSheetData } from '../types/calculator';
 import { Language, translations } from '../utils/translations';
-import { Scale, Ruler, Compass, Package, Tag, Maximize2, Palette, Hash, Copy, Check } from 'lucide-react';
+import { Scale, Ruler, Compass, Package, Tag, Maximize2, Palette, Hash, Copy, Check, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface SummaryCardsProps {
   summary: SummaryStats;
@@ -12,6 +12,25 @@ interface SummaryCardsProps {
 export const SummaryCards: React.FC<SummaryCardsProps> = ({ summary, lang, sheetData }) => {
   const t = translations[lang];
   const [copied, setCopied] = useState(false);
+
+  // Collapse / Hide state for summary cards
+  const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('garment_summary_collapsed') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const toggleCollapse = () => {
+    setIsCollapsed(prev => {
+      const next = !prev;
+      try {
+        localStorage.setItem('garment_summary_collapsed', String(next));
+      } catch {}
+      return next;
+    });
+  };
 
   const buyer = sheetData?.buyer || '-';
   const size = sheetData?.size || '-';
@@ -31,170 +50,193 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({ summary, lang, sheet
   };
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs overflow-hidden mb-3">
+    <div className="bg-white border border-slate-200 rounded-xl overflow-hidden mb-4 shadow-sm transition-all duration-300">
       {/* 1ST MENTION: BUYER • SIZE • COLOUR • REF Inside Compact Header Bar */}
-      <div className="bg-slate-900 text-white px-2.5 py-1.5 flex flex-wrap items-center justify-between gap-1.5 text-xs">
-        <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap min-w-0">
+      <div className="bg-slate-900 px-3 sm:px-4 py-2 flex flex-wrap items-center justify-between gap-2 text-xs border-b border-slate-800">
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap min-w-0">
           {/* BUYER */}
-          <div className="flex items-center gap-1 bg-slate-800 border border-slate-700/80 px-2 py-0.5 rounded-md">
-            <Tag className="w-2.5 h-2.5 text-violet-400 shrink-0" />
-            <span className="text-[9.5px] font-semibold text-slate-400 uppercase tracking-tight">
+          <div className="flex items-center gap-1.5 bg-slate-800/80 px-2.5 py-1 rounded-lg border border-slate-700">
+            <Tag className="w-3 h-3 text-violet-400 shrink-0" />
+            <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
               {lang === 'en' ? 'Buyer' : 'বায়ার'}:
             </span>
-            <span className="text-[11px] font-bold text-white truncate max-w-[110px] sm:max-w-[150px]">
+            <span className="text-xs font-bold text-white truncate max-w-[110px] sm:max-w-[150px]">
               {buyer}
             </span>
           </div>
 
           {/* SIZE */}
-          <div className="flex items-center gap-1 bg-slate-800 border border-slate-700/80 px-2 py-0.5 rounded-md">
-            <Maximize2 className="w-2.5 h-2.5 text-emerald-400 shrink-0" />
-            <span className="text-[9.5px] font-semibold text-slate-400 uppercase tracking-tight">
+          <div className="flex items-center gap-1.5 bg-slate-800/80 px-2.5 py-1 rounded-lg border border-slate-700">
+            <Maximize2 className="w-3 h-3 text-emerald-400 shrink-0" />
+            <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
               {lang === 'en' ? 'Size' : 'সাইজ'}:
             </span>
-            <span className="text-[11px] font-bold font-mono text-emerald-300 truncate">
+            <span className="text-xs font-bold font-mono text-emerald-300 truncate">
               {size}
             </span>
           </div>
 
           {/* COLOUR */}
-          <div className="flex items-center gap-1 bg-slate-800 border border-slate-700/80 px-2 py-0.5 rounded-md">
-            <Palette className="w-2.5 h-2.5 text-rose-400 shrink-0" />
-            <span className="text-[9.5px] font-semibold text-slate-400 uppercase tracking-tight">
+          <div className="flex items-center gap-1.5 bg-slate-800/80 px-2.5 py-1 rounded-lg border border-slate-700">
+            <Palette className="w-3 h-3 text-rose-400 shrink-0" />
+            <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
               {lang === 'en' ? 'Colour' : 'রঙ'}:
             </span>
-            <span className="text-[11px] font-bold text-rose-300 truncate max-w-[90px]">
+            <span className="text-xs font-bold text-rose-300 truncate max-w-[90px]">
               {color}
             </span>
           </div>
 
           {/* REF */}
-          <div className="flex items-center gap-1 bg-slate-800 border border-slate-700/80 px-2 py-0.5 rounded-md">
-            <Hash className="w-2.5 h-2.5 text-amber-400 shrink-0" />
-            <span className="text-[9.5px] font-semibold text-slate-400 uppercase tracking-tight">
+          <div className="flex items-center gap-1.5 bg-slate-800/80 px-2.5 py-1 rounded-lg border border-slate-700">
+            <Hash className="w-3 h-3 text-amber-400 shrink-0" />
+            <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
               {lang === 'en' ? 'Ref' : 'রেফারেন্স'}:
             </span>
-            <span className="text-[11px] font-bold font-mono text-amber-300 truncate max-w-[130px] sm:max-w-[180px]">
+            <span className="text-xs font-bold font-mono text-amber-300 truncate max-w-[130px] sm:max-w-[180px]">
               {ref}
             </span>
           </div>
         </div>
 
-        {/* Right side: Compact Copy Button */}
-        <button
-          type="button"
-          onClick={handleCopySummary}
-          className="flex items-center gap-1 px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-[10px] font-medium border border-slate-700 transition cursor-pointer shrink-0"
-          title="Copy full summary"
-        >
-          {copied ? (
-            <>
-              <Check className="w-3 h-3 text-emerald-400" />
-              <span className="text-emerald-300 font-semibold">{lang === 'en' ? 'Copied' : 'কপি'}</span>
-            </>
-          ) : (
-            <>
-              <Copy className="w-3 h-3 text-slate-400" />
-              <span className="hidden sm:inline">{lang === 'en' ? 'Copy Summary' : 'কপি'}</span>
-            </>
-          )}
-        </button>
+        {/* Right side: Compact Copy Button & Hide/Expand Toggle */}
+        <div className="flex items-center gap-1.5 shrink-0">
+          <button
+            type="button"
+            onClick={handleCopySummary}
+            className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white text-xs font-medium transition cursor-pointer shrink-0"
+            title="Copy full summary"
+          >
+            {copied ? (
+              <>
+                <Check className="w-3 h-3 text-emerald-400" />
+                <span className="text-emerald-300 font-semibold">{lang === 'en' ? 'Copied' : 'কপি'}</span>
+              </>
+            ) : (
+              <>
+                <Copy className="w-3 h-3 text-slate-400" />
+                <span className="hidden sm:inline">{lang === 'en' ? 'Copy Summary' : 'কপি'}</span>
+              </>
+            )}
+          </button>
+
+          {/* Toggle Hide / Expand */}
+          <button
+            type="button"
+            onClick={toggleCollapse}
+            className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white text-xs font-medium transition cursor-pointer shrink-0"
+            title={isCollapsed ? (lang === 'en' ? 'Expand summary cards' : 'সামারি কার্ড খুলুন') : (lang === 'en' ? 'Hide summary cards' : 'সামারি কার্ড লুকান')}
+          >
+            <span>{isCollapsed ? (lang === 'en' ? 'Expand' : 'খুলুন') : (lang === 'en' ? 'Hide' : 'লুকান')}</span>
+            {isCollapsed ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronUp className="w-3.5 h-3.5" />}
+          </button>
+        </div>
       </div>
 
       {/* COMPACT CORE 4 STATS GRID: TOTAL NET WT • TOTAL MTR • TOTAL GRY • TOTAL CTN */}
-      <div className="p-1.5 sm:p-2 bg-slate-50/50 grid grid-cols-2 lg:grid-cols-4 gap-1.5 sm:gap-2">
+      {!isCollapsed && (
+        <div className="p-2 sm:p-3 grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 bg-slate-50">
         {/* 1. TOTAL NET WEIGHT */}
-        <div className="bg-white rounded-lg border border-emerald-200/90 p-2 shadow-2xs hover:border-emerald-400 transition flex flex-col justify-between">
-          <div className="flex items-center justify-between text-emerald-900 text-[11px] font-bold mb-0.5">
-            <span className="uppercase tracking-tight flex items-center gap-1">
-              <Scale className="w-3 h-3 text-emerald-600 shrink-0" />
+        <div className="bg-white rounded-xl p-3 border border-emerald-200 shadow-xs hover:shadow-md transition-all flex flex-col justify-between group">
+          <div className="flex items-center justify-between text-emerald-700 text-xs font-bold mb-1">
+            <span className="uppercase tracking-wider flex items-center gap-1.5">
+              <Scale className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
               {t.totalNetWt}
             </span>
-            <span className="text-[9.5px] bg-emerald-100/90 text-emerald-800 px-1 py-0.2 rounded font-mono font-bold">Net</span>
+            <span className="text-[10px] bg-emerald-100 border border-emerald-200 text-emerald-800 px-1.5 py-0.5 rounded font-mono font-bold">
+              Net
+            </span>
           </div>
           
-          <div className="flex items-baseline gap-1 my-0.5">
-            <span className="text-lg sm:text-xl font-black text-emerald-950 tracking-tight font-mono">
+          <div className="flex items-baseline gap-1.5 my-1">
+            <span className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight font-mono group-hover:text-emerald-700 transition-colors">
               {summary.totalNetWt.toFixed(2)}
             </span>
-            <span className="text-xs font-bold text-emerald-700">Kg</span>
+            <span className="text-xs font-semibold text-emerald-600">Kg</span>
           </div>
 
-          <div className="flex items-center justify-between text-[10px] text-emerald-800/90 font-mono font-medium pt-1 border-t border-emerald-100">
-            <span>{summary.totalNetWtLbs.toFixed(1)} Lbs</span>
+          <div className="flex items-center justify-between text-[11px] text-slate-500 font-mono font-medium pt-2 border-t border-slate-100">
+            <span className="text-emerald-700">{summary.totalNetWtLbs.toFixed(1)} Lbs</span>
             <span>{summary.totalNetWtGm.toLocaleString()} gm</span>
           </div>
         </div>
 
         {/* 2. TOTAL METERS */}
-        <div className="bg-white rounded-lg border border-indigo-200/90 p-2 shadow-2xs hover:border-indigo-400 transition flex flex-col justify-between">
-          <div className="flex items-center justify-between text-indigo-900 text-[11px] font-bold mb-0.5">
-            <span className="uppercase tracking-tight flex items-center gap-1">
-              <Ruler className="w-3 h-3 text-indigo-600 shrink-0" />
+        <div className="bg-white rounded-xl p-3 border border-indigo-200 shadow-xs hover:shadow-md transition-all flex flex-col justify-between group">
+          <div className="flex items-center justify-between text-indigo-700 text-xs font-bold mb-1">
+            <span className="uppercase tracking-wider flex items-center gap-1.5">
+              <Ruler className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
               {t.totalMtr}
             </span>
-            <span className="text-[9.5px] bg-indigo-100/90 text-indigo-800 px-1 py-0.2 rounded font-mono font-bold">Mtr</span>
+            <span className="text-[10px] bg-indigo-100 border border-indigo-200 text-indigo-800 px-1.5 py-0.5 rounded font-mono font-bold">
+              Mtr
+            </span>
           </div>
           
-          <div className="flex items-baseline gap-1 my-0.5">
-            <span className="text-lg sm:text-xl font-black text-indigo-950 tracking-tight font-mono">
+          <div className="flex items-baseline gap-1.5 my-1">
+            <span className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight font-mono group-hover:text-indigo-700 transition-colors">
               {summary.totalMtr.toLocaleString()}
             </span>
-            <span className="text-xs font-bold text-indigo-700">Mtr</span>
+            <span className="text-xs font-semibold text-indigo-600">Mtr</span>
           </div>
 
-          <div className="flex items-center justify-between text-[10px] text-indigo-800/90 font-mono font-medium pt-1 border-t border-indigo-100">
-            <span>{summary.totalYds.toLocaleString()} Yds</span>
+          <div className="flex items-center justify-between text-[11px] text-slate-500 font-mono font-medium pt-2 border-t border-slate-100">
+            <span className="text-indigo-700">{summary.totalYds.toLocaleString()} Yds</span>
             <span>{(summary.totalMtr / 1000).toFixed(2)} KM</span>
           </div>
         </div>
 
         {/* 3. TOTAL GRY */}
-        <div className="bg-white rounded-lg border border-purple-200/90 p-2 shadow-2xs hover:border-purple-400 transition flex flex-col justify-between">
-          <div className="flex items-center justify-between text-purple-900 text-[11px] font-bold mb-0.5">
-            <span className="uppercase tracking-tight flex items-center gap-1">
-              <Compass className="w-3 h-3 text-purple-600 shrink-0" />
+        <div className="bg-white rounded-xl p-3 border border-purple-200 shadow-xs hover:shadow-md transition-all flex flex-col justify-between group">
+          <div className="flex items-center justify-between text-purple-700 text-xs font-bold mb-1">
+            <span className="uppercase tracking-wider flex items-center gap-1.5">
+              <Compass className="w-3.5 h-3.5 text-purple-600 shrink-0" />
               {t.totalGry}
             </span>
-            <span className="text-[9.5px] bg-purple-100/90 text-purple-800 px-1 py-0.2 rounded font-mono font-bold">144 Yds</span>
+            <span className="text-[10px] bg-purple-100 border border-purple-200 text-purple-800 px-1.5 py-0.5 rounded font-mono font-bold">
+              144 Yds
+            </span>
           </div>
           
-          <div className="flex items-baseline gap-1 my-0.5">
-            <span className="text-lg sm:text-xl font-black text-purple-950 tracking-tight font-mono">
+          <div className="flex items-baseline gap-1.5 my-1">
+            <span className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight font-mono group-hover:text-purple-700 transition-colors">
               {summary.totalGry.toFixed(2)}
             </span>
-            <span className="text-xs font-bold text-purple-700">Gry</span>
+            <span className="text-xs font-semibold text-purple-600">Gry</span>
           </div>
 
-          <div className="flex items-center justify-between text-[10px] text-purple-800/90 font-mono font-medium pt-1 border-t border-purple-100">
-            <span>{summary.totalYds.toLocaleString()} Yds</span>
+          <div className="flex items-center justify-between text-[11px] text-slate-500 font-mono font-medium pt-2 border-t border-slate-100">
+            <span className="text-purple-700">{summary.totalYds.toLocaleString()} Yds</span>
             <span>Gross Yards</span>
           </div>
         </div>
 
         {/* 4. TOTAL CARTONS */}
-        <div className="bg-white rounded-lg border border-blue-200/90 p-2 shadow-2xs hover:border-blue-400 transition flex flex-col justify-between">
-          <div className="flex items-center justify-between text-blue-900 text-[11px] font-bold mb-0.5">
-            <span className="uppercase tracking-tight flex items-center gap-1">
-              <Package className="w-3 h-3 text-blue-600 shrink-0" />
+        <div className="bg-white rounded-xl p-3 border border-sky-200 shadow-xs hover:shadow-md transition-all flex flex-col justify-between group">
+          <div className="flex items-center justify-between text-sky-700 text-xs font-bold mb-1">
+            <span className="uppercase tracking-wider flex items-center gap-1.5">
+              <Package className="w-3.5 h-3.5 text-sky-600 shrink-0" />
               {t.totalCtn}
             </span>
-            <span className="text-[9.5px] bg-blue-100/90 text-blue-800 px-1 py-0.2 rounded font-mono font-bold">CTN</span>
+            <span className="text-[10px] bg-sky-100 border border-sky-200 text-sky-800 px-1.5 py-0.5 rounded font-mono font-bold">
+              CTN
+            </span>
           </div>
           
-          <div className="flex items-baseline gap-1 my-0.5">
-            <span className="text-lg sm:text-xl font-black text-blue-950 tracking-tight font-mono">
+          <div className="flex items-baseline gap-1.5 my-1">
+            <span className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight font-mono group-hover:text-sky-700 transition-colors">
               {summary.totalCtn}
             </span>
-            <span className="text-xs font-bold text-blue-700">CTN</span>
+            <span className="text-xs font-semibold text-sky-600">CTN</span>
           </div>
 
-          <div className="flex items-center justify-between text-[10px] text-blue-800/90 font-medium pt-1 border-t border-blue-100">
+          <div className="flex items-center justify-between text-[11px] text-slate-500 font-medium pt-2 border-t border-slate-100">
             <span className="font-bold text-emerald-700 font-mono">{summary.activeNetCartonCount} Active</span>
             <span className="text-slate-500 font-mono">Gross: {summary.totalGrossWt.toFixed(2)} Kg</span>
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 };

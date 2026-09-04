@@ -27,7 +27,10 @@ import {
   Wifi,
   WifiOff,
   RefreshCw,
-  AlertCircle
+  AlertCircle,
+  QrCode,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { Language, translations } from '../utils/translations';
 import { Folder, Activity } from 'lucide-react';
@@ -44,6 +47,7 @@ interface HeaderProps {
   onOpenHelp: () => void;
   onOpenActivityLog?: () => void;
   onOpenTools: () => void;
+  onOpenScheduleUpload?: () => void;
   onOpenExcelDrive: () => void;
   onOpenCloudSync: () => void;
   onOpenWorkspaces?: () => void;
@@ -51,6 +55,7 @@ interface HeaderProps {
   onOpenApk?: () => void;
   onOpenIndexedDbBackups?: () => void;
   onOpenAuthModal?: () => void;
+  onOpenShareSheet?: () => void;
   onPrint: () => void;
   onExportCsv: () => void;
   onReset: () => void;
@@ -69,6 +74,8 @@ interface HeaderProps {
   lastCloudSyncTime?: Date | null;
   pendingOfflineChanges?: boolean;
   onManualSync?: () => Promise<boolean>;
+  onToggleWeightUnit?: () => void;
+  weightUnit?: 'kg' | 'gm';
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -77,12 +84,14 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenAiScan,
   onOpenHelp,
   onOpenTools,
+  onOpenScheduleUpload,
   onOpenActivityLog,
   onOpenExcelDrive,
   onOpenCloudSync,
   onOpenApk,
   onOpenIndexedDbBackups,
   onOpenAuthModal,
+  onOpenShareSheet,
   onPrint,
   onExportCsv,
   onReset,
@@ -100,6 +109,8 @@ export const Header: React.FC<HeaderProps> = ({
   lastCloudSyncTime = null,
   pendingOfflineChanges = false,
   onManualSync,
+  onToggleWeightUnit,
+  weightUnit = 'kg',
 }) => {
   const [copied, setCopied] = useState(false);
   const [showSaveTooltip, setShowSaveTooltip] = useState(false);
@@ -108,6 +119,25 @@ export const Header: React.FC<HeaderProps> = ({
   const [, setTick] = useState(0);
   const t = translations[lang];
   const { user } = useAuth();
+
+  // Header Hide / Collapse state
+  const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('garment_header_collapsed') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const toggleCollapse = () => {
+    setIsCollapsed(prev => {
+      const next = !prev;
+      try {
+        localStorage.setItem('garment_header_collapsed', String(next));
+      } catch {}
+      return next;
+    });
+  };
 
   // Refresh relative time every 5 seconds
   useEffect(() => {
@@ -220,19 +250,106 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
     }
   };
 
+  if (isCollapsed) {
+    return (
+      <header className="bg-slate-900 text-white sticky top-0 z-40 shadow-md border-b border-slate-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-2 flex items-center justify-between gap-3">
+          {/* Left: Brand / Title */}
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-emerald-400 shrink-0">
+              <Calculator className="w-4 h-4" />
+            </div>
+            <div className="min-w-0">
+              <h1 className="text-xs sm:text-sm font-bold tracking-tight text-white truncate flex items-center gap-2">
+                <span>{t.appTitle}</span>
+                <span className={`w-2 h-2 rounded-full shrink-0 ${isOnline ? 'bg-emerald-400' : 'bg-amber-400'}`} title={isOnline ? 'Online' : 'Offline'} />
+              </h1>
+            </div>
+          </div>
+
+          {/* Right: Quick actions + Expand Button */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            {onUndo && (
+              <button
+                type="button"
+                onClick={onUndo}
+                disabled={!canUndo}
+                className={`p-1.5 rounded-lg border transition cursor-pointer flex items-center justify-center ${
+                  canUndo ? 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700' : 'bg-slate-800/40 text-slate-600 border-slate-800 cursor-not-allowed'
+                }`}
+                title="Undo"
+              >
+                <Undo2 className="w-3.5 h-3.5" />
+              </button>
+            )}
+            {onRedo && (
+              <button
+                type="button"
+                onClick={onRedo}
+                disabled={!canRedo}
+                className={`p-1.5 rounded-lg border transition cursor-pointer flex items-center justify-center ${
+                  canRedo ? 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700' : 'bg-slate-800/40 text-slate-600 border-slate-800 cursor-not-allowed'
+                }`}
+                title="Redo"
+              >
+                <Redo2 className="w-3.5 h-3.5" />
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={onPrint}
+              className="hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-xs border border-emerald-500 transition cursor-pointer"
+              title={t.printSheet}
+            >
+              <Printer className="w-3.5 h-3.5" />
+              <span>{t.printSheet}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setLang(lang === 'en' ? 'bn' : 'en')}
+              className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-xs font-medium transition cursor-pointer"
+            >
+              {lang === 'en' ? 'বাংলা' : 'EN'}
+            </button>
+            <button
+              type="button"
+              onClick={toggleCollapse}
+              className="flex items-center gap-1 px-3 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition cursor-pointer shadow-xs"
+              title={lang === 'en' ? 'Expand header' : 'হেডার খুলুন'}
+            >
+              <span>{lang === 'en' ? 'Expand' : 'খুলুন'}</span>
+              <ChevronDown className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      </header>
+    );
+  }
+
   return (
-    <header className="bg-slate-900 text-white border-b border-slate-800 shadow-md">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex flex-col md:flex-row items-center justify-between gap-4">
+    <header className="bg-slate-900 text-white sticky top-0 z-40 shadow-md">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-col md:flex-row items-center justify-between gap-3 sm:gap-4">
         {/* Left: Brand / Title & Status Indicators */}
         <div className="flex items-center gap-3 w-full md:w-auto">
-          <div className="w-10 h-10 rounded-lg bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0 shadow-inner">
-            <Calculator className="w-6 h-6" />
+          <div className="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-emerald-400 shrink-0 shadow-xs">
+            <Calculator className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+              <h1 className="text-base sm:text-lg font-bold tracking-tight text-white flex items-center gap-2">
                 {t.appTitle}
               </h1>
+
+              {/* Hide Option for Header */}
+              <button
+                type="button"
+                onClick={toggleCollapse}
+                className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-[11px] font-medium border border-slate-700 transition cursor-pointer shadow-xs"
+                title={lang === 'en' ? 'Hide header' : 'হেডার লুকান'}
+              >
+                <span>{lang === 'en' ? 'Hide' : 'লুকান'}</span>
+                <ChevronUp className="w-3.5 h-3.5" />
+              </button>
 
               {/* Online / Offline & Realtime Sync Status Badge */}
               <div 
@@ -243,16 +360,16 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
                 <button
                   type="button"
                   onClick={() => setShowSyncTooltip(prev => !prev)}
-                  className={`flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-mono font-semibold transition-all duration-300 cursor-pointer border shadow-2xs ${
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10.5px] font-mono font-semibold transition-all duration-300 cursor-pointer border shadow-[0_2px_10px_rgba(0,0,0,0.3)] backdrop-blur-md ${
                     !isOnline || syncStatus === 'offline'
-                      ? 'bg-amber-950/80 text-amber-300 border-amber-500/50 hover:bg-amber-900/70'
+                      ? 'bg-amber-950/60 text-amber-300 border-amber-500/40 hover:bg-amber-900/60 hover:shadow-[0_0_15px_rgba(245,158,11,0.2)]'
                       : syncStatus === 'syncing' || isManualSyncing
-                      ? 'bg-cyan-950/90 text-cyan-200 border-cyan-400/60 animate-pulse'
+                      ? 'bg-cyan-950/70 text-cyan-200 border-cyan-400/50 animate-pulse shadow-[0_0_15px_rgba(6,182,212,0.25)]'
                       : syncStatus === 'synced'
-                      ? 'bg-emerald-950/70 text-emerald-300 border-emerald-500/40 hover:bg-emerald-900/60 hover:border-emerald-400/60'
+                      ? 'bg-emerald-950/60 text-emerald-300 border-emerald-500/40 hover:bg-emerald-900/50 hover:border-emerald-400/60 hover:shadow-[0_0_15px_rgba(16,185,129,0.25)]'
                       : syncStatus === 'error'
-                      ? 'bg-rose-950/80 text-rose-300 border-rose-500/50 hover:bg-rose-900/60'
-                      : 'bg-slate-800/80 text-slate-300 border-slate-700 hover:bg-slate-700'
+                      ? 'bg-rose-950/70 text-rose-300 border-rose-500/50 hover:bg-rose-900/60 hover:shadow-[0_0_15px_rgba(244,63,94,0.2)]'
+                      : 'bg-white/[0.04] text-slate-300 border-white/10 hover:bg-white/[0.08]'
                   }`}
                   title="Real-time network and Firestore sync status"
                 >
@@ -311,8 +428,8 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
 
                 {/* Rich Real-Time Sync Tooltip */}
                 {showSyncTooltip && (
-                  <div className="absolute left-0 top-full mt-1.5 z-50 w-80 p-3.5 bg-slate-950 text-slate-200 border border-slate-700 rounded-xl shadow-2xl text-xs space-y-2.5 animate-in fade-in zoom-in-95 duration-150">
-                    <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                  <div className="absolute left-0 top-full mt-2 z-50 w-80 p-4 bg-slate-900 text-slate-200 rounded-xl shadow-2xl border border-slate-700 text-xs space-y-3 animate-in fade-in zoom-in-95 duration-150">
+                    <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
                       <span className="font-bold text-white flex items-center gap-1.5">
                         {isOnline ? (
                           <Wifi className="w-4 h-4 text-emerald-400" />
@@ -321,16 +438,16 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
                         )}
                         {lang === 'en' ? 'Real-Time Sync Engine' : 'রিয়েল-টাইম সিঙ্ক ইঞ্জিন'}
                       </span>
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold border ${
+                      <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-mono font-bold border backdrop-blur-md ${
                         isOnline 
-                          ? 'bg-emerald-950 text-emerald-300 border-emerald-800' 
-                          : 'bg-amber-950 text-amber-300 border-amber-800'
+                          ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-[0_0_10px_rgba(16,185,129,0.2)]' 
+                          : 'bg-amber-500/20 text-amber-300 border-amber-500/40'
                       }`}>
                         {isOnline ? (lang === 'en' ? 'ONLINE' : 'অনলাইন') : (lang === 'en' ? 'OFFLINE' : 'অফলাইন')}
                       </span>
                     </div>
 
-                    <div className="space-y-1.5 text-[11px] text-slate-300">
+                    <div className="space-y-2 text-[11px] text-slate-300">
                       <div className="flex items-center justify-between">
                         <span className="text-slate-400">{lang === 'en' ? 'Network Connection:' : 'নেটওয়ার্ক সংযোগ:'}</span>
                         <span className={`font-mono font-bold flex items-center gap-1 ${
@@ -384,7 +501,7 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
                       </div>
                     </div>
 
-                    <div className="pt-2 border-t border-slate-800 flex items-center justify-between gap-2">
+                    <div className="pt-2.5 border-t border-white/10 flex items-center justify-between gap-2">
                       <span className="text-[10px] text-slate-400 flex items-center gap-1">
                         <HardDrive className="w-3 h-3 text-slate-400 shrink-0" />
                         {lang === 'en' ? 'Immediate auto-push on edit' : 'এডিট করলেই অটো-সিঙ্ক'}
@@ -395,7 +512,7 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
                           type="button"
                           onClick={handleManualSyncClick}
                           disabled={isManualSyncing || !isOnline}
-                          className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 disabled:text-slate-500 text-white text-[10.5px] font-bold rounded-lg shadow-xs transition cursor-pointer flex items-center gap-1.5"
+                          className="px-3 py-1 bg-indigo-600/90 hover:bg-indigo-500 disabled:bg-slate-800/80 disabled:text-slate-500 text-white text-[10.5px] font-bold rounded-lg shadow-[0_0_15px_rgba(99,102,241,0.3)] transition cursor-pointer flex items-center gap-1.5 border border-indigo-400/30"
                         >
                           <RefreshCw className={`w-3 h-3 ${isManualSyncing ? 'animate-spin text-cyan-300' : ''}`} />
                           <span>{isManualSyncing ? (lang === 'en' ? 'Syncing...' : 'সিঙ্ক হচ্ছে...') : t.syncNowBtn}</span>
@@ -408,7 +525,7 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
                             setShowSyncTooltip(false);
                             onOpenAuthModal();
                           }}
-                          className="px-2 py-1 bg-indigo-600 hover:bg-indigo-500 text-white text-[10.5px] font-bold rounded-lg shadow-xs transition cursor-pointer flex items-center gap-1"
+                          className="px-2.5 py-1 bg-indigo-600/90 hover:bg-indigo-500 text-white text-[10.5px] font-bold rounded-lg shadow-[0_0_15px_rgba(99,102,241,0.3)] transition cursor-pointer flex items-center gap-1 border border-indigo-400/30"
                         >
                           <LogIn className="w-3 h-3" />
                           <span>{lang === 'en' ? 'Sign In' : 'লগইন'}</span>
@@ -434,10 +551,10 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
                       setShowSaveTooltip(prev => !prev);
                     }
                   }}
-                  className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold transition-all duration-300 cursor-pointer border ${
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono font-semibold transition-all duration-300 cursor-pointer border shadow-[0_2px_10px_rgba(0,0,0,0.3)] backdrop-blur-md ${
                     isSaving
-                      ? 'bg-amber-950/80 text-amber-300 border-amber-500/50 animate-pulse'
-                      : 'bg-slate-800/80 text-slate-300 border-slate-700 hover:bg-slate-700 hover:text-white'
+                      ? 'bg-amber-950/60 text-amber-300 border-amber-500/40 animate-pulse'
+                      : 'bg-white/[0.04] text-slate-300 border-white/10 hover:bg-white/[0.08] hover:border-white/20 hover:text-white'
                   }`}
                   title="Saved to LocalStorage & IndexedDB (Click to view snapshots)"
                 >
@@ -451,18 +568,18 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
 
                 {/* Rich Tooltip */}
                 {showSaveTooltip && (
-                  <div className="absolute left-0 top-full mt-1.5 z-50 w-72 p-3.5 bg-slate-950 text-slate-200 border border-slate-700 rounded-xl shadow-2xl text-xs space-y-2.5 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="absolute left-0 top-full mt-2 z-50 w-72 p-4 bg-slate-900 text-slate-200 rounded-xl shadow-2xl border border-slate-700 text-xs space-y-3 animate-in fade-in zoom-in-95 duration-150">
                     <div className="flex items-center justify-between border-b border-slate-800 pb-2">
                       <span className="font-bold text-white flex items-center gap-1.5">
                         <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                         {lang === 'en' ? 'IndexedDB Auto-Backup' : 'IndexedDB অটো-ব্যাকআপ'}
                       </span>
-                      <span className="text-[10px] px-1.5 py-0.2 bg-emerald-950 text-emerald-300 rounded border border-emerald-800 font-mono font-bold">
+                      <span className="text-[10px] px-2 py-0.5 bg-emerald-500/20 text-emerald-300 rounded-full border border-emerald-500/40 font-mono font-bold">
                         Persisted
                       </span>
                     </div>
 
-                    <div className="space-y-1.5 text-[11px] text-slate-300">
+                    <div className="space-y-2 text-[11px] text-slate-300">
                       <div className="flex items-center justify-between">
                         <span className="text-slate-400">{lang === 'en' ? 'Last Saved:' : 'সর্বশেষ সংরক্ষণ:'}</span>
                         <span className="font-mono font-bold text-emerald-300 flex items-center gap-1">
@@ -480,7 +597,7 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
                       </div>
                     </div>
 
-                    <div className="pt-2 border-t border-slate-800 flex items-center justify-between gap-2">
+                    <div className="pt-2 border-t border-white/10 flex items-center justify-between gap-2">
                       <span className="text-[10.5px] text-slate-400 flex items-center gap-1">
                         <HardDrive className="w-3 h-3 text-slate-400 shrink-0" />
                         {lang === 'en' ? 'Zero data loss' : 'ডাটা সুরক্ষিত'}
@@ -493,7 +610,7 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
                             setShowSaveTooltip(false);
                             onOpenIndexedDbBackups();
                           }}
-                          className="px-2 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-[10.5px] font-bold rounded shadow-xs transition cursor-pointer flex items-center gap-1"
+                          className="px-2.5 py-1 bg-emerald-600/90 hover:bg-emerald-500 text-white text-[10.5px] font-bold rounded-lg shadow-[0_0_15px_rgba(16,185,129,0.3)] transition cursor-pointer flex items-center gap-1 border border-emerald-400/30"
                         >
                           <Database className="w-3 h-3" />
                           <span>{lang === 'en' ? 'Manage Backups' : 'ব্যাকআপ দেখুন'}</span>
@@ -517,10 +634,10 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
             <button
               type="button"
               onClick={onOpenAuthModal}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold shadow-xs border transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-xs border transition-all cursor-pointer ${
                 user 
-                  ? 'bg-slate-800 hover:bg-slate-700 text-white border-indigo-500/40' 
-                  : 'bg-indigo-600 hover:bg-indigo-500 text-white border-indigo-400'
+                  ? 'bg-slate-800 border-slate-700 hover:bg-slate-700 text-white' 
+                  : 'bg-indigo-600 hover:bg-indigo-500 text-white border-indigo-500'
               }`}
               title={user ? `Signed in as ${user.displayName || user.email}` : 'Sign in with Google or Email'}
             >
@@ -530,7 +647,7 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
                     <img 
                       src={user.photoURL} 
                       alt="User avatar" 
-                      className="w-4 h-4 rounded-full border border-indigo-400 object-cover" 
+                      className="w-4 h-4 rounded-full border border-indigo-400 object-cover shadow-xs" 
                     />
                   ) : (
                     <div className="w-4 h-4 rounded-full bg-indigo-500 text-white text-[9px] font-bold flex items-center justify-center">
@@ -560,21 +677,37 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
           <button
             type="button"
             onClick={onOpenAiScan}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-xs font-semibold shadow-sm transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-xs border border-indigo-500 transition-all cursor-pointer"
             title="Scan handwritten or printed packing list sheet using Gemini AI"
           >
             <Sparkles className="w-4 h-4 text-amber-300 animate-pulse" />
             <span>{t.aiScanPhoto}</span>
           </button>
 
+          {/* Upload Schedule & Excel Tracker Button */}
+          {onOpenScheduleUpload && (
+            <button
+              type="button"
+              onClick={onOpenScheduleUpload}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-xs border border-blue-400 transition-all cursor-pointer ring-2 ring-blue-400/20"
+              title="Upload Excel Schedule & Track/Edit Orders (এক্সেল শিডিউল আপলোড ও এডিটর)"
+            >
+              <Upload className="w-3.5 h-3.5 text-blue-100 animate-bounce" />
+              <span>{lang === 'en' ? 'Upload Schedule' : 'শিডিউল আপলোড'}</span>
+              <span className="hidden xl:inline text-[9px] bg-blue-800/80 px-1 py-0.2 rounded font-mono text-blue-200">
+                Excel
+              </span>
+            </button>
+          )}
+
           {/* OneDrive / Excel Access Button */}
           <button
             type="button"
             onClick={onOpenExcelDrive}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-gradient-to-r from-emerald-700 to-teal-700 hover:from-emerald-600 hover:to-teal-600 text-white text-xs font-semibold shadow-sm border border-emerald-500/30 transition cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-semibold shadow-xs border border-emerald-600 transition-all cursor-pointer"
             title="OneDrive & Excel Access: Import .xlsx from OneDrive or Export to Excel Online"
           >
-            <Cloud className="w-4 h-4 text-sky-300" />
+            <Cloud className="w-4 h-4 text-sky-200" />
             <span>{lang === 'en' ? 'OneDrive & Excel' : 'ওয়ানড্রাইভ ও এক্সেল'}</span>
           </button>
 
@@ -583,7 +716,7 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
             <button
               type="button"
               onClick={onOpenApk}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-semibold shadow-sm border border-emerald-400/30 transition cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-800 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs border border-emerald-700 transition-all cursor-pointer"
               title="Install App on Android Smartphone / Tablet"
             >
               <Smartphone className="w-4 h-4 text-emerald-200" />
@@ -595,7 +728,7 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
           <button
             type="button"
             onClick={onOpenTools}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700 transition cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 text-xs font-medium transition cursor-pointer shadow-xs"
             title="Garment calculation tools: Sample Wt, Reverse Calculator, Bulk Paste"
           >
             <Wrench className="w-3.5 h-3.5 text-amber-400" />
@@ -606,12 +739,12 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
           <button
             type="button"
             onClick={handleShareSummary}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-sm transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-xs border border-indigo-500 transition-all cursor-pointer"
             title="Share or Copy summary for WhatsApp / Email"
           >
             {copied ? (
               <>
-                <Check className="w-3.5 h-3.5" />
+                <Check className="w-3.5 h-3.5 text-emerald-300" />
                 <span className="text-white">Copied!</span>
               </>
             ) : (
@@ -622,11 +755,24 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
             )}
           </button>
 
+          {/* Share QR */}
+          {onOpenShareSheet && (
+            <button
+              type="button"
+              onClick={onOpenShareSheet}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold shadow-xs border border-violet-500 transition-all cursor-pointer"
+              title="Generate a QR code to share this sheet data"
+            >
+              <QrCode className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Share QR</span>
+            </button>
+          )}
+
           {/* Print */}
           <button
             type="button"
             onClick={onPrint}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-sm transition cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-xs border border-emerald-500 transition cursor-pointer"
           >
             <Printer className="w-3.5 h-3.5" />
             <span>{t.printSheet}</span>
@@ -636,7 +782,7 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
           <button
             type="button"
             onClick={onOpenHelp}
-            className="p-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition cursor-pointer"
+            className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition cursor-pointer"
             title="How calculations work (Formulas)"
           >
             <HelpCircle className="w-4 h-4" />
@@ -648,10 +794,10 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
               type="button"
               onClick={onUndo}
               disabled={!canUndo}
-              className={`p-1.5 rounded-md border transition cursor-pointer flex items-center justify-center ${
+              className={`p-2 rounded-lg border transition cursor-pointer flex items-center justify-center ${
                 canUndo 
-                  ? 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700' 
-                  : 'bg-slate-900 text-slate-600 border-slate-800 cursor-not-allowed opacity-50'
+                  ? 'bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border-slate-700' 
+                  : 'bg-slate-800/40 text-slate-600 border-slate-800 cursor-not-allowed'
               }`}
               title="Undo last change"
             >
@@ -665,10 +811,10 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
               type="button"
               onClick={onRedo}
               disabled={!canRedo}
-              className={`p-1.5 rounded-md border transition cursor-pointer flex items-center justify-center ${
+              className={`p-2 rounded-lg border transition cursor-pointer flex items-center justify-center ${
                 canRedo 
-                  ? 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700' 
-                  : 'bg-slate-900 text-slate-600 border-slate-800 cursor-not-allowed opacity-50'
+                  ? 'bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border-slate-700' 
+                  : 'bg-slate-800/40 text-slate-600 border-slate-800 cursor-not-allowed'
               }`}
               title="Redo last undone change"
             >
@@ -680,20 +826,43 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
           <button
             type="button"
             onClick={onReset}
-            className="p-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition cursor-pointer"
+            className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition cursor-pointer"
             title={t.resetDefault}
           >
             <RotateCcw className="w-4 h-4" />
           </button>
 
+          {/* Weight Unit Toggle */}
+          {onToggleWeightUnit && (
+            <button
+              type="button"
+              onClick={onToggleWeightUnit}
+              className="flex items-center justify-center min-w-[38px] px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 text-xs font-bold transition cursor-pointer"
+              title={lang === 'en' ? 'Toggle unit between KG and GM' : 'KG এবং GM এর মাঝে পরিবর্তন করুন'}
+            >
+              {weightUnit === 'gm' ? 'GM' : 'KG'}
+            </button>
+          )}
+
           {/* Language Switch */}
           <button
             type="button"
             onClick={() => setLang(lang === 'en' ? 'bn' : 'en')}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700 transition cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 text-xs font-medium transition cursor-pointer"
           >
             <Globe className="w-3.5 h-3.5 text-sky-400" />
             <span className="font-semibold">{lang === 'en' ? 'বাংলা' : 'English'}</span>
+          </button>
+
+          {/* Hide Header Button */}
+          <button
+            type="button"
+            onClick={toggleCollapse}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-xs font-medium transition cursor-pointer"
+            title={lang === 'en' ? 'Hide header bar' : 'হেডার লুকান'}
+          >
+            <span>{lang === 'en' ? 'Hide' : 'লুকান'}</span>
+            <ChevronUp className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
