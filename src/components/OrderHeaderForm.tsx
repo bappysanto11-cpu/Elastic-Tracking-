@@ -134,6 +134,27 @@ export const OrderHeaderForm: React.FC<OrderHeaderFormProps> = ({
                 {sheetData.ref}
               </span>
             )}
+
+            {/* When collapsed, display buyer, size, color directly in this bar */}
+            {isCollapsed && (
+              <div className="flex items-center gap-1.5 text-[11px] text-slate-300 ml-1">
+                {sheetData.buyer && (
+                  <span className="truncate">
+                    Buyer: <strong className="text-white">{sheetData.buyer}</strong>
+                  </span>
+                )}
+                {sheetData.size && (
+                  <span className="truncate font-mono">
+                    Size: <strong className="text-emerald-300">{sheetData.size}</strong>
+                  </span>
+                )}
+                {sheetData.color && (
+                  <span className="truncate">
+                    Color: <strong className="text-rose-300">{sheetData.color}</strong>
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -547,39 +568,7 @@ export const OrderHeaderForm: React.FC<OrderHeaderFormProps> = ({
             </div>
           </div>
         </div>
-      ) : (
-        /* Collapsed Summary Bar */
-        <div className="px-3 py-1.5 bg-slate-50 flex items-center justify-between text-xs text-slate-600 gap-2">
-          <div className="flex items-center gap-2 overflow-x-auto py-0.5 text-[11px]">
-            <span className="font-bold text-indigo-700 flex items-center gap-1">
-              <span>{currentItemKey === 'elastic' ? '🧵' : currentItemKey === 'drawstring' ? '🪢' : currentItemKey === 'bow' ? '🎀' : '🏷️'}</span>
-              <span>{currentItemConfig.name} ({isPcsMode ? 'Pcs' : 'Mtr'})</span>
-            </span>
-            <span className="text-slate-300">|</span>
-            <span className="font-semibold text-slate-800">{sheetData.companyName || 'No Company'}</span>
-            <span className="text-slate-300">|</span>
-            <span className="font-mono font-bold text-amber-700">{sheetData.ref || 'No Ref'}</span>
-            <span className="text-slate-300">|</span>
-            <span>Buyer: <strong className="text-slate-800">{sheetData.buyer || '-'}</strong></span>
-            <span className="text-slate-300">|</span>
-            <span>Size: <strong className="text-slate-800">{sheetData.size || '-'}</strong></span>
-            <span className="text-slate-300">|</span>
-            <span>Color: <strong className="text-slate-800">{sheetData.color || '-'}</strong></span>
-            <span className="text-slate-300">|</span>
-            <span>Tare: <strong>{sheetData.defaultTare} Kg</strong></span>
-            <span className="text-slate-300">|</span>
-            <span>Unit Wt: <strong className="text-emerald-700">{sheetData.defaultWtPerUnit} {isPcsMode ? 'gm/pc' : 'gm/m'}</strong></span>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setIsCollapsed(false)}
-            className="text-[10.5px] font-bold text-indigo-600 hover:text-indigo-800 shrink-0 cursor-pointer"
-          >
-            {lang === 'en' ? 'Expand' : 'খুলুন'}
-          </button>
-        </div>
-      )}
+      ) : null}
     </div>
   );
 };

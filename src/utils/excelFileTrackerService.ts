@@ -486,3 +486,111 @@ export async function parseUploadedExcelFile(
 
   return trackedFile;
 }
+
+// ==========================================
+// EXPORT SINGLE ORDER TO .XLSX
+// ==========================================
+export function exportSingleOrderToExcel(item: ScheduleItem, fileNamePrefix?: string): void {
+  const exportRows = [{
+    'Date': item.date || new Date().toISOString().split('T')[0],
+    'Buyer': item.buyer || '',
+    'Customer': item.customer || '',
+    'Job No': item.jobNo || '',
+    'Customer Ref / PO': item.customerRefPO || '',
+    'WO Number': item.woNumber || '',
+    'Item Description': item.itemDescription || '',
+    'Color': item.color || '',
+    'Size': item.size || '',
+    'Order Qty': Number(item.orderQty) || 0,
+    'Unit': item.unit || 'Mtr',
+    'Demand Qty': Number(item.demandQty) || 0,
+    'Completed Qty': Number(item.completedQty) || 0,
+    'Status': item.status || 'pending',
+    'Progress (%)': `${item.progress || 0}%`,
+    'Challan Ref': item.challanRef || '',
+    'Notes': item.notes || '',
+  }];
+
+  const worksheet = XLSX.utils.json_to_sheet(exportRows);
+  const colWidths = [
+    { wch: 12 }, // Date
+    { wch: 20 }, // Buyer
+    { wch: 20 }, // Customer
+    { wch: 14 }, // Job No
+    { wch: 20 }, // Customer Ref / PO
+    { wch: 14 }, // WO Number
+    { wch: 26 }, // Item Description
+    { wch: 14 }, // Color
+    { wch: 10 }, // Size
+    { wch: 12 }, // Order Qty
+    { wch: 8 },  // Unit
+    { wch: 12 }, // Demand Qty
+    { wch: 14 }, // Completed Qty
+    { wch: 14 }, // Status
+    { wch: 14 }, // Progress
+    { wch: 18 }, // Challan Ref
+    { wch: 25 }, // Notes
+  ];
+  worksheet['!cols'] = colWidths;
+
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Order_Details');
+  const safeName = (item.customerRefPO || item.buyer || 'Order').replace(/[^a-zA-Z0-9_-]/g, '_');
+  XLSX.writeFile(workbook, `${fileNamePrefix || 'Order'}_${safeName}.xlsx`);
+}
+
+// ==========================================
+// COMPLETE SCHEDULE ITEM IN TRACKER
+// ==========================================
+export async function completeScheduleItemInTracker(
+  itemIdOrRef: string,
+  actualPackedQty?: number
+): Promise<{ success: boolean; item?: ScheduleItem; file?: TrackedExcelFile }> {
+  const existingFiles = getLocalTrackedFiles();
+  let targetFile: TrackedExcelFile | null = null;
+  let targetItem: ScheduleItem | null = null;
+
+  for (const file of existingFiles) {
+    const itemIndex = file.items.findIndex(
+      it =>
+        it.id === itemIdOrRef ||
+        (it.customerRefPO && it.customerRefPO.trim().toLowerCase() === itemIdOrRef.trim().toLowerCase()) ||
+        (it.jobNo && it.jobNo.trim().toLowerCase() === itemIdOrRef.trim().toLowerCase())
+    );
+    if (itemIndex >= 0) {
+      const it = file.items[itemIndex];
+      const completedQty =
+        actualPackedQty !== undefined && actualPackedQty > 0
+          ? Number(actualPackedQty.toFixed(2))
+          : Number(it.demandQty) || Number(it.orderQty) || 0;
+      const demand = Number(it.demandQty) || Number(it.orderQty) || 1;
+      const progress = Math.min(100, Math.round((completedQty / demand) * 100));
+
+      const updatedItem: ScheduleItem = {
+        ...it,
+        status: 'completed',
+        completedQty,
+        progress: progress > 0 ? progress : 100,
+        completedAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      const updatedItems = [...file.items];
+      updatedItems[itemIndex] = updatedItem;
+
+      targetFile = {
+        ...file,
+        items: updatedItems,
+        updatedAt: new Date().toISOString(),
+      };
+      targetItem = updatedItem;
+      break;
+    }
+  }
+
+  if (targetFile && targetItem) {
+    await saveTrackedExcelFile(targetFile);
+    return { success: true, item: targetItem, file: targetFile };
+  }
+  return { success: false };
+}

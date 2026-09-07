@@ -16,7 +16,6 @@ import { CartonTable } from './components/CartonTable';
 import { FactorySheetView } from './components/FactorySheetView';
 import { StickerLabelsView } from './components/StickerLabelsView';
 import { ToolsModal } from './components/ToolsModal';
-import { AiScanModal } from './components/AiScanModal';
 import { FormulaHelpModal } from './components/FormulaHelpModal';
 import { PrintPreviewModal } from './components/PrintPreviewModal';
 import { PrintToast } from './components/PrintToast';
@@ -45,6 +44,7 @@ import { ChallanGenerator } from './components/ChallanGenerator';
 import { TruckManager } from './components/TruckManager';
 import { DailyReportView } from './components/DailyReportView';
 import { ScheduleItem } from './types/schedule';
+import { completeScheduleItemInTracker } from './utils/excelFileTrackerService';
 import { getSharedPackingSheet } from './utils/shareSheet';
 
 const STORAGE_KEY = 'garment_elastic_calculator_v1';
@@ -53,7 +53,7 @@ const STORAGE_KEY = 'garment_elastic_calculator_v1';
 
 export default function App() {
   const [lang, setLang] = useState<Language>('bn');
-  const [activeTab, setActiveTab] = useState<'table' | 'sheet' | 'stickers' | 'analytics' | 'demands' | 'upload' | 'tracker' | 'challan' | 'truck' | 'report'>('table');
+  const [activeTab, setActiveTab] = useState<'upload' | 'table' | 'sheet' | 'stickers' | 'analytics' | 'demands' | 'tracker' | 'challan' | 'truck' | 'report'>('upload');
   const [isAddDemandModalOpen, setIsAddDemandModalOpen] = useState(false);
 
   // Elastic Demands State
@@ -65,7 +65,6 @@ export default function App() {
   }, [demands]);
 
   // Modals
-  const [isAiScanOpen, setIsAiScanOpen] = useState<boolean>(false);
   const [isToolsOpen, setIsToolsOpen] = useState<boolean>(false);
   const [toolsModalTab, setToolsModalTab] = useState<'tools' | 'security'>('tools');
   const [isViewOnlyMode, setIsViewOnlyMode] = useState<boolean>(() => {
@@ -92,6 +91,18 @@ export default function App() {
   const [isCartonQrModalOpen, setIsCartonQrModalOpen] = useState<boolean>(false);
   const [selectedCartonForQr, setSelectedCartonForQr] = useState<CartonRow | null>(null);
   const [directQrPayload, setDirectQrPayload] = useState<CartonQrPayload | null>(null);
+
+  // Active Schedule Item being packed from Excel Schedule Manager
+  const [activePackingScheduleItem, setActivePackingScheduleItem] = useState<ScheduleItem | null>(() => {
+    try {
+      const saved = localStorage.getItem('garment_active_packing_schedule_item');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [previousActiveTab, setPreviousActiveTab] = useState<'upload' | 'table' | 'sheet' | 'stickers' | 'analytics' | 'demands' | 'tracker' | 'challan' | 'truck' | 'report'>('upload');
+  const [packingCompleteToast, setPackingCompleteToast] = useState<{ show: boolean; message: string } | null>(null);
 
   // Auth & Real-Time Sync
   const { user } = useAuth();
@@ -388,6 +399,11 @@ export default function App() {
   };
 
   const handleLoadScheduleItemIntoSheet = (item: ScheduleItem) => {
+    setActivePackingScheduleItem(item);
+    try {
+      localStorage.setItem('garment_active_packing_schedule_item', JSON.stringify(item));
+    } catch {}
+    setPreviousActiveTab(activeTab === 'table' ? 'upload' : activeTab);
     setSheetData(prev => ({
       ...prev,
       buyer: item.buyer || prev.buyer,
@@ -403,6 +419,37 @@ export default function App() {
     }));
 
     setActiveTab('table');
+  };
+
+  const handleCompletePackingAndReturn = async (packedTotalQty?: number) => {
+    const targetRef = activePackingScheduleItem?.id || activePackingScheduleItem?.customerRefPO || activePackingScheduleItem?.jobNo || sheetData.ref || sheetData.buyer;
+    if (targetRef) {
+      await completeScheduleItemInTracker(targetRef, packedTotalQty);
+    }
+    const completedBuyer = activePackingScheduleItem?.buyer || sheetData.buyer || 'Order';
+    const completedRef = activePackingScheduleItem?.customerRefPO || activePackingScheduleItem?.jobNo || sheetData.ref || '';
+    setActivePackingScheduleItem(null);
+    try {
+      localStorage.removeItem('garment_active_packing_schedule_item');
+    } catch {}
+
+    setPackingCompleteToast({
+      show: true,
+      message: lang === 'en'
+        ? `✅ Packing successfully completed for ${completedBuyer} (${completedRef})! Returned to schedule.`
+        : `✅ ${completedBuyer} (${completedRef})-এর প্যাকিং সম্পূর্ণ হয়েছে! শিডিউল তালিকায় ফিরে আসা হয়েছে।`,
+    });
+    setTimeout(() => {
+      setPackingCompleteToast(null);
+    }, 4500);
+
+    const returnTarget = (previousActiveTab && previousActiveTab !== 'table' ? previousActiveTab : 'upload');
+    setActiveTab(returnTarget);
+  };
+
+  const handleReturnToPreviousTab = () => {
+    const returnTarget = (previousActiveTab && previousActiveTab !== 'table' ? previousActiveTab : 'upload');
+    setActiveTab(returnTarget);
   };
 
   // Cascade default tare & unit weight to cartons
@@ -824,14 +871,6 @@ export default function App() {
   };
 
   // Apply extracted AI data
-  const handleApplyExtractedData = (data: Partial<PackingSheetData>) => {
-    setSheetData(prev => ({
-      ...prev,
-      ...data,
-      cartons: data.cartons || prev.cartons,
-    }));
-  };
-
   // Import data from Excel / OneDrive
   const handleImportExcelData = (importedCartons: CartonRow[], importedHeader?: Partial<PackingSheetData>) => {
     setSheetData(prev => ({
@@ -870,7 +909,6 @@ export default function App() {
       <Header
         lang={lang}
         setLang={setLang}
-        onOpenAiScan={() => setIsAiScanOpen(true)}
         onOpenHelp={() => setIsHelpOpen(true)}
         onOpenActivityLog={() => setIsActivityLogOpen(true)}
         onOpenTools={() => setIsToolsOpen(true)}
@@ -903,6 +941,22 @@ export default function App() {
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6">
+        {/* Packing Complete Feedback Notification Toast */}
+        {packingCompleteToast && (
+          <div className="mb-4 p-3.5 rounded-xl bg-emerald-900 text-emerald-100 border border-emerald-500 shadow-xl flex items-center justify-between animate-in fade-in slide-in-from-top-3 duration-200">
+            <div className="flex items-center gap-2.5">
+              <span className="text-xl">🎉</span>
+              <span className="text-sm font-bold text-white">{packingCompleteToast.message}</span>
+            </div>
+            <button
+              onClick={() => setPackingCompleteToast(null)}
+              className="text-emerald-300 hover:text-white text-xs font-bold px-2 py-1 rounded hover:bg-emerald-800 transition cursor-pointer"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
         {/* View-Only Security Mode Banner */}
         {isViewOnlyMode && (
           <div className="mb-4 p-3 sm:p-3.5 rounded-xl bg-indigo-950 text-white border border-indigo-800 flex items-center justify-between shadow-lg print:hidden animate-in fade-in">
@@ -969,7 +1023,23 @@ export default function App() {
 
         {/* View Switcher Tabs */}
         <div className="flex items-center gap-2 mb-4 border-b border-slate-300 pb-2 print:hidden overflow-x-auto">
-            {/* Table View Tab */}
+            {/* Primary Tab 1: Upload Schedule & Production Output Hub */}
+            <button
+              onClick={() => setActiveTab('upload')}
+              className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition cursor-pointer shrink-0 ${
+                activeTab === 'upload'
+                  ? 'bg-blue-600 text-white shadow-md ring-2 ring-blue-400/40'
+                  : 'bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200'
+              }`}
+            >
+              <Upload className="w-4 h-4 text-blue-500" />
+              <span>{lang === 'en' ? 'Excel Schedule & Outputs' : 'শিডিউল ও আউটপুট হাব'}</span>
+              <span className="text-[10px] bg-blue-700 text-white px-1.5 py-0.2 rounded font-mono font-bold">
+                1st Hub
+              </span>
+            </button>
+
+            {/* Tab 2: Table View Tab */}
             <button
               onClick={() => setActiveTab('table')}
               className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition cursor-pointer shrink-0 ${
@@ -982,22 +1052,6 @@ export default function App() {
               <span>{t.tableView}</span>
               <span className="text-[10px] bg-slate-700 text-slate-200 px-1.5 py-0.2 rounded font-mono">
                 {filteredCartons.length}
-              </span>
-            </button>
-
-            {/* Elevated: Upload Schedule & Live Editor Tab */}
-            <button
-              onClick={() => setActiveTab('upload')}
-              className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition cursor-pointer shrink-0 ${
-                activeTab === 'upload'
-                  ? 'bg-blue-600 text-white shadow-md ring-2 ring-blue-400/40'
-                  : 'bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200'
-              }`}
-            >
-              <Upload className="w-4 h-4 text-blue-500" />
-              <span>{lang === 'en' ? 'Upload Schedule' : 'শিডিউল আপলোড'}</span>
-              <span className="text-[10px] bg-blue-600 text-white px-1.5 py-0.2 rounded font-mono font-bold">
-                Excel Track & Edit
               </span>
             </button>
 
@@ -1042,60 +1096,6 @@ export default function App() {
               <BarChart3 className="w-4 h-4 text-rose-400" />
               <span>{t.analyticsTab || 'Analytics'}</span>
             </button>
-
-            <div className="w-px h-6 bg-slate-300 mx-2 self-center shrink-0"></div>
-
-            {/* Tracker - Tracker Tab */}
-            <button
-              onClick={() => setActiveTab('tracker')}
-              className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition cursor-pointer shrink-0 ${
-                activeTab === 'tracker'
-                  ? 'bg-blue-600 text-white shadow-xs'
-                  : 'bg-white text-blue-600 hover:bg-blue-50 border border-blue-200'
-              }`}
-            >
-              <ClipboardList className="w-4 h-4" />
-              <span>Tracker</span>
-            </button>
-
-            {/* Tracker - Challan Tab */}
-            <button
-              onClick={() => setActiveTab('challan')}
-              className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition cursor-pointer shrink-0 ${
-                activeTab === 'challan'
-                  ? 'bg-blue-600 text-white shadow-xs'
-                  : 'bg-white text-blue-600 hover:bg-blue-50 border border-blue-200'
-              }`}
-            >
-              <FileText className="w-4 h-4" />
-              <span>Challans</span>
-            </button>
-
-            {/* Tracker - Truck Tab */}
-            <button
-              onClick={() => setActiveTab('truck')}
-              className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition cursor-pointer shrink-0 ${
-                activeTab === 'truck'
-                  ? 'bg-blue-600 text-white shadow-xs'
-                  : 'bg-white text-blue-600 hover:bg-blue-50 border border-blue-200'
-              }`}
-            >
-              <Truck className="w-4 h-4" />
-              <span>Trucks</span>
-            </button>
-
-            {/* Tracker - Report Tab */}
-            <button
-              onClick={() => setActiveTab('report')}
-              className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition cursor-pointer shrink-0 ${
-                activeTab === 'report'
-                  ? 'bg-blue-600 text-white shadow-xs'
-                  : 'bg-white text-blue-600 hover:bg-blue-50 border border-blue-200'
-              }`}
-            >
-              <BarChart3 className="w-4 h-4" />
-              <span>Daily Report</span>
-            </button>
           </div>
 
         {/* Tab Views */}
@@ -1134,6 +1134,9 @@ export default function App() {
                   handleLoadDemandIntoSheet(demand);
                 }
               }}
+              activeScheduleItem={activePackingScheduleItem}
+              onCompletePackingAndReturn={handleCompletePackingAndReturn}
+              onReturnToPreviousTab={handleReturnToPreviousTab}
             />
           </div>
         )}
@@ -1186,6 +1189,24 @@ export default function App() {
               lang={lang}
               onLoadRowToPackingSheet={handleLoadScheduleItemIntoSheet}
               onNavigateToTab={tab => setActiveTab(tab)}
+              onDirectOutput={(target, item) => {
+                handleLoadScheduleItemIntoSheet(item);
+                if (target === 'table') {
+                  setActiveTab('table');
+                } else if (target === 'sheet') {
+                  setActiveTab('sheet');
+                } else if (target === 'stickers') {
+                  setActiveTab('stickers');
+                } else if (target === 'print_stickers') {
+                  setActiveTab('stickers');
+                  setTimeout(() => handleRequestPrint('portrait'), 200);
+                } else if (target === 'print_sheet') {
+                  setActiveTab('sheet');
+                  setTimeout(() => handleRequestPrint('landscape'), 200);
+                } else if (target === 'challan') {
+                  setActiveTab('challan');
+                }
+              }}
             />
           </div>
         )}
@@ -1313,13 +1334,6 @@ export default function App() {
         onLoadSheetData={loaded => {
           setSheetData(loaded);
         }}
-        lang={lang}
-      />
-
-      <AiScanModal
-        isOpen={isAiScanOpen}
-        onClose={() => setIsAiScanOpen(false)}
-        onApplyExtractedData={handleApplyExtractedData}
         lang={lang}
       />
 

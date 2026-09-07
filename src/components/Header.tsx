@@ -44,7 +44,7 @@ import { BrandTitle3D } from './BrandTitle3D';
 interface HeaderProps {
   lang: Language;
   setLang: (lang: Language) => void;
-  onOpenAiScan: () => void;
+  onOpenAiScan?: () => void;
   onOpenHelp: () => void;
   onOpenActivityLog?: () => void;
   onOpenTools: () => void;
@@ -650,17 +650,6 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
               )}
             </button>
           )}
-
-          {/* AI Scan Button */}
-          <button
-            type="button"
-            onClick={onOpenAiScan}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-xs border border-indigo-500 transition-all cursor-pointer"
-            title="Scan handwritten or printed packing list sheet using Gemini AI"
-          >
-            <Sparkles className="w-4 h-4 text-amber-300 animate-pulse" />
-            <span>{t.aiScanPhoto}</span>
-          </button>
 
           {/* Upload Schedule & Excel Tracker Button */}
           {onOpenScheduleUpload && (

@@ -51,52 +51,18 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({ summary, lang, sheet
 
   return (
     <div className="bg-white border border-slate-200 rounded-xl overflow-hidden mb-4 shadow-sm transition-all duration-300">
-      {/* 1ST MENTION: BUYER • SIZE • COLOUR • REF Inside Compact Header Bar */}
-      <div className="bg-slate-900 px-3 sm:px-4 py-2 flex flex-wrap items-center justify-between gap-2 text-xs border-b border-slate-800">
-        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap min-w-0">
-          {/* BUYER */}
-          <div className="flex items-center gap-1.5 bg-slate-800/80 px-2.5 py-1 rounded-lg border border-slate-700">
-            <Tag className="w-3 h-3 text-violet-400 shrink-0" />
-            <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
-              {lang === 'en' ? 'Buyer' : 'বায়ার'}:
-            </span>
-            <span className="text-xs font-bold text-white truncate max-w-[110px] sm:max-w-[150px]">
-              {buyer}
-            </span>
+      {/* Clean Compact Header Bar without duplicate tags */}
+      <div className="bg-slate-900 px-3 sm:px-4 py-2 flex items-center justify-between gap-2 text-xs border-b border-slate-800">
+        <div className="flex items-center gap-2">
+          <div className="w-6 h-6 rounded-md bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+            <Scale className="w-3.5 h-3.5" />
           </div>
-
-          {/* SIZE */}
-          <div className="flex items-center gap-1.5 bg-slate-800/80 px-2.5 py-1 rounded-lg border border-slate-700">
-            <Maximize2 className="w-3 h-3 text-emerald-400 shrink-0" />
-            <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
-              {lang === 'en' ? 'Size' : 'সাইজ'}:
-            </span>
-            <span className="text-xs font-bold font-mono text-emerald-300 truncate">
-              {size}
-            </span>
-          </div>
-
-          {/* COLOUR */}
-          <div className="flex items-center gap-1.5 bg-slate-800/80 px-2.5 py-1 rounded-lg border border-slate-700">
-            <Palette className="w-3 h-3 text-rose-400 shrink-0" />
-            <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
-              {lang === 'en' ? 'Colour' : 'রঙ'}:
-            </span>
-            <span className="text-xs font-bold text-rose-300 truncate max-w-[90px]">
-              {color}
-            </span>
-          </div>
-
-          {/* REF */}
-          <div className="flex items-center gap-1.5 bg-slate-800/80 px-2.5 py-1 rounded-lg border border-slate-700">
-            <Hash className="w-3 h-3 text-amber-400 shrink-0" />
-            <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
-              {lang === 'en' ? 'Ref' : 'রেফারেন্স'}:
-            </span>
-            <span className="text-xs font-bold font-mono text-amber-300 truncate max-w-[130px] sm:max-w-[180px]">
-              {ref}
-            </span>
-          </div>
+          <span className="font-bold text-white text-xs sm:text-sm tracking-tight">
+            {lang === 'en' ? 'Packing Live Summary' : 'প্যাকিং সামারি'}
+          </span>
+          <span className="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-800/60">
+            {summary.totalCtn} CTN
+          </span>
         </div>
 
         {/* Right side: Compact Copy Button & Hide/Expand Toggle */}

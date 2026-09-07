@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { toPng, toBlob } from 'html-to-image';
+import JSZip from 'jszip';
 import { CartonRow, PackingSheetData, SummaryStats, ItemType } from '../types/calculator';
 import { Language, translations } from '../utils/translations';
 import { generateCartonPreviewUrl } from '../utils/qrCarton';
@@ -38,6 +39,10 @@ import {
   ArrowUpDown,
   ChevronUp,
   ChevronDown,
+  FolderArchive,
+  Archive,
+  DownloadCloud,
+  CheckCircle2,
   ArrowDownUp,
   ListOrdered,
   Shuffle,
@@ -123,6 +128,9 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
   const isCompact = densityMode === 'compact';
   const isComfort = densityMode === 'comfort';
   const [isExportingAll, setIsExportingAll] = useState<boolean>(false);
+  const [exportProgress, setExportProgress] = useState<{ current: number; total: number; stage: string } | null>(null);
+  const [showExportMenu, setShowExportMenu] = useState<boolean>(false);
+  const [exportNotice, setExportNotice] = useState<string | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
   const [isBulkPanelOpen, setIsBulkPanelOpen] = useState<boolean>(false);
   const [isSpecsDrawerOpen, setIsSpecsDrawerOpen] = useState<boolean>(false);
@@ -622,15 +630,25 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
         quality: 1, 
         pixelRatio: 2,
         backgroundColor: '#ffffff',
+        filter: (node: any) => {
+          if (node?.classList && (node.classList.contains('print:hidden') || node.classList.contains('sticker-overlay-control'))) {
+            return false;
+          }
+          return true;
+        },
         style: {
           margin: '0',
           boxShadow: 'none'
         }
       });
       const link = document.createElement('a');
-      link.download = `sticker-ctn-${cartonNo}-${sheetData.ref || 'export'}.png`;
+      const safeBuyer = (sheetData.buyer || 'Order').replace(/[^a-zA-Z0-9_-]/g, '_');
+      const safeRef = (sheetData.ref || 'export').replace(/[^a-zA-Z0-9_-]/g, '_');
+      link.download = `Sticker_CTN_${cartonNo}_${safeBuyer}_${safeRef}.png`;
       link.href = dataUrl;
+      document.body.appendChild(link);
       link.click();
+      document.body.removeChild(link);
     } catch (err) {
       console.error('Export failed', err);
     }
@@ -669,17 +687,143 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
     }
   };
 
-  const handleExportAllAsImages = async () => {
+  const handleExportAllAsZip = async () => {
+    if (activeCartons.length === 0) {
+      alert(lang === 'en' ? 'No active stickers found for this order to download.' : 'এই অর্ডারে কোনো সক্রিয় স্টিকার পাওয়া যায়নি।');
+      return;
+    }
     setIsExportingAll(true);
+    setExportProgress({ current: 0, total: activeCartons.length, stage: lang === 'en' ? 'Preparing images...' : 'স্টিকার ইমেজ প্রস্তুত করা হচ্ছে...' });
+
+    recordStickerUsage(sheetData, stickerSettings);
+
     try {
-      for (const c of activeCartons) {
-        await handleDownloadSticker(c.id, c.cartonNo);
-        await new Promise(resolve => setTimeout(resolve, 400));
+      const zip = new JSZip();
+      const safeBuyer = (sheetData.buyer || 'Order').replace(/[^a-zA-Z0-9_-]/g, '_');
+      const safeRef = (sheetData.ref || 'PO').replace(/[^a-zA-Z0-9_-]/g, '_');
+      const safeCustomer = (sheetData.customer || '').replace(/[^a-zA-Z0-9_-]/g, '_');
+
+      let successCount = 0;
+      for (let i = 0; i < activeCartons.length; i++) {
+        const c = activeCartons[i];
+        setExportProgress({
+          current: i + 1,
+          total: activeCartons.length,
+          stage: lang === 'en'
+            ? `Packaging Carton #${c.cartonNo} (${i + 1}/${activeCartons.length})...`
+            : `কার্টন #${c.cartonNo} যুক্ত হচ্ছে (${i + 1}/${activeCartons.length})...`,
+        });
+
+        const el = stickerRefs.current[c.id];
+        if (el) {
+          try {
+            const blob = await toBlob(el, {
+              quality: 1,
+              pixelRatio: 2,
+              backgroundColor: '#ffffff',
+              style: {
+                margin: '0',
+                boxShadow: 'none',
+              },
+            });
+            if (blob) {
+              const paddedNo = String(c.cartonNo).padStart(3, '0');
+              const fileName = `Carton_${paddedNo}_${safeBuyer}_${safeRef}.png`;
+              zip.file(fileName, blob);
+              successCount++;
+            }
+          } catch (itemErr) {
+            console.warn(`Failed rendering carton #${c.cartonNo} for ZIP`, itemErr);
+          }
+        }
+        await new Promise(resolve => setTimeout(resolve, 40));
       }
+
+      // Manifest summary text file inside the ZIP archive
+      const manifestText = [
+        `=====================================================`,
+        `PACKING STICKER LABELS MANIFEST - ${sheetData.companyName || 'FACTORY'}`,
+        `=====================================================`,
+        `Order / PO Ref: ${sheetData.ref || 'N/A'}`,
+        `Buyer: ${sheetData.buyer || 'N/A'}`,
+        `Customer: ${sheetData.customer || 'N/A'}`,
+        `Item Type: ${sheetData.itemType?.toUpperCase() || 'ELASTIC'}`,
+        `Item Size/Color: ${sheetData.size || '-'} / ${sheetData.color || '-'}`,
+        `Total Active Cartons: ${activeCartons.length}`,
+        `Downloaded At: ${new Date().toLocaleString()}`,
+        `-----------------------------------------------------`,
+        ...activeCartons.map(c =>
+          `Carton #${c.cartonNo}: Gross Wt=${c.grossWt.toFixed(2)} ${sheetData.weightUnit || 'kg'}, Net Wt=${c.netWt.toFixed(2)} ${sheetData.weightUnit || 'kg'}, Qty=${c.lengthMtr ? c.lengthMtr + ' Mtr' : (c.qtyPcs || 0) + ' Pcs'}, Notes=${c.notes || '-'}`
+        ),
+        `=====================================================`,
+      ].join('\n');
+      zip.file(`ORDER_STICKERS_MANIFEST_${safeBuyer}_${safeRef}.txt`, manifestText);
+
+      setExportProgress({
+        current: activeCartons.length,
+        total: activeCartons.length,
+        stage: lang === 'en' ? 'Compressing all stickers into 1 ZIP file...' : 'সবগুলো স্টিকার ১টি ZIP ফাইলে প্যাক করা হচ্ছে...',
+      });
+
+      const zipBlob = await zip.generateAsync({
+        type: 'blob',
+        compression: 'DEFLATE',
+        compressionOptions: { level: 6 },
+      });
+
+      const zipFileName = `Stickers_${safeBuyer}_${safeRef}_All_${activeCartons.length}_Cartons.zip`;
+      const url = URL.createObjectURL(zipBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = zipFileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(url), 15000);
+
+      setExportNotice(
+        lang === 'en'
+          ? `✅ All ${successCount} active stickers downloaded together in 1 ZIP file!`
+          : `✅ অর্ডার অনুযায়ী সবগুলো (${successCount}টি) সক্রিয় স্টিকার এক সাথে ZIP ফাইলে ডাউনলোড হয়েছে!`
+      );
+      setTimeout(() => setExportNotice(null), 6000);
+    } catch (err) {
+      console.error('ZIP Export failed', err);
+      handleExportIndividualImages();
     } finally {
       setIsExportingAll(false);
+      setExportProgress(null);
     }
   };
+
+  const handleExportIndividualImages = async () => {
+    setIsExportingAll(true);
+    setExportProgress({ current: 0, total: activeCartons.length, stage: 'Exporting individual files...' });
+    try {
+      for (let i = 0; i < activeCartons.length; i++) {
+        const c = activeCartons[i];
+        setExportProgress({
+          current: i + 1,
+          total: activeCartons.length,
+          stage: lang === 'en' ? `Downloading #${c.cartonNo}...` : `কার্টন #${c.cartonNo} ডাউনলোড হচ্ছে...`,
+        });
+        await handleDownloadSticker(c.id, c.cartonNo);
+        await new Promise(resolve => setTimeout(resolve, 350));
+      }
+      setExportNotice(
+        lang === 'en'
+          ? `✅ Downloaded ${activeCartons.length} individual sticker files!`
+          : `✅ আলাদাভাবে ${activeCartons.length}টি স্টিকার ডাউনলোড হয়েছে!`
+      );
+      setTimeout(() => setExportNotice(null), 5000);
+    } finally {
+      setIsExportingAll(false);
+      setExportProgress(null);
+    }
+  };
+
+  // Backwards compatibility alias
+  const handleExportAllAsImages = handleExportAllAsZip;
 
   const fontConfig = FONT_FAMILY_STYLES[stickerSettings.fontFamily] || FONT_FAMILY_STYLES.sans;
 
@@ -1047,15 +1191,16 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
 
             <button
               onClick={handleExportAllAsImages}
-              disabled={isExportingAll}
+              disabled={isExportingAll || activeCartons.length === 0}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold shadow-xs transition cursor-pointer ${
                 isExportingAll
                   ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
                   : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'
               }`}
+              title={lang === 'en' ? 'Download all active sticker images' : 'সবগুলো স্টিকার ইমেজ ডাউনলোড করুন'}
             >
-              <ImageIcon className="w-3.5 h-3.5" />
-              <span>{isExportingAll ? 'Exporting...' : (lang === 'en' ? 'Export Images' : 'ইমেজ এক্সপোর্ট')}</span>
+              <ImageIcon className="w-3.5 h-3.5 text-indigo-600" />
+              <span>{isExportingAll ? (lang === 'en' ? 'Downloading...' : 'ডাউনলোড হচ্ছে...') : (lang === 'en' ? 'Export Images' : 'ইমেজ ডাউনলোড')}</span>
             </button>
 
             <button
@@ -1676,40 +1821,43 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                     <span>#{c.cartonNo}</span>
                   </div>
 
-                  {/* Sequence Movement & Export Overlay Controls (Visible on hover) */}
-                  <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity print:hidden z-10 bg-white/90 backdrop-blur-xs p-0.5 rounded-md shadow-md border border-slate-200">
+                  {/* Sequence Movement & Export Overlay Controls (Visible on mobile and hover on desktop) */}
+                  <div className="absolute top-2 right-2 flex items-center gap-1 opacity-100 sm:opacity-90 sm:hover:opacity-100 transition-opacity print:hidden z-10 bg-white/95 backdrop-blur-xs p-1 rounded-lg shadow-md border border-slate-200 sticker-overlay-control">
                     <button
                       type="button"
-                      onClick={() => handleMoveCarton(c.id, 'up')}
-                      className="p-1 bg-slate-100 hover:bg-indigo-600 hover:text-white text-slate-700 rounded transition cursor-pointer"
-                      title={lang === 'en' ? 'Move earlier in sequence (Up/Left)' : 'সিকোয়েন্সে আগে নিন'}
+                      onClick={() => handleDownloadSticker(c.id, c.cartonNo)}
+                      className="flex items-center gap-1 px-2 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold rounded shadow-xs transition cursor-pointer"
+                      title={lang === 'en' ? 'Download Carton Sticker Image (PNG)' : 'এই কার্টনের স্টিকার ইমেজ ডাউনলোড করুন'}
                     >
-                      <ChevronUp className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleMoveCarton(c.id, 'down')}
-                      className="p-1 bg-slate-100 hover:bg-indigo-600 hover:text-white text-slate-700 rounded transition cursor-pointer"
-                      title={lang === 'en' ? 'Move later in sequence (Down/Right)' : 'সিকোয়েন্সে পরে নিন'}
-                    >
-                      <ChevronDown className="w-3.5 h-3.5" />
+                      <Download className="w-3.5 h-3.5" />
+                      <span>{lang === 'en' ? 'Image' : 'ইমেজ'}</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => handleShareSticker(c.id, c.cartonNo)}
-                      className="p-1 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition cursor-pointer"
-                      title="Share as Image"
+                      className="p-1 bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white rounded transition cursor-pointer border border-indigo-200"
+                      title={lang === 'en' ? 'Share as Image' : 'শেয়ার করুন'}
                     >
                       <Share2 className="w-3.5 h-3.5" />
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => handleDownloadSticker(c.id, c.cartonNo)}
-                      className="p-1 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition cursor-pointer"
-                      title="Download as PNG"
-                    >
-                      <Download className="w-3.5 h-3.5" />
-                    </button>
+                    <div className="flex items-center bg-slate-100 rounded border border-slate-200">
+                      <button
+                        type="button"
+                        onClick={() => handleMoveCarton(c.id, 'up')}
+                        className="p-1 hover:bg-indigo-600 hover:text-white text-slate-700 rounded-l transition cursor-pointer"
+                        title={lang === 'en' ? 'Move earlier in sequence' : 'সিকোয়েন্সে আগে নিন'}
+                      >
+                        <ChevronUp className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleMoveCarton(c.id, 'down')}
+                        className="p-1 hover:bg-indigo-600 hover:text-white text-slate-700 rounded-r transition cursor-pointer"
+                        title={lang === 'en' ? 'Move later in sequence' : 'সিকোয়েন্সে পরে নিন'}
+                      >
+                        <ChevronDown className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
 
                   {/* Sticker Header with Customized Logo, Font & Styling */}

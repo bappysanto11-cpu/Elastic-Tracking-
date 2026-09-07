@@ -1,10 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { CartonRow, PackingSheetData } from '../types/calculator';
 import { ElasticDemand } from '../types/elasticDemand';
 import { Language, translations } from '../utils/translations';
 import { calculateSummary, parseRawWeightData } from '../utils/calc';
 import { QuickFillModal, QuickFillPreset } from './QuickFillModal';
 import { PasteWeightsModal } from './PasteWeightsModal';
+import { CartonTableRow } from './CartonTableRow';
+import { CartonMobileCard } from './CartonMobileCard';
 import { 
   DemandComplianceReport, 
   analyzeCartonDeviations, 
@@ -51,8 +53,11 @@ import {
   Package,
   ClipboardPaste,
   TrendingUp,
-  TrendingDown
+  TrendingDown,
+  LayoutGrid,
+  ArrowLeft
 } from 'lucide-react';
+import { ScheduleItem } from '../types/schedule';
 
 const ACTIVE_ROW_STORAGE_KEY = 'garment_elastic_active_carton_id';
 
@@ -79,6 +84,9 @@ interface CartonTableProps {
   demands?: ElasticDemand[];
   activeDemandId?: string;
   onSelectDemand?: (demand: ElasticDemand | null) => void;
+  activeScheduleItem?: ScheduleItem | null;
+  onCompletePackingAndReturn?: (packedTotalQty?: number) => void;
+  onReturnToPreviousTab?: () => void;
 }
 
 export const CartonTable: React.FC<CartonTableProps> = ({
@@ -98,6 +106,9 @@ export const CartonTable: React.FC<CartonTableProps> = ({
   demands = [],
   activeDemandId,
   onSelectDemand,
+  activeScheduleItem,
+  onCompletePackingAndReturn,
+  onReturnToPreviousTab,
 }) => {
   const t = translations[lang]; const wUnit = sheetData.weightUnit === "gm" ? "Gm" : "Kg";
   const [bulkCount, setBulkCount] = useState(5);
@@ -129,24 +140,30 @@ export const CartonTable: React.FC<CartonTableProps> = ({
 
   // Row element references for smooth scrolling & locating
   const rowRefs = useRef<{ [id: string]: HTMLTableRowElement | null }>({});
+  const grossInputRefs = useRef<{ [id: string]: HTMLInputElement | null }>({});
 
-  const scrollToActiveRow = (id?: string) => {
+  const registerRowRef = useCallback((id: string, el: HTMLTableRowElement | null) => {
+    rowRefs.current[id] = el;
+  }, []);
+
+  const registerGrossInputRef = useCallback((id: string, el: HTMLInputElement | null) => {
+    grossInputRefs.current[id] = el;
+  }, []);
+
+  const scrollToActiveRow = useCallback((id?: string) => {
     const targetId = id || selectedRowId;
     if (!targetId) return;
     const rowEl = rowRefs.current[targetId];
     if (rowEl) {
       rowEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
-  };
+  }, [selectedRowId]);
 
   // Elastic Demand Benchmark & Deviation State
   const [selectedDemandIdState, setSelectedDemandIdState] = useState<string | null>(activeDemandId || null);
   const [tolerancePercent, setTolerancePercent] = useState<number>(5);
   const [filterOnlyDeviations, setFilterOnlyDeviations] = useState<boolean>(false);
   const [inspectedCartonId, setInspectedCartonId] = useState<string | null>(null);
-
-  // Zero-to-Zero buffer state for inline gross weight typing
-  const [editingGrossMap, setEditingGrossMap] = useState<{ [id: string]: string }>({});
 
   // Direct Clipboard Raw Weight Paste Modal & Notification States
   const [isPasteModalOpen, setIsPasteModalOpen] = useState<boolean>(false);
@@ -168,60 +185,82 @@ export const CartonTable: React.FC<CartonTableProps> = ({
     if (onBulkPasteWeights) {
       onBulkPasteWeights(weights, mode, startIndex, customTare, customUnitWt);
     } else {
-      // Fallback
       if (mode === 'replace') {
-        weights.forEach((w, idx) => {
-          if (filteredCartons[idx]) {
-            onUpdateCarton(filteredCartons[idx].id, { grossWt: w });
+        weights.forEach((grossWt, idx) => {
+          const target = sheetData.cartons[idx];
+          if (target) {
+            onUpdateCarton(target.id, {
+              grossWt,
+              ...(customTare !== undefined ? { tareWt: customTare } : {}),
+              ...(customUnitWt !== undefined ? { wtPerUnit: customUnitWt } : {}),
+            });
           }
         });
-      } else {
-        weights.forEach((w, idx) => {
-          const target = filteredCartons[startIndex + idx];
+      } else if (mode === 'fromIndex') {
+        weights.forEach((grossWt, idx) => {
+          const target = sheetData.cartons[startIndex + idx];
           if (target) {
-            onUpdateCarton(target.id, { grossWt: w });
+            onUpdateCarton(target.id, {
+              grossWt,
+              ...(customTare !== undefined ? { tareWt: customTare } : {}),
+              ...(customUnitWt !== undefined ? { wtPerUnit: customUnitWt } : {}),
+            });
           }
         });
       }
     }
-
+    setIsPasteModalOpen(false);
     setPastedSuccessToast(
       lang === 'en'
-        ? `Successfully auto-generated ${weights.length} carton rows from pasted weights!`
-        : `পেস্ট করা ওজন থেকে সফলভাবে ${weights.length} টি কার্টন সারি তৈরি হয়েছে!`
+        ? `Successfully pasted ${weights.length} carton weights!`
+        : `${weights.length} টি কার্টন ওজন সফলভাবে পেস্ট হয়েছে!`
     );
     setTimeout(() => setPastedSuccessToast(null), 3500);
   };
 
   // Grand Total Summary computed live for the table
-  const tableSummary = calculateSummary(sheetData.cartons);
+  const tableSummary = useMemo(() => calculateSummary(sheetData.cartons), [sheetData.cartons]);
 
   // Sync selected demand with prop or auto-match
-  const activeDemand = findMatchingDemand(sheetData, demands, selectedDemandIdState);
+  const activeDemand = useMemo(
+    () => findMatchingDemand(sheetData, demands, selectedDemandIdState),
+    [sheetData, demands, selectedDemandIdState]
+  );
 
   // Run deviation detector against active demand
-  const complianceReport: DemandComplianceReport = analyzeCartonDeviations(sheetData, activeDemand, {
-    unitWeightTolerancePercent: tolerancePercent,
-  });
+  const complianceReport: DemandComplianceReport = useMemo(
+    () => analyzeCartonDeviations(sheetData, activeDemand, {
+      unitWeightTolerancePercent: tolerancePercent,
+    }),
+    [sheetData, activeDemand, tolerancePercent]
+  );
 
   // Batch Weight Average & Deviation Analysis
   const [weightDevThresholdPercent, setWeightDevThresholdPercent] = useState<number>(10);
   const [filterOnlyWeightDeviations, setFilterOnlyWeightDeviations] = useState<boolean>(false);
   const [showWeightDevPopover, setShowWeightDevPopover] = useState<boolean>(false);
 
-  const activeCartonsForWeight = sheetData.cartons.filter(c => c.grossWt > 0 || c.netWt > 0);
-  const activeCartonCount = activeCartonsForWeight.length;
-  const totalBatchGross = activeCartonsForWeight.reduce((sum, c) => sum + c.grossWt, 0);
-  const totalBatchNet = activeCartonsForWeight.reduce((sum, c) => sum + c.netWt, 0);
+  const { activeCartonCount, batchAvgGrossWt, batchAvgNetWt, weightDeviatingCartons } = useMemo(() => {
+    const activeCartonsForWeight = sheetData.cartons.filter(c => c.grossWt > 0 || c.netWt > 0);
+    const count = activeCartonsForWeight.length;
+    const totalBatchGross = activeCartonsForWeight.reduce((sum, c) => sum + c.grossWt, 0);
+    const totalBatchNet = activeCartonsForWeight.reduce((sum, c) => sum + c.netWt, 0);
+    const avgGross = count > 0 ? totalBatchGross / count : 0;
+    const avgNet = count > 0 ? totalBatchNet / count : 0;
 
-  const batchAvgGrossWt = activeCartonCount > 0 ? totalBatchGross / activeCartonCount : 0;
-  const batchAvgNetWt = activeCartonCount > 0 ? totalBatchNet / activeCartonCount : 0;
+    const deviating = activeCartonsForWeight.filter(c => {
+      if (avgGross <= 0 || c.grossWt <= 0) return false;
+      const devP = Math.abs(((c.grossWt - avgGross) / avgGross) * 100);
+      return devP >= weightDevThresholdPercent;
+    });
 
-  const weightDeviatingCartons = activeCartonsForWeight.filter(c => {
-    if (batchAvgGrossWt <= 0 || c.grossWt <= 0) return false;
-    const devP = Math.abs(((c.grossWt - batchAvgGrossWt) / batchAvgGrossWt) * 100);
-    return devP >= weightDevThresholdPercent;
-  });
+    return {
+      activeCartonCount: count,
+      batchAvgGrossWt: avgGross,
+      batchAvgNetWt: avgNet,
+      weightDeviatingCartons: deviating,
+    };
+  }, [sheetData.cartons, weightDevThresholdPercent]);
 
   // Batch Selection State
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -315,8 +354,7 @@ export const CartonTable: React.FC<CartonTableProps> = ({
     }
   }, [selectedIds, sheetData.cartons.length]);
 
-  // References to gross weight input elements for auto-focusing
-  const grossInputRefs = useRef<{ [id: string]: HTMLInputElement | null }>({});
+  // Auto-focus after adding a new row
   const shouldFocusNewRow = useRef<boolean>(false);
   const previousCartonsCount = useRef<number>(sheetData.cartons.length);
 
@@ -781,7 +819,7 @@ export const CartonTable: React.FC<CartonTableProps> = ({
     );
   };
 
-  const handleFixCartonField = (cartonId: string, field: 'wtPerUnit' | 'tareWt', value: number) => {
+  const handleFixCartonField = useCallback((cartonId: string, field: 'wtPerUnit' | 'tareWt', value: number) => {
     onUpdateCarton(cartonId, { [field]: value });
     showFeedback(
       lang === 'en'
@@ -789,47 +827,182 @@ export const CartonTable: React.FC<CartonTableProps> = ({
         : `কার্টনে মান সেট করা হয়েছে!`,
       'success'
     );
-  };
+  }, [onUpdateCarton, lang]);
 
-  let filteredCartons = sheetData.cartons.filter(c => {
-    if (filterOnlyDeviations) {
-      const devs = complianceReport.deviationsByCartonId[c.id];
-      if (!devs || devs.length === 0) return false;
-    }
-    if (filterOnlyWeightDeviations) {
-      if (batchAvgGrossWt > 0 && c.grossWt > 0) {
-        const devP = Math.abs(((c.grossWt - batchAvgGrossWt) / batchAvgGrossWt) * 100);
-        if (devP < weightDevThresholdPercent) return false;
-      } else {
-        return false;
+  const filteredCartons = useMemo(() => {
+    let result = sheetData.cartons.filter(c => {
+      if (filterOnlyDeviations) {
+        const devs = complianceReport.deviationsByCartonId[c.id];
+        if (!devs || devs.length === 0) return false;
       }
+      if (filterOnlyWeightDeviations) {
+        if (batchAvgGrossWt > 0 && c.grossWt > 0) {
+          const devP = Math.abs(((c.grossWt - batchAvgGrossWt) / batchAvgGrossWt) * 100);
+          if (devP < weightDevThresholdPercent) return false;
+        } else {
+          return false;
+        }
+      }
+      if (!searchQuery.trim()) return true;
+      const q = searchQuery.toLowerCase();
+      return (
+        c.cartonNo.toString().includes(q) ||
+        (c.notes && c.notes.toLowerCase().includes(q)) ||
+        (c.color && c.color.toLowerCase().includes(q)) ||
+        (c.size && c.size.toLowerCase().includes(q))
+      );
+    });
+
+    if (groupBy !== 'none') {
+      result = [...result].sort((a, b) => {
+        const valA = (a[groupBy] || '').toString().toLowerCase();
+        const valB = (b[groupBy] || '').toString().toLowerCase();
+        return valA.localeCompare(valB);
+      });
     }
-    if (!searchQuery.trim()) return true;
-    const q = searchQuery.toLowerCase();
-    const searchMatch = c.cartonNo.toString().includes(q) || 
-                       (c.notes && c.notes.toLowerCase().includes(q)) || 
-                       (c.color && c.color.toLowerCase().includes(q)) || 
-                       (c.size && c.size.toLowerCase().includes(q));
-    return searchMatch;
-  });
 
-  if (groupBy !== 'none') {
-    filteredCartons.sort((a, b) => {
-      const valA = (a[groupBy] || '').toString().toLowerCase();
-      const valB = (b[groupBy] || '').toString().toLowerCase();
-      return valA.localeCompare(valB);
-    });
-  }
+    return result;
+  }, [
+    sheetData.cartons,
+    filterOnlyDeviations,
+    complianceReport.deviationsByCartonId,
+    filterOnlyWeightDeviations,
+    batchAvgGrossWt,
+    weightDevThresholdPercent,
+    searchQuery,
+    groupBy,
+  ]);
 
-  if (groupBy !== 'none') {
-    filteredCartons.sort((a, b) => {
-      const valA = (a[groupBy] || '').toString().toLowerCase();
-      const valB = (b[groupBy] || '').toString().toLowerCase();
-      return valA.localeCompare(valB);
-    });
-  }
   const displayedCount = filteredCartons.length;
   const activeEditingCarton = sheetData.cartons.find(c => c.id === selectedRowId) || null;
+
+  // View Mode: 'table' vs 'cards' (optimal for mobile devices)
+  const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
+
+  // Virtual Scrolling Configuration & Engine
+  const ROW_HEIGHT = 44;
+  const CARD_HEIGHT = 165;
+  const OVERSCAN = 5;
+  const [isVirtualScroll, setIsVirtualScroll] = useState<boolean>(true);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [scrollTop, setScrollTop] = useState<number>(0);
+  const [containerHeight, setContainerHeight] = useState<number>(600);
+
+  useEffect(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+
+    const handleResize = () => {
+      if (el) setContainerHeight(el.clientHeight || 600);
+    };
+    handleResize();
+
+    const observer = new ResizeObserver(handleResize);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const handleContainerScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    setScrollTop(e.currentTarget.scrollTop);
+  }, []);
+
+  const isVirtualActive = isVirtualScroll && displayedCount > 25;
+  const effectiveItemHeight = viewMode === 'cards' ? CARD_HEIGHT : ROW_HEIGHT;
+
+  const { startIndex, endIndex, topSpacerHeight, bottomSpacerHeight } = useMemo(() => {
+    if (!isVirtualActive) {
+      return {
+        startIndex: 0,
+        endIndex: displayedCount,
+        topSpacerHeight: 0,
+        bottomSpacerHeight: 0,
+      };
+    }
+    const start = Math.max(0, Math.floor(scrollTop / effectiveItemHeight) - OVERSCAN);
+    const end = Math.min(displayedCount, Math.ceil((scrollTop + containerHeight) / effectiveItemHeight) + OVERSCAN);
+    const topH = start * effectiveItemHeight;
+    const bottomH = Math.max(0, (displayedCount - end) * effectiveItemHeight);
+
+    return {
+      startIndex: start,
+      endIndex: end,
+      topSpacerHeight: topH,
+      bottomSpacerHeight: bottomH,
+    };
+  }, [isVirtualActive, displayedCount, scrollTop, effectiveItemHeight, containerHeight]);
+
+  const visibleCartons = useMemo(() => {
+    if (!isVirtualActive) return filteredCartons;
+    return filteredCartons.slice(startIndex, endIndex);
+  }, [filteredCartons, isVirtualActive, startIndex, endIndex]);
+
+  // Keyboard Navigation: Enter / Down jumps to next row, Up to previous
+  const handleNavigateRow = useCallback((direction: 'up' | 'down', currentId: string) => {
+    const currentIndex = filteredCartons.findIndex(c => c.id === currentId);
+    if (currentIndex === -1) return;
+
+    if (direction === 'down') {
+      if (currentIndex < filteredCartons.length - 1) {
+        const nextCarton = filteredCartons[currentIndex + 1];
+        setSelectedRowId(nextCarton.id);
+
+        if (scrollContainerRef.current) {
+          const targetY = (currentIndex + 1) * effectiveItemHeight;
+          const currentY = scrollContainerRef.current.scrollTop;
+          const cH = scrollContainerRef.current.clientHeight;
+          if (targetY > currentY + cH - 100 || targetY < currentY) {
+            scrollContainerRef.current.scrollTop = Math.max(0, targetY - 100);
+          }
+        }
+        setTimeout(() => {
+          grossInputRefs.current[nextCarton.id]?.focus();
+          grossInputRefs.current[nextCarton.id]?.select();
+        }, 30);
+      } else {
+        shouldFocusNewRow.current = true;
+        onAddCarton();
+      }
+    } else {
+      if (currentIndex > 0) {
+        const prevCarton = filteredCartons[currentIndex - 1];
+        setSelectedRowId(prevCarton.id);
+        if (scrollContainerRef.current) {
+          const targetY = (currentIndex - 1) * effectiveItemHeight;
+          const currentY = scrollContainerRef.current.scrollTop;
+          if (targetY < currentY + 50) {
+            scrollContainerRef.current.scrollTop = Math.max(0, targetY - 50);
+          }
+        }
+        setTimeout(() => {
+          grossInputRefs.current[prevCarton.id]?.focus();
+          grossInputRefs.current[prevCarton.id]?.select();
+        }, 30);
+      }
+    }
+  }, [filteredCartons, effectiveItemHeight, onAddCarton]);
+
+  const handleSelectRow = useCallback((id: string, shiftKey: boolean = false) => {
+    setSelectedRowId(id);
+    if (shiftKey) {
+      handleToggleRowSelection(id, true);
+    }
+  }, []);
+
+  const handleInspectCarton = useCallback((id: string) => {
+    setInspectedCartonId(id);
+  }, []);
+
+  const handleStartConversion = useCallback((id: string, mode: 'yds' | 'mtr' | 'lb') => {
+    startConversion(id, mode);
+  }, []);
+
+  const handleConversionChange = useCallback((value: string) => {
+    setConverterState(prev => prev ? { ...prev, value } : null);
+  }, []);
+
+  const handleCancelConversion = useCallback(() => {
+    setConverterState(null);
+  }, []);
 
   return (
     <div>
@@ -847,11 +1020,46 @@ export const CartonTable: React.FC<CartonTableProps> = ({
             {searchQuery || filterOnlyDeviations ? `${displayedCount} / ${totalCount}` : totalCount} {lang === 'en' ? 'Rows' : 'সারি'}
           </span>
 
-          {/* Active Editing Carton Quick Jump / Status Chip */}
+          {/* View Mode Switcher: Table vs Cards */}
+          <div className="flex items-center bg-slate-200/90 p-0.5 rounded-lg text-xs font-semibold">
+            <button
+              onClick={() => setViewMode('table')}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-md transition cursor-pointer ${
+                viewMode === 'table' ? 'bg-white text-indigo-700 font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+              }`}
+              title={lang === 'en' ? 'Table View (Virtual Scroll)' : 'টেবিল ভিউ'}
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span className="hidden xs:inline">{lang === 'en' ? 'Table' : 'টেবিল'}</span>
+            </button>
+            <button
+              onClick={() => setViewMode('cards')}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-md transition cursor-pointer ${
+                viewMode === 'cards' ? 'bg-white text-indigo-700 font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+              }`}
+              title={lang === 'en' ? 'Card View (Mobile Optimized)' : 'কার্ড ভিউ (মোবাইল)'}
+            >
+              <LayoutGrid className="w-3.5 h-3.5" />
+              <span className="hidden xs:inline">{lang === 'en' ? 'Cards' : 'কার্ড'}</span>
+            </button>
+          </div>
+
+          {/* Virtual Scroll Fast Performance Badge */}
+          {isVirtualActive && (
+            <span 
+              className="inline-flex items-center gap-1 text-[11px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full border border-emerald-200"
+              title={lang === 'en' ? `Virtual Scrolling active: Visible rows ${startIndex + 1}–${endIndex} of ${displayedCount}` : `ভার্চুয়াল স্ক্রোল সক্রিয়: দৃশ্যমান ${startIndex + 1}–${endIndex}`}
+            >
+              <Zap className="w-3 h-3 text-emerald-600" />
+              <span>{lang === 'en' ? `Fast: ${startIndex + 1}–${endIndex}` : `সক্রিয়: ${startIndex + 1}–${endIndex}`}</span>
+            </span>
+          )}
+
+          {/* Active Editing Carton Quick Jump / Status Chip - hidden on small mobile to save space */}
           {activeEditingCarton && (
             <button
               onClick={() => scrollToActiveRow(activeEditingCarton.id)}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200 shadow-2xs group"
+              className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200 shadow-2xs group"
               title={lang === 'en' ? `Click to jump to currently active Carton #${activeEditingCarton.cartonNo}` : `বর্তমান সক্রিয় কার্টন #${activeEditingCarton.cartonNo}-এ স্ক্রল করুন`}
             >
               <span className="relative flex h-2 w-2">
@@ -879,9 +1087,9 @@ export const CartonTable: React.FC<CartonTableProps> = ({
             </span>
           )}
 
-          {/* Batch Weight Average & Deviation Control Badge */}
+          {/* Batch Weight Average & Deviation Control Badge - hidden on small mobile to save space */}
           {activeCartonCount > 0 && (
-            <div className="relative">
+            <div className="relative hidden md:block">
               <div className="flex items-center">
                 <button
                   onClick={() => setFilterOnlyWeightDeviations(prev => !prev)}
@@ -1522,73 +1730,199 @@ export const CartonTable: React.FC<CartonTableProps> = ({
         </div>
       )}
 
-      {/* Main Table */}
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-xs border-collapse">
-          <thead>
-            <tr className="bg-slate-900 text-slate-100 uppercase text-[11px] font-bold tracking-wider select-none">
-              
-              {/* Batch Checkbox Column */}
-              <th className="py-2.5 px-3 text-center w-10 border-r border-slate-800">
-                <div className="flex items-center justify-center">
-                  <input
-                    ref={masterCheckboxRef}
-                    type="checkbox"
-                    checked={totalCount > 0 && selectedCount === totalCount}
-                    onChange={handleToggleSelectAll}
-                    title={lang === 'en' ? 'Select/Deselect All Rows' : 'সব সারি সিলেক্ট/আনসিলেক্ট করুন'}
-                    className="w-4 h-4 rounded text-indigo-600 bg-slate-800 border-slate-600 focus:ring-indigo-500 focus:ring-offset-slate-900 cursor-pointer"
-                  />
-                </div>
-              </th>
+      {/* Active Order Packing Header Banner */}
+      {activeScheduleItem && (
+        <div className="px-4 py-2.5 bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white flex flex-wrap items-center justify-between gap-2 border-b border-indigo-700/60 shadow-sm animate-in fade-in">
+          <div className="flex items-center gap-2.5">
+            <span className="relative flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+            </span>
+            <span className="text-xs font-bold text-emerald-300">
+              {lang === 'en' ? 'ACTIVE ORDER PACKING:' : 'চলমান অর্ডার প্যাকিং:'}
+            </span>
+            <span className="text-xs font-mono font-semibold bg-white/10 px-2 py-0.5 rounded text-white">
+              {activeScheduleItem.buyer} • PO: {activeScheduleItem.customerRefPO || activeScheduleItem.jobNo || 'N/A'}
+            </span>
+            <span className="text-xs text-indigo-200 hidden sm:inline">
+              ({lang === 'en' ? 'Target Demand:' : 'টার্গেট চাহিদা:'} {activeScheduleItem.demandQty} {activeScheduleItem.unit})
+            </span>
+          </div>
 
-              <th className="py-2.5 px-3 text-center w-14 border-r border-slate-800">
-                {t.cartonNo}
-              </th>
-              <th className="py-2.5 px-3 text-right border-r border-slate-800 bg-slate-800/80">
-                {t.grossWeight}
-              </th>
-              <th className="py-2.5 px-3 text-right border-r border-slate-800">
-                {t.tareWeight}
-              </th>
-              <th className="py-2.5 px-3 text-right border-r border-slate-800 bg-emerald-950/70 text-emerald-300">
-                {t.netWeight}
-              </th>
-              <th className="py-2.5 px-3 text-right border-r border-slate-800">
-                {t.wtPerUnit}
-              </th>
-              <th className="py-2.5 px-3 text-right border-r border-slate-800 bg-indigo-950/70 text-indigo-300">
-                {t.lengthMtr}
-              </th>
-              <th className="py-2.5 px-3 text-right border-r border-slate-800 bg-purple-950/70 text-purple-300">
-                {t.lengthGry}
-              </th>
-              <th className="py-2.5 px-3 text-right border-r border-slate-800 text-slate-400">
-                {t.lengthYds}
-              </th>
-              <th className="py-2.5 px-3 text-left border-r border-slate-800">
-                {lang === 'en' ? 'Color' : 'রঙ'}
-              </th>
-              <th className="py-2.5 px-3 text-left border-r border-slate-800">
-                {lang === 'en' ? 'Size' : 'সাইজ'}
-              </th>
-              <th className="py-2.5 px-3 text-left border-r border-slate-800">
-                {lang === 'en' ? 'Color' : 'রঙ'}
-              </th>
-              <th className="py-2.5 px-3 text-left border-r border-slate-800">
-                {lang === 'en' ? 'Size' : 'সাইজ'}
-              </th>
-              <th className="py-2.5 px-3 text-left border-r border-slate-800 min-w-[120px]">
-                {lang === 'en' ? 'Notes' : 'নোট'}
-              </th>
-              <th className="py-2.5 px-3 text-center w-20">
-                {t.actions}
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-200 font-mono">
-            {filteredCartons.map((carton, index) => {
-              const getGroupColor = (val) => {
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onReturnToPreviousTab}
+              className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1 transition cursor-pointer border border-slate-600"
+              title={lang === 'en' ? 'Return to Excel Schedule without completing' : 'শিডিউল তালিকায় ফিরে যান'}
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>{lang === 'en' ? 'Back to Schedule' : '← আগের স্থানে ফিরে যান'}</span>
+            </button>
+            <button
+              onClick={() => onCompletePackingAndReturn?.(tableSummary.totalMtr || tableSummary.totalGrossWt)}
+              className="px-3.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shadow-sm ring-1 ring-emerald-400"
+              title={lang === 'en' ? 'Complete packing and return to schedule' : 'প্যাকিং সম্পূর্ণ করুন ও শিডিউলে ফিরে যান'}
+            >
+              <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+              <span>{lang === 'en' ? 'Complete & Return ✓' : '✅ প্যাকিং সম্পন্ন ও শিডিউলে ফিরুন'}</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Main Content Area: Cards View or Table View */}
+      {viewMode === 'cards' ? (
+        <div
+          ref={scrollContainerRef}
+          onScroll={handleContainerScroll}
+          className="p-3 sm:p-4 space-y-3 overflow-y-auto max-h-[72vh] bg-slate-50/50"
+        >
+          {topSpacerHeight > 0 && (
+            <div style={{ height: `${topSpacerHeight}px` }} aria-hidden="true" />
+          )}
+          {visibleCartons.map((carton, idx) => {
+            const originalIndex = startIndex + idx;
+            const isNegativeNet = (carton.grossWt > 0 && carton.netWt < 0) || carton.netWt < 0;
+            const isActive = carton.netWt !== 0 || carton.grossWt > 0;
+            const isFocused = selectedRowId === carton.id;
+            const isChecked = selectedIds.has(carton.id);
+
+            const cartonDevs = complianceReport.deviationsByCartonId[carton.id] || [];
+            const hasCriticalDev = cartonDevs.some(d => d.severity === 'critical') || isNegativeNet;
+            const hasWarningDev = !hasCriticalDev && cartonDevs.some(d => d.severity === 'warning');
+            const unitWtDev = cartonDevs.find(d => d.type === 'unit_weight');
+            const tareDev = cartonDevs.find(d => d.type === 'tare_weight');
+            const underpackDev = cartonDevs.find(d => d.type === 'underpack');
+            const overpackDev = cartonDevs.find(d => d.type === 'overpack');
+            const isCompliantWithDemand = activeDemand && isActive && !isNegativeNet && cartonDevs.length === 0;
+
+            return (
+              <CartonMobileCard
+                key={carton.id}
+                carton={carton}
+                index={originalIndex}
+                isFocused={isFocused}
+                isChecked={isChecked}
+                wUnit={wUnit}
+                lang={lang}
+                cartonDevs={cartonDevs}
+                hasCriticalDev={hasCriticalDev}
+                hasWarningDev={hasWarningDev}
+                unitWtDev={unitWtDev}
+                tareDev={tareDev}
+                underpackDev={underpackDev}
+                overpackDev={overpackDev}
+                isCompliantWithDemand={!!isCompliantWithDemand}
+                batchAvgGrossWt={batchAvgGrossWt}
+                batchAvgNetWt={batchAvgNetWt}
+                weightDevThresholdPercent={weightDevThresholdPercent}
+                activeDemandTare={activeDemand?.defaultTare}
+                activeDemandUnitWt={activeDemand?.unitWeightGm}
+                onSelectRow={handleSelectRow}
+                onToggleSelection={handleToggleRowSelection}
+                onUpdateCarton={onUpdateCarton}
+                onDeleteCarton={onDeleteCarton}
+                onDuplicateCarton={onDuplicateCarton}
+                onOpenCartonQr={onOpenCartonQr}
+                onInspect={handleInspectCarton}
+                onFixField={handleFixCartonField}
+                registerGrossInputRef={registerGrossInputRef}
+              />
+            );
+          })}
+          {bottomSpacerHeight > 0 && (
+            <div style={{ height: `${bottomSpacerHeight}px` }} aria-hidden="true" />
+          )}
+
+          {/* Cards View Bottom Summary Strip */}
+          <div className="mt-4 p-3.5 bg-slate-900 text-white rounded-xl shadow-md border border-slate-700">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-800 text-xs">
+              <span className="font-bold text-amber-400">★ {lang === 'en' ? 'GRAND TOTAL' : 'সর্বমোট সামারি'} ★</span>
+              <span className="font-mono font-bold text-slate-300">
+                {tableSummary.totalCtn} CTN ({tableSummary.activeNetCartonCount} {lang === 'en' ? 'Active' : 'সক্রিয়'})
+              </span>
+            </div>
+            <div className="grid grid-cols-3 gap-2 pt-2.5 text-center font-mono text-xs">
+              <div className="bg-slate-800/80 p-1.5 rounded">
+                <div className="text-[10px] text-slate-400">{lang === 'en' ? 'Gross' : 'গ্রস'}</div>
+                <div className="font-black text-white">{tableSummary.totalGrossWt.toFixed(2)} {wUnit}</div>
+              </div>
+              <div className="bg-emerald-950/80 p-1.5 rounded border border-emerald-800">
+                <div className="text-[10px] text-emerald-300">{lang === 'en' ? 'Net' : 'নেট'}</div>
+                <div className="font-black text-emerald-400">{tableSummary.totalNetWt.toFixed(2)} {wUnit}</div>
+              </div>
+              <div className="bg-indigo-950/80 p-1.5 rounded border border-indigo-800">
+                <div className="text-[10px] text-indigo-300">{lang === 'en' ? 'Meters' : 'মিটার'}</div>
+                <div className="font-black text-indigo-300">{tableSummary.totalMtr.toFixed(1)} m</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div 
+          ref={scrollContainerRef}
+          onScroll={handleContainerScroll}
+          className="overflow-x-auto overflow-y-auto max-h-[72vh] relative"
+        >
+          <table className="w-full text-left text-xs border-collapse">
+            <thead className="sticky top-0 z-20 shadow-xs">
+              <tr className="bg-slate-900 text-slate-100 uppercase text-[11px] font-bold tracking-wider select-none">
+                
+                {/* Batch Checkbox Column */}
+                <th className="py-2.5 px-3 text-center w-10 border-r border-slate-800">
+                  <div className="flex items-center justify-center">
+                    <input
+                      ref={masterCheckboxRef}
+                      type="checkbox"
+                      checked={totalCount > 0 && selectedCount === totalCount}
+                      onChange={handleToggleSelectAll}
+                      title={lang === 'en' ? 'Select/Deselect All Rows' : 'সব সারি সিলেক্ট/আনসিলেক্ট করুন'}
+                      className="w-4 h-4 rounded text-indigo-600 bg-slate-800 border-slate-600 focus:ring-indigo-500 focus:ring-offset-slate-900 cursor-pointer"
+                    />
+                  </div>
+                </th>
+
+                <th className="py-2.5 px-3 text-center w-14 border-r border-slate-800">
+                  {t.cartonNo}
+                </th>
+                <th className="py-2.5 px-3 text-right border-r border-slate-800 bg-slate-800/80">
+                  {t.grossWeight}
+                </th>
+                <th className="py-2.5 px-3 text-right border-r border-slate-800">
+                  {t.tareWeight}
+                </th>
+                <th className="py-2.5 px-3 text-right border-r border-slate-800 bg-emerald-950/70 text-emerald-300">
+                  {t.netWeight}
+                </th>
+                <th className="py-2.5 px-3 text-right border-r border-slate-800">
+                  {t.wtPerUnit}
+                </th>
+                <th className="py-2.5 px-3 text-right border-r border-slate-800 bg-indigo-950/70 text-indigo-300">
+                  {t.lengthMtr}
+                </th>
+                <th className="py-2.5 px-3 text-right border-r border-slate-800 bg-purple-950/70 text-purple-300">
+                  {t.lengthGry}
+                </th>
+                <th className="py-2.5 px-3 text-right border-r border-slate-800 text-slate-400">
+                  {t.lengthYds}
+                </th>
+                <th className="py-2.5 px-3 text-left border-r border-slate-800 min-w-[120px]">
+                  {lang === 'en' ? 'Notes' : 'নোট'}
+                </th>
+                <th className="py-2.5 px-3 text-center w-20">
+                  {t.actions}
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-200 font-mono">
+              {topSpacerHeight > 0 && (
+                <tr style={{ height: `${topSpacerHeight}px` }} aria-hidden="true">
+                  <td colSpan={11} className="p-0 m-0 border-0 pointer-events-none" />
+                </tr>
+              )}
+            {visibleCartons.map((carton, idx) => {
+              const originalIndex = startIndex + idx;
+              const getGroupColor = (val?: string) => {
                 if (!val) return 'transparent';
                 let hash = 0;
                 for (let i = 0; i < val.length; i++) {
@@ -1599,13 +1933,11 @@ export const CartonTable: React.FC<CartonTableProps> = ({
               };
               
               const rowBgColor = groupBy !== 'none' ? getGroupColor(carton[groupBy]) : undefined;
-              
               const isNegativeNet = (carton.grossWt > 0 && carton.netWt < 0) || carton.netWt < 0;
               const isActive = carton.netWt !== 0 || carton.grossWt > 0;
               const isFocused = selectedRowId === carton.id;
               const isChecked = selectedIds.has(carton.id);
 
-              // Deviation analysis for this carton
               const cartonDevs = complianceReport.deviationsByCartonId[carton.id] || [];
               const hasCriticalDev = cartonDevs.some(d => d.severity === 'critical') || isNegativeNet;
               const hasWarningDev = !hasCriticalDev && cartonDevs.some(d => d.severity === 'warning');
@@ -1615,546 +1947,55 @@ export const CartonTable: React.FC<CartonTableProps> = ({
               const overpackDev = cartonDevs.find(d => d.type === 'overpack');
               const isCompliantWithDemand = activeDemand && isActive && !isNegativeNet && cartonDevs.length === 0;
 
-              // Batch Weight Average Deviation Analysis for this carton
-              const grossDiff = carton.grossWt - batchAvgGrossWt;
-              const grossDevPercent = batchAvgGrossWt > 0 && carton.grossWt > 0 ? (grossDiff / batchAvgGrossWt) * 100 : 0;
-              const isGrossDeviating = Math.abs(grossDevPercent) >= weightDevThresholdPercent;
-              const isOverweightAvg = isGrossDeviating && grossDevPercent > 0;
-
-              const netDiff = carton.netWt - batchAvgNetWt;
-              const netDevPercent = batchAvgNetWt > 0 && carton.netWt > 0 ? (netDiff / batchAvgNetWt) * 100 : 0;
-              const isNetDeviating = Math.abs(netDevPercent) >= weightDevThresholdPercent;
-
               return (
-                <tr 
+                <CartonTableRow
                   key={carton.id}
-                  ref={el => { rowRefs.current[carton.id] = el; }}
-                  onClick={(e) => {
-                    // Check if Shift click on row
-                    if (e.shiftKey) {
-                      handleToggleRowSelection(carton.id, true);
-                    } else {
-                      setSelectedRowId(carton.id);
-                    }
-                  }}
-                  className={`transition-all duration-150 cursor-pointer relative ${
-                    isFocused
-                      ? hasCriticalDev
-                        ? 'bg-red-100/95 text-red-950 border-l-4 border-l-red-600 ring-2 ring-inset ring-red-500/80 shadow-xs z-10'
-                        : hasWarningDev
-                        ? 'bg-amber-100/95 text-amber-950 border-l-4 border-l-amber-500 ring-2 ring-inset ring-amber-500/80 shadow-xs z-10'
-                        : isChecked
-                        ? 'bg-indigo-100/95 font-medium border-l-4 border-l-indigo-600 ring-2 ring-inset ring-indigo-500/80 shadow-xs z-10'
-                        : 'bg-blue-50/95 text-slate-950 font-medium border-l-4 border-l-blue-600 ring-2 ring-inset ring-blue-500/80 shadow-xs z-10'
-                      : hasCriticalDev
-                      ? 'bg-red-50/90 hover:bg-red-100/90 text-red-950 border-l-4 border-l-red-600'
-                      : hasWarningDev
-                      ? 'bg-amber-50/80 hover:bg-amber-100/80 text-amber-950 border-l-4 border-l-amber-500'
-                      : isChecked
-                      ? 'bg-indigo-50/90 font-medium border-l-4 border-l-indigo-600 ring-1 ring-inset ring-indigo-200'
-                      : isGrossDeviating
-                      ? isOverweightAvg
-                        ? 'bg-amber-50/60 hover:bg-amber-100/60 font-medium border-l-4 border-l-amber-500'
-                        : 'bg-sky-50/60 hover:bg-sky-100/60 font-medium border-l-4 border-l-sky-500'
-                      : isCompliantWithDemand
-                      ? 'bg-emerald-50/30 hover:bg-emerald-50/60 font-medium border-l-4 border-l-emerald-500'
-                      : isActive 
-                      ? 'bg-white font-medium hover:bg-slate-50/80 border-l-4 border-l-transparent' 
-                      : 'bg-slate-50/50 text-slate-400 hover:bg-slate-100/60 border-l-4 border-l-transparent'
-                  }`}
-                >
-                  {/* Selection Checkbox */}
-                  <td 
-                    className={`py-2 px-3 text-center border-r border-slate-200 ${
-                      isChecked ? 'bg-indigo-100/60' : isFocused ? 'bg-blue-100/40' : 'bg-transparent'
-                    }`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleToggleRowSelection(carton.id, e.shiftKey);
-                    }}
-                  >
-                    <div className="flex items-center justify-center">
-                      <input
-                        type="checkbox"
-                        checked={isChecked}
-                        onChange={() => {}} // Handled by container td click
-                        className="w-4 h-4 rounded text-indigo-600 border-slate-300 focus:ring-indigo-500 cursor-pointer"
-                      />
-                    </div>
-                  </td>
-
-                  {/* CTN # with Active/Editing Beacon and Quality Flag */}
-                  <td className={`py-2 px-2 text-center font-bold border-r ${
-                    isFocused
-                      ? 'bg-blue-100/90 text-blue-950 border-blue-300 font-black'
-                      : hasCriticalDev
-                      ? 'bg-red-100/80 text-red-900 border-red-200'
-                      : hasWarningDev
-                      ? 'bg-amber-100/80 text-amber-950 border-amber-200'
-                      : isChecked
-                      ? 'bg-indigo-100/80 text-indigo-950 border-indigo-200 font-black'
-                      : 'text-slate-800 border-slate-200 bg-slate-100/60'
-                  }`}>
-                    <div className="flex items-center justify-center gap-1">
-                      {/* Active Editing Row Pulse Beacon */}
-                      {isFocused && (
-                        <span 
-                          className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-blue-600 text-white shrink-0 shadow-2xs animate-pulse"
-                          title={lang === 'en' ? 'Active / Editing Carton' : 'সক্রিয় / এডিটিং কার্টন'}
-                        >
-                          <Edit3 className="w-2.5 h-2.5" />
-                        </span>
-                      )}
-
-                      {/* Quality Flag Beacon */}
-                      {hasCriticalDev ? (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setInspectedCartonId(carton.id);
-                          }}
-                          className="p-0.5 text-red-600 hover:bg-red-200 rounded shrink-0 transition"
-                          title={lang === 'en' ? 'Click to inspect critical packing deviation!' : 'প্যাকিং ত্রুটি বিস্তারিত দেখতে ক্লিক করুন!'}
-                        >
-                          <ShieldAlert className="w-3.5 h-3.5 animate-pulse" />
-                        </button>
-                      ) : hasWarningDev ? (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setInspectedCartonId(carton.id);
-                          }}
-                          className="p-0.5 text-amber-600 hover:bg-amber-200 rounded shrink-0 transition"
-                          title={lang === 'en' ? 'Click to inspect packing warning!' : 'প্যাকিং সতর্কতা বিস্তারিত দেখতে ক্লিক করুন!'}
-                        >
-                          <AlertTriangle className="w-3.5 h-3.5" />
-                        </button>
-                      ) : isGrossDeviating ? (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setInspectedCartonId(carton.id);
-                          }}
-                          className={`p-0.5 rounded shrink-0 transition cursor-pointer ${isOverweightAvg ? 'text-amber-700 hover:bg-amber-200' : 'text-sky-700 hover:bg-sky-200'}`}
-                          title={
-                            lang === 'en'
-                              ? `Weight deviates by ${isOverweightAvg ? '+' : ''}${grossDevPercent.toFixed(1)}% from batch average (${batchAvgGrossWt.toFixed(2)} {wUnit}). Click to inspect!`
-                              : `ব্যাচ গড় (${batchAvgGrossWt.toFixed(2)} {wUnit}) থেকে ওজন ${isOverweightAvg ? '+' : ''}${grossDevPercent.toFixed(1)}% বিচ্যুত। বিস্তারিত দেখতে ক্লিক করুন!`
-                          }
-                        >
-                          {isOverweightAvg ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
-                        </button>
-                      ) : isCompliantWithDemand ? (
-                        <span 
-                          className="p-0.5 text-emerald-600 shrink-0 inline-block"
-                          title={lang === 'en' ? '100% Demand Compliant' : 'চাহিদার সাথে শতভাগ সামঞ্জস্যপূর্ণ'}
-                        >
-                          <ShieldCheck className="w-3.5 h-3.5" />
-                        </span>
-                      ) : null}
-
-                      <input
-                        type="number"
-                        value={carton.cartonNo}
-                        onFocus={() => setSelectedRowId(carton.id)}
-                        onChange={e => onUpdateCarton(carton.id, { cartonNo: parseInt(e.target.value) || index + 1 })}
-                        className={`w-10 text-center font-bold focus:outline-none rounded ${
-                          isFocused ? 'bg-white shadow-2xs border border-blue-400 text-blue-950 font-black' : 'bg-transparent'
-                        }`}
-                      />
-                    </div>
-                  </td>
-
-                  {/* Gross Wt (${wUnit}) */}
-                  <td className="py-1.5 px-2 text-right border-r border-slate-200">
-                    {converterState?.id === carton.id ? (
-                      <div className="flex items-center justify-end gap-1">
-                        <span className="text-[9px] font-bold text-orange-600 bg-orange-100 px-1 py-0.5 rounded uppercase leading-none shadow-xs border border-orange-200">
-                          {converterState.mode} → Kg
-                        </span>
-                        <input
-                          autoFocus
-                          type="number"
-                          step="any"
-                          value={converterState.value}
-                          onChange={e => setConverterState({ ...converterState, value: e.target.value })}
-                          onKeyDown={e => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault();
-                              applyConversion();
-                            }
-                            if (e.key === 'Escape') {
-                              e.preventDefault();
-                              setConverterState(null);
-                              setTimeout(() => grossInputRefs.current[carton.id]?.focus(), 10);
-                            }
-                          }}
-                          onBlur={applyConversion}
-                          className="w-16 sm:w-20 text-right px-1.5 py-1 text-xs font-bold rounded focus:outline-none border-2 border-orange-400 bg-orange-50 text-orange-950 shadow-inner"
-                          placeholder={converterState.mode}
-                        />
-                      </div>
-                    ) : (
-                      <div className="flex items-center justify-end gap-0.5">
-                        {isFocused && (
-                          <div className="flex flex-col justify-center gap-0.5 opacity-60 hover:opacity-100 transition-opacity pr-1 border-r border-slate-200 mr-1">
-                            <button tabIndex={-1} onMouseDown={(e) => { e.preventDefault(); startConversion(carton.id, 'yds'); }} className="text-[7px] leading-none tracking-tighter bg-slate-200 hover:bg-slate-300 hover:text-indigo-700 px-1 py-0.5 rounded font-bold text-slate-600 cursor-pointer uppercase" title="Calculate Gross Kg from Yards">Yds</button>
-                            <button tabIndex={-1} onMouseDown={(e) => { e.preventDefault(); startConversion(carton.id, 'mtr'); }} className="text-[7px] leading-none tracking-tighter bg-slate-200 hover:bg-slate-300 hover:text-indigo-700 px-1 py-0.5 rounded font-bold text-slate-600 cursor-pointer uppercase" title="Calculate Gross Kg from Meters">Mtr</button>
-                            <button tabIndex={-1} onMouseDown={(e) => { e.preventDefault(); startConversion(carton.id, 'lb'); }} className="text-[7px] leading-none tracking-tighter bg-slate-200 hover:bg-slate-300 hover:text-indigo-700 px-1 py-0.5 rounded font-bold text-slate-600 cursor-pointer uppercase" title="Convert Lbs to Gross Kg">Lbs</button>
-                          </div>
-                        )}
-                        <input
-                          ref={el => (grossInputRefs.current[carton.id] = el)}
-                          type="number"
-                          step="any"
-                          min="0"
-                          value={
-                            editingGrossMap[carton.id] !== undefined
-                              ? editingGrossMap[carton.id]
-                              : carton.grossWt === 0
-                              ? ''
-                              : carton.grossWt
-                          }
-                          onFocus={() => {
-                            setSelectedRowId(carton.id);
-                            if (editingGrossMap[carton.id] === undefined) {
-                              setEditingGrossMap(prev => ({
-                                ...prev,
-                                [carton.id]: carton.grossWt === 0 ? '' : carton.grossWt.toString()
-                              }));
-                            }
-                          }}
-                          onChange={e => {
-                            const raw = e.target.value;
-                            setEditingGrossMap(prev => ({ ...prev, [carton.id]: raw }));
-                            if (raw === '' || raw === '-') {
-                              onUpdateCarton(carton.id, { grossWt: 0 });
-                            } else {
-                              const parsed = parseFloat(raw);
-                              if (!isNaN(parsed) && parsed >= 0) {
-                                onUpdateCarton(carton.id, { grossWt: parsed });
-                              }
-                            }
-                          }}
-                          onBlur={() => {
-                            const raw = editingGrossMap[carton.id];
-                            if (raw !== undefined) {
-                              const parsed = parseFloat(raw);
-                              const finalVal = isNaN(parsed) || parsed < 0 ? 0 : parsed;
-                              onUpdateCarton(carton.id, { grossWt: finalVal });
-                              setEditingGrossMap(prev => {
-                                const next = { ...prev };
-                                delete next[carton.id];
-                                return next;
-                              });
-                            }
-                          }}
-                          onPaste={e => {
-                            const pasteText = e.clipboardData?.getData('text') || '';
-                            const weights = parseRawWeightData(pasteText);
-                            if (weights.length > 1 || pasteText.includes('\n') || pasteText.includes('\t') || (pasteText.includes(',') && weights.length > 1)) {
-                              e.preventDefault();
-                              const currIdx = filteredCartons.findIndex(c => c.id === carton.id);
-                              const startIdx = currIdx >= 0 ? currIdx : 0;
-                              
-                              if (onBulkPasteWeights) {
-                                onBulkPasteWeights(weights, 'fromIndex', startIdx);
-                              } else {
-                                weights.forEach((w, wIdx) => {
-                                  const target = filteredCartons[startIdx + wIdx];
-                                  if (target) {
-                                    onUpdateCarton(target.id, { grossWt: w });
-                                  }
-                                });
-                              }
-
-                              setPastedSuccessToast(
-                                lang === 'en'
-                                  ? `Pasted ${weights.length} carton weights starting from Carton #${carton.cartonNo}!`
-                                  : `কার্টন #${carton.cartonNo} থেকে শুরু করে ${weights.length} টি ওজন সফলভাবে পেস্ট হয়েছে!`
-                              );
-                              setTimeout(() => setPastedSuccessToast(null), 3500);
-                            }
-                          }}
-                          onKeyDown={e => {
-                            if (e.key === 'Enter' || e.key === 'ArrowDown') {
-                              e.preventDefault();
-                              const currIdx = filteredCartons.findIndex(c => c.id === carton.id);
-                              if (currIdx !== -1) {
-                                if (currIdx < filteredCartons.length - 1) {
-                                  const nextCarton = filteredCartons[currIdx + 1];
-                                  setSelectedRowId(nextCarton.id);
-                                  setTimeout(() => {
-                                    const el = grossInputRefs.current[nextCarton.id];
-                                    if (el) {
-                                      el.focus();
-                                      el.select();
-                                    }
-                                  }, 20);
-                                } else {
-                                  shouldFocusNewRow.current = true;
-                                  onAddCarton();
-                                }
-                              }
-                            } else if (e.key === 'ArrowUp') {
-                              e.preventDefault();
-                              const currIdx = filteredCartons.findIndex(c => c.id === carton.id);
-                              if (currIdx > 0) {
-                                const prevCarton = filteredCartons[currIdx - 1];
-                                setSelectedRowId(prevCarton.id);
-                                setTimeout(() => {
-                                  const el = grossInputRefs.current[prevCarton.id];
-                                  if (el) {
-                                    el.focus();
-                                    el.select();
-                                  }
-                                }, 20);
-                              }
-                            }
-                          }}
-                          placeholder="0.00"
-                          className={`w-20 sm:w-24 text-right px-2 py-1 font-bold rounded focus:outline-none transition ${
-                            isNegativeNet
-                              ? 'bg-white border-2 border-red-500 text-red-900 focus:ring-2 focus:ring-red-500'
-                              : isFocused
-                              ? 'text-slate-950 bg-white border-2 border-blue-500 shadow-xs focus:ring-2 focus:ring-blue-400 font-black'
-                              : isChecked
-                              ? 'text-slate-950 bg-white border border-indigo-400 shadow-xs focus:ring-2 focus:ring-indigo-400'
-                              : 'text-slate-900 bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'
-                          }`}
-                        />
-                      </div>
-                    )}
-                    {/* Batch Average Gross Weight Deviation Badge */}
-                    {batchAvgGrossWt > 0 && carton.grossWt > 0 && isGrossDeviating && (
-                      <div 
-                        className={`mt-1 flex items-center justify-end gap-1 px-1.5 py-0.5 rounded text-[9.5px] font-mono font-bold leading-none border shadow-2xs ${
-                          isOverweightAvg
-                            ? 'bg-amber-100/90 text-amber-950 border-amber-300' 
-                            : 'bg-sky-100/90 text-sky-950 border-sky-300'
-                        }`}
-                        title={
-                          lang === 'en'
-                            ? `Carton Gross Wt (${carton.grossWt.toFixed(2)} {wUnit}) deviates by ${isOverweightAvg ? '+' : ''}${grossDevPercent.toFixed(1)}% from Batch Avg (${batchAvgGrossWt.toFixed(2)} {wUnit})`
-                            : `কার্টন গ্রস ওজন (${carton.grossWt.toFixed(2)} {wUnit}) ব্যাচ গড় (${batchAvgGrossWt.toFixed(2)} {wUnit}) থেকে ${isOverweightAvg ? '+' : ''}${grossDevPercent.toFixed(1)}% বিচ্যুত`
-                        }
-                      >
-                        {isOverweightAvg ? (
-                          <TrendingUp className="w-2.5 h-2.5 text-amber-800 shrink-0" />
-                        ) : (
-                          <TrendingDown className="w-2.5 h-2.5 text-sky-800 shrink-0" />
-                        )}
-                        <span>{isOverweightAvg ? '+' : ''}{grossDevPercent.toFixed(1)}% {lang === 'en' ? 'vs avg' : 'গড় থেকে'}</span>
-                      </div>
-                    )}
-                  </td>
-
-                  {/* Tare Wt (${wUnit}) */}
-                  <td className="py-1.5 px-2 text-right border-r border-slate-200">
-                    <div className="flex items-center justify-end gap-1">
-                      <input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={carton.tareWt}
-                        onFocus={() => setSelectedRowId(carton.id)}
-                        onChange={e => {
-                          const val = parseFloat(e.target.value) || 0;
-                          onUpdateCarton(carton.id, { tareWt: val });
-                        }}
-                        className={`w-16 text-right px-2 py-1 text-slate-600 border rounded focus:bg-white focus:border-slate-400 focus:outline-none ${
-                          tareDev 
-                            ? 'border-amber-400 bg-amber-50/50 text-amber-900 font-bold' 
-                            : isFocused
-                            ? 'bg-white border-blue-300 text-slate-900 shadow-2xs font-semibold'
-                            : 'bg-transparent border-transparent hover:border-slate-200'
-                        }`}
-                      />
-                      {tareDev && activeDemand?.defaultTare !== undefined && (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleFixCartonField(carton.id, 'tareWt', activeDemand.defaultTare || 0.5);
-                          }}
-                          className="text-[10px] bg-amber-200 hover:bg-amber-300 text-amber-900 font-sans font-bold px-1 py-0.5 rounded shrink-0 cursor-pointer"
-                          title={lang === 'en' ? `Set Tare to demand standard: ${activeDemand.defaultTare} {wUnit}` : `ট্যার চাহিদার মান ${activeDemand.defaultTare} {wUnit} সেট করুন`}
-                        >
-                          Fix
-                        </button>
-                      )}
-                    </div>
-                  </td>
-
-                  {/* Net Wt (${wUnit}) */}
-                  <td className={`py-1.5 px-3 text-right font-bold border-r border-slate-200 text-xs ${
-                    isNegativeNet
-                      ? 'bg-red-100 text-red-700 font-black'
-                      : underpackDev || overpackDev
-                      ? 'bg-amber-100/70 text-amber-950 font-black'
-                      : isChecked
-                      ? 'text-emerald-900 bg-emerald-100/70 font-black'
-                      : isFocused
-                      ? 'text-emerald-900 bg-emerald-100/70 font-black'
-                      : 'text-emerald-700 bg-emerald-50/30'
-                  }`}>
-                    <div className="flex items-center justify-end gap-1">
-                      {isNegativeNet && (
-                        <span title={lang === 'en' ? 'Gross weight is less than tare weight!' : 'গ্রস ওজন ট্যার ওজনের চেয়ে কম!'}>
-                          <AlertTriangle className="w-3.5 h-3.5 text-red-600 shrink-0 inline" />
-                        </span>
-                      )}
-                      <span>{carton.netWt.toFixed(2)}</span>
-                    </div>
-                    {isNegativeNet ? (
-                      <div className="text-[9px] font-sans font-bold text-red-600 tracking-tight leading-none mt-0.5">
-                        {lang === 'en' ? 'Gross < Tare' : 'গ্রস < ট্যার'}
-                      </div>
-                    ) : underpackDev ? (
-                      <div className="text-[9px] font-sans font-bold text-amber-700 tracking-tight leading-none mt-0.5">
-                        {lang === 'en' ? '⚠️ Underpacked' : '⚠️ কম প্যাক'}
-                      </div>
-                    ) : overpackDev ? (
-                      <div className="text-[9px] font-sans font-bold text-amber-700 tracking-tight leading-none mt-0.5">
-                        {lang === 'en' ? '⚠️ Overpacked' : '⚠️ অতিরিক্ত প্যাক'}
-                      </div>
-                    ) : isNetDeviating && batchAvgNetWt > 0 && carton.netWt > 0 ? (
-                      <div 
-                        className={`text-[9px] font-mono font-bold tracking-tight leading-none mt-0.5 flex items-center justify-end gap-0.5 ${
-                          netDevPercent > 0 ? 'text-amber-800' : 'text-sky-800'
-                        }`}
-                        title={
-                          lang === 'en'
-                            ? `Net Wt deviates by ${netDevPercent > 0 ? '+' : ''}${netDevPercent.toFixed(1)}% from Batch Net Avg (${batchAvgNetWt.toFixed(2)} {wUnit})`
-                            : `নেট ওজন ব্যাচ গড় থেকে ${netDevPercent > 0 ? '+' : ''}${netDevPercent.toFixed(1)}% বিচ্যুত`
-                        }
-                      >
-                        <span>{netDevPercent > 0 ? '▲' : '▼'} Net {netDevPercent > 0 ? '+' : ''}{netDevPercent.toFixed(1)}%</span>
-                      </div>
-                    ) : null}
-                  </td>
-
-                  {/* Wt/Unit (gm) with Flag & Inline Quick-Fix */}
-                  <td className="py-1.5 px-2 text-right border-r border-slate-200">
-                    <div className="flex items-center justify-end gap-1">
-                      <input
-                        type="number"
-                        step="0.01"
-                        min="0.01"
-                        value={carton.wtPerUnit}
-                        onFocus={() => setSelectedRowId(carton.id)}
-                        onChange={e => {
-                          const val = parseFloat(e.target.value) || sheetData.defaultWtPerUnit;
-                          onUpdateCarton(carton.id, { wtPerUnit: val });
-                        }}
-                        className={`w-16 sm:w-20 text-right px-2 py-1 font-semibold rounded focus:bg-white focus:outline-none ${
-                          unitWtDev
-                            ? 'border-2 border-red-500 bg-red-100/70 text-red-950 font-bold focus:ring-1 focus:ring-red-500'
-                            : isFocused
-                            ? 'bg-white border-blue-300 text-slate-900 shadow-2xs font-bold'
-                            : 'text-slate-800 bg-transparent border border-transparent hover:border-slate-200 focus:border-indigo-500'
-                        }`}
-                      />
-                      {unitWtDev && activeDemand?.unitWeightGm !== undefined && (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleFixCartonField(carton.id, 'wtPerUnit', activeDemand.unitWeightGm);
-                          }}
-                          className="text-[10px] bg-red-600 hover:bg-red-700 text-white font-sans font-bold px-1.5 py-0.5 rounded shadow-xs shrink-0 cursor-pointer transition flex items-center gap-0.5"
-                          title={lang === 'en' ? `Fix Unit Wt to Demand Requirement: ${activeDemand.unitWeightGm} gm/m` : `চাহিদা অনুযায়ী ইউনিট ওজন ${activeDemand.unitWeightGm} gm/m সেট করুন`}
-                        >
-                          <Zap className="w-2.5 h-2.5" />
-                          <span>Fix</span>
-                        </button>
-                      )}
-                    </div>
-                    {unitWtDev && (
-                      <div className="text-[9px] font-sans font-bold text-red-700 tracking-tight leading-none mt-0.5 text-right">
-                        Exp: {activeDemand?.unitWeightGm}g ({unitWtDev.percentDiff !== undefined ? `${unitWtDev.percentDiff > 0 ? '+' : ''}${unitWtDev.percentDiff.toFixed(0)}%` : ''})
-                      </div>
-                    )}
-                  </td>
-
-                  {/* Length (Mtr) - Auto calculated */}
-                  <td className={`py-1.5 px-3 text-right font-black border-r border-slate-200 text-xs ${
-                    isChecked ? 'text-indigo-950 bg-indigo-100/80' : isFocused ? 'text-indigo-950 bg-indigo-100/70 font-black' : 'text-indigo-700 bg-indigo-50/40'
-                  }`}>
-                    {carton.lengthMtr.toFixed(2)}
-                  </td>
-
-                  {/* Length (Gry) - Auto calculated */}
-                  <td className={`py-1.5 px-3 text-right font-black border-r border-slate-200 text-xs ${
-                    isChecked ? 'text-purple-950 bg-purple-100/80' : isFocused ? 'text-purple-950 bg-purple-100/70 font-black' : 'text-purple-700 bg-purple-50/40'
-                  }`}>
-                    {carton.lengthGry.toFixed(2)}
-                  </td>
-
-                  {/* Length (Yds) */}
-                  <td className="py-1.5 px-3 text-right text-slate-500 border-r border-slate-200 text-xs">
-                    {carton.lengthYds ? carton.lengthYds.toFixed(2) : '0.00'}
-                  </td>
-
-                  {/* Notes */}
-                  <td className="py-1.5 px-2 border-r border-slate-200">
-                    <input
-                      type="text"
-                      value={carton.notes || ''}
-                      onFocus={() => setSelectedRowId(carton.id)}
-                      onChange={e => onUpdateCarton(carton.id, { notes: e.target.value })}
-                      placeholder="..."
-                      className={`w-full px-2 py-1 text-slate-700 font-sans text-xs rounded focus:bg-white focus:border-slate-300 focus:outline-none ${
-                        isFocused ? 'bg-white border border-blue-200 shadow-2xs' : 'bg-transparent border border-transparent hover:border-slate-200'
-                      }`}
-                    />
-                  </td>
-
-                  {/* Actions */}
-                  <td className="py-1.5 px-2 text-center">
-                    <div className="flex items-center justify-center gap-1">
-                      {onOpenCartonQr && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onOpenCartonQr(carton);
-                          }}
-                          className="p-1 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded transition cursor-pointer"
-                          title={lang === 'en' ? 'Scan & Preview Carton QR' : 'কার্টন কিউআর কোড দেখুন'}
-                        >
-                          <QrCode className="w-3.5 h-3.5" />
-                        </button>
-                      )}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedRowId(carton.id);
-                          shouldFocusNewRow.current = true;
-                          onDuplicateCarton(carton);
-                        }}
-                        className="p-1 text-slate-400 hover:text-indigo-600 rounded transition cursor-pointer"
-                        title={lang === 'en' ? 'Duplicate (Ctrl+D)' : 'ডুপ্লিকেট (Ctrl+D)'}
-                      >
-                        <Copy className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onDeleteCarton(carton.id);
-                        }}
-                        className="p-1 text-slate-400 hover:text-rose-600 rounded transition cursor-pointer"
-                        title={lang === 'en' ? 'Delete Row (Ctrl+Delete)' : 'সারি মুছুন (Ctrl+Delete)'}
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
+                  carton={carton}
+                  index={originalIndex}
+                  isFocused={isFocused}
+                  isChecked={isChecked}
+                  rowBgColor={rowBgColor}
+                  wUnit={wUnit}
+                  lang={lang}
+                  cartonDevs={cartonDevs}
+                  hasCriticalDev={hasCriticalDev}
+                  hasWarningDev={hasWarningDev}
+                  unitWtDev={unitWtDev}
+                  tareDev={tareDev}
+                  underpackDev={underpackDev}
+                  overpackDev={overpackDev}
+                  isCompliantWithDemand={!!isCompliantWithDemand}
+                  batchAvgGrossWt={batchAvgGrossWt}
+                  batchAvgNetWt={batchAvgNetWt}
+                  weightDevThresholdPercent={weightDevThresholdPercent}
+                  activeDemandTare={activeDemand?.defaultTare}
+                  activeDemandUnitWt={activeDemand?.unitWeightGm}
+                  isConverting={converterState?.id === carton.id}
+                  converterMode={converterState?.id === carton.id ? converterState.mode : undefined}
+                  converterValue={converterState?.id === carton.id ? converterState.value : undefined}
+                  onSelectRow={handleSelectRow}
+                  onToggleSelection={handleToggleRowSelection}
+                  onUpdateCarton={onUpdateCarton}
+                  onDeleteCarton={onDeleteCarton}
+                  onDuplicateCarton={onDuplicateCarton}
+                  onOpenCartonQr={onOpenCartonQr}
+                  onInspect={handleInspectCarton}
+                  onFixField={handleFixCartonField}
+                  onStartConversion={handleStartConversion}
+                  onApplyConversion={applyConversion}
+                  onCancelConversion={handleCancelConversion}
+                  onConversionChange={handleConversionChange}
+                  onNavigateRow={handleNavigateRow}
+                  registerGrossInputRef={registerGrossInputRef}
+                  registerRowRef={registerRowRef}
+                />
               );
             })}
+            {bottomSpacerHeight > 0 && (
+              <tr style={{ height: `${bottomSpacerHeight}px` }} aria-hidden="true">
+                <td colSpan={13} className="p-0 m-0 border-0 pointer-events-none" />
+              </tr>
+            )}
           </tbody>
 
           {/* Sticky Grand Total Table Footer */}
@@ -2272,6 +2113,71 @@ export const CartonTable: React.FC<CartonTableProps> = ({
             {lang === 'en' ? 'No cartons match your search.' : 'আপনার অনুসন্ধানের সাথে কোনো কার্টন মেলেনি।'}
           </div>
         )}
+      </div>
+      )}
+
+      {/* PACKING COMPLETION & RETURN ACTION BAR */}
+      <div className="bg-slate-900 text-white border-t-2 border-emerald-500/80 p-3.5 sm:p-4 flex flex-col md:flex-row items-center justify-between gap-3 shadow-lg">
+        <div className="flex items-center gap-3 w-full md:w-auto">
+          <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center shrink-0">
+            <CheckCircle2 className="w-6 h-6 text-emerald-400" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-bold text-sm text-emerald-300">
+                {lang === 'en' ? 'Packing Summary & Status' : 'প্যাকিং সামারি ও সমাপ্তিকরণ'}
+              </span>
+              {activeScheduleItem ? (
+                <span className="px-2 py-0.5 rounded text-[11px] font-mono bg-indigo-950 text-indigo-300 border border-indigo-700 font-semibold">
+                  {activeScheduleItem.buyer} • {activeScheduleItem.customerRefPO || activeScheduleItem.jobNo}
+                </span>
+              ) : (
+                <span className="px-2 py-0.5 rounded text-[11px] font-mono bg-slate-800 text-slate-300 font-semibold">
+                  {sheetData.buyer || 'Order'} • {sheetData.ref || 'Ref'}
+                </span>
+              )}
+            </div>
+            <div className="text-xs text-slate-300 flex items-center gap-2 flex-wrap mt-0.5">
+              <span>
+                {lang === 'en'
+                  ? `Packed: ${tableSummary.activeNetCartonCount} Cartons`
+                  : `প্যাক হয়েছে: ${tableSummary.activeNetCartonCount}টি কার্টন`}
+              </span>
+              <span>•</span>
+              <span className="font-bold text-indigo-300">
+                {tableSummary.totalMtr.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} Meters
+              </span>
+              <span>•</span>
+              <span className="text-emerald-300">
+                {tableSummary.totalGrossWt.toFixed(2)} {wUnit} Gross
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2.5 w-full md:w-auto justify-end flex-wrap">
+          {/* Previous location / return button */}
+          <button
+            type="button"
+            onClick={onReturnToPreviousTab}
+            className="px-3.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer"
+            title={lang === 'en' ? 'Return to Excel Schedule Manager' : 'আগের শিডিউল পেজে ফিরে যান'}
+          >
+            <ArrowLeft className="w-4 h-4 text-slate-300" />
+            <span>{lang === 'en' ? 'Back to Schedule' : '← আগের স্থানে ফিরে যান'}</span>
+          </button>
+
+          {/* Packing Complete & Return Button */}
+          <button
+            type="button"
+            onClick={() => onCompletePackingAndReturn?.(tableSummary.totalMtr || tableSummary.totalGrossWt)}
+            className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm flex items-center gap-2 shadow-lg shadow-emerald-950/60 ring-2 ring-emerald-400 hover:scale-102 transition cursor-pointer"
+            title={lang === 'en' ? 'Mark packing 100% complete and return to schedule' : 'প্যাকিং সম্পূর্ণ হিসেবে চিহ্নিত করুন এবং শিডিউলে ফিরে যান (স্টিকার ডাউনলোড আনলক হবে)'}
+          >
+            <CheckCircle2 className="w-4 h-4 text-white" />
+            <span>{lang === 'en' ? 'Complete Packing & Return ✓' : '✅ প্যাকিং সম্পূর্ণ করুন ও ফিরে যান'}</span>
+          </button>
+        </div>
       </div>
 
       {/* Table Footer Prompt */}
