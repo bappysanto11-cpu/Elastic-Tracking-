@@ -2091,3 +2091,5 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
     </div>
   );
 };
+
+export default ExcelScheduleManager;

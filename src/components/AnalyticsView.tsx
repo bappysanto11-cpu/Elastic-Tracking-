@@ -119,3 +119,5 @@ export function AnalyticsView({ sheetData, lang }: AnalyticsViewProps) {
     </div>
   );
 }
+
+export default AnalyticsView;

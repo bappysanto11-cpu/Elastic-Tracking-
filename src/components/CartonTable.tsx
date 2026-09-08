@@ -891,6 +891,10 @@ export const CartonTable: React.FC<CartonTableProps> = ({
   const CARD_HEIGHT = 165;
   const OVERSCAN = 5;
   const [isVirtualScroll, setIsVirtualScroll] = useState<boolean>(true);
+  const [virtualThreshold, setVirtualThreshold] = useState<number>(() => {
+    const saved = localStorage.getItem('garment_virtual_threshold');
+    return saved ? Number(saved) : 25;
+  });
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [scrollTop, setScrollTop] = useState<number>(0);
   const [containerHeight, setContainerHeight] = useState<number>(600);
@@ -913,7 +917,7 @@ export const CartonTable: React.FC<CartonTableProps> = ({
     setScrollTop(e.currentTarget.scrollTop);
   }, []);
 
-  const isVirtualActive = isVirtualScroll && displayedCount > 25;
+  const isVirtualActive = isVirtualScroll && displayedCount > virtualThreshold;
   const effectiveItemHeight = viewMode === 'cards' ? CARD_HEIGHT : ROW_HEIGHT;
 
   const { startIndex, endIndex, topSpacerHeight, bottomSpacerHeight } = useMemo(() => {
@@ -1263,6 +1267,28 @@ export const CartonTable: React.FC<CartonTableProps> = ({
                 <X className="w-3 h-3" />
               </button>
             )}
+          </div>
+
+          {/* Virtual Scroll Threshold */}
+          <div className="flex items-center gap-2">
+            <label className="text-[11px] font-bold text-slate-500 flex items-center gap-1">
+              <Zap className="w-3.5 h-3.5 text-amber-500" />
+              <span>Virtual Scroll:</span>
+            </label>
+            <select
+              value={virtualThreshold}
+              onChange={(e) => {
+                const val = Number(e.target.value);
+                setVirtualThreshold(val);
+                localStorage.setItem('garment_virtual_threshold', String(val));
+              }}
+              className="bg-white border border-slate-300 text-xs font-bold px-2 py-1 rounded-lg"
+            >
+              <option value="10">10 (Light)</option>
+              <option value="25">25 (Default)</option>
+              <option value="50">50 (Balanced)</option>
+              <option value="100">100 (Pro)</option>
+            </select>
           </div>
 
           {/* Batch Mode Toggle Badge */}

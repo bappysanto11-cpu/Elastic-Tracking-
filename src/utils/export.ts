@@ -347,3 +347,32 @@ export async function parseExcelOrCsvFile(
     };
   }
 }
+
+/**
+ * Parse Excel file asynchronously using Web Worker (prevents freezing the UI thread)
+ */
+export function parseExcelWithWorker(file: File, sheetData: PackingSheetData): Promise<any> {
+  return new Promise((resolve, reject) => {
+    const worker = new Worker(new URL('../workers/excelParser.worker.ts', import.meta.url), { type: 'module' });
+    
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const buffer = e.target?.result as ArrayBuffer;
+      worker.postMessage({ buffer, sheetData });
+      
+      worker.onmessage = (msg) => {
+        resolve(msg.data);
+        worker.terminate();
+      };
+      worker.onerror = (err) => {
+        reject(err);
+        worker.terminate();
+      };
+    };
+    reader.onerror = (err) => {
+      reject(err);
+      worker.terminate();
+    };
+    reader.readAsArrayBuffer(file);
+  });
+}

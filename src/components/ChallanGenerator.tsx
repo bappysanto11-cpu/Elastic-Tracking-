@@ -264,3 +264,5 @@ export const ChallanGenerator: React.FC = () => {
     </div>
   );
 };
+
+export default ChallanGenerator;

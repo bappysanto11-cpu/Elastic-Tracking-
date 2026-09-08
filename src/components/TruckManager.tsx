@@ -304,3 +304,5 @@ export const TruckManager: React.FC = () => {
     </div>
   );
 };
+
+export default TruckManager;

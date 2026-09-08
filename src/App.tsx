@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { PackingSheetData, CartonRow } from './types/calculator';
 import { 
   INITIAL_IMAGE_DATA, 
@@ -14,7 +14,6 @@ import { OrderHeaderForm } from './components/OrderHeaderForm';
 import { SummaryCards } from './components/SummaryCards';
 import { CartonTable } from './components/CartonTable';
 import { FactorySheetView } from './components/FactorySheetView';
-import { StickerLabelsView } from './components/StickerLabelsView';
 import { ToolsModal } from './components/ToolsModal';
 import { FormulaHelpModal } from './components/FormulaHelpModal';
 import { PrintPreviewModal } from './components/PrintPreviewModal';
@@ -28,7 +27,6 @@ import { AuthModal } from './components/AuthModal';
 import { triggerIndexedDbBackup, openIndexedDB } from './utils/indexedDbBackup';
 import { WorkspaceModal } from './components/WorkspaceModal';
 import { DEFAULT_WORKSPACE_ID, loadWorkspaceData, saveWorkspaceData } from './utils/workspaceManager';
-import { AnalyticsView } from './components/AnalyticsView';
 import { ElasticDemandView } from './components/ElasticDemandView';
 import { ElasticDemandModal } from './components/ElasticDemandModal';
 import { ElasticDemand } from './types/elasticDemand';
@@ -37,15 +35,19 @@ import { useHistory } from './utils/useHistory';
 import { useAuth } from './context/AuthContext';
 import { useRealtimeSync } from './hooks/useRealtimeSync';
 import { Table, LayoutGrid, Tag, Layers, Check, QrCode, BarChart3, Undo2, Redo2, Search, RotateCcw, ClipboardList, Upload, FileText, Truck, Package, FileSpreadsheet, SlidersHorizontal } from 'lucide-react';
-import { ExcelScheduleManager } from './components/ExcelScheduleManager';
 import { ScheduleUploader } from './components/ScheduleUploader';
-import { ScheduleTracker } from './components/ScheduleTracker';
-import { ChallanGenerator } from './components/ChallanGenerator';
-import { TruckManager } from './components/TruckManager';
-import { DailyReportView } from './components/DailyReportView';
 import { ScheduleItem } from './types/schedule';
 import { completeScheduleItemInTracker } from './utils/excelFileTrackerService';
 import { getSharedPackingSheet } from './utils/shareSheet';
+
+// ভারী কম্পোনেন্টগুলোকে Lazy তে র্যাপ করুন (এগুলো এখন আলাদা চাঙ্কে লোড হবে)
+const AnalyticsView = lazy(() => import('./components/AnalyticsView'));
+const StickerLabelsView = lazy(() => import('./components/StickerLabelsView'));
+const ExcelScheduleManager = lazy(() => import('./components/ExcelScheduleManager'));
+const ScheduleTracker = lazy(() => import('./components/ScheduleTracker'));
+const ChallanGenerator = lazy(() => import('./components/ChallanGenerator'));
+const TruckManager = lazy(() => import('./components/TruckManager'));
+const DailyReportView = lazy(() => import('./components/DailyReportView'));
 
 const STORAGE_KEY = 'garment_elastic_calculator_v1';
 
@@ -1147,90 +1149,106 @@ export default function App() {
 
         {activeTab === 'stickers' && (
           <div>
-            <StickerLabelsView
-              sheetData={filteredSheetData}
-              summary={filteredSummary}
-              lang={lang}
-              onRequestPrint={orientation => handleRequestPrint(orientation || 'portrait')}
-              onOpenCartonQr={handleOpenCartonQr}
-              onUpdateHeader={handleUpdateHeader}
-              onUpdateCarton={handleUpdateCarton}
-              onAddCarton={handleAddCarton}
-              onDeleteCarton={handleDeleteCarton}
-              onDuplicateCarton={handleDuplicateCarton}
-              onAddBulk={handleAddBulk}
-              onReorderCartons={handleReorderCartons}
-            />
+            <Suspense fallback={<div className="p-8 text-center text-slate-400">স্টিকার লোড হচ্ছে...</div>}>
+              <StickerLabelsView
+                sheetData={filteredSheetData}
+                summary={filteredSummary}
+                lang={lang}
+                onRequestPrint={orientation => handleRequestPrint(orientation || 'portrait')}
+                onOpenCartonQr={handleOpenCartonQr}
+                onUpdateHeader={handleUpdateHeader}
+                onUpdateCarton={handleUpdateCarton}
+                onAddCarton={handleAddCarton}
+                onDeleteCarton={handleDeleteCarton}
+                onDuplicateCarton={handleDuplicateCarton}
+                onAddBulk={handleAddBulk}
+                onReorderCartons={handleReorderCartons}
+              />
+            </Suspense>
           </div>
         )}
 
         {activeTab === 'analytics' && (
           <div className="print:hidden">
-            <AnalyticsView
-              sheetData={filteredSheetData}
-              lang={lang}
-            />
+            <Suspense fallback={<div className="p-8 text-center text-slate-400">লোড হচ্ছে অ্যানালিটিক্স...</div>}>
+              <AnalyticsView
+                sheetData={filteredSheetData}
+                lang={lang}
+              />
+            </Suspense>
           </div>
         )}
 
         {/* Tracker Views */}
         {activeTab === 'upload' && (
           <div className="print:hidden">
-            <ExcelScheduleManager
-              lang={lang}
-              onLoadRowToPackingSheet={handleLoadScheduleItemIntoSheet}
-              onNavigateToTab={tab => setActiveTab(tab)}
-              onDirectOutput={(target, item) => {
-                handleLoadScheduleItemIntoSheet(item);
-                if (target === 'table') {
-                  setActiveTab('table');
-                } else if (target === 'sheet') {
-                  setActiveTab('sheet');
-                } else if (target === 'stickers') {
-                  setActiveTab('stickers');
-                } else if (target === 'print_stickers') {
-                  setActiveTab('stickers');
-                  setTimeout(() => handleRequestPrint('portrait'), 200);
-                } else if (target === 'print_sheet') {
-                  setActiveTab('sheet');
-                  setTimeout(() => handleRequestPrint('landscape'), 200);
-                } else if (target === 'challan') {
-                  setActiveTab('challan');
-                }
-              }}
-            />
+            <Suspense fallback={<div className="p-8 text-center text-slate-400">শিডিউল লোড হচ্ছে...</div>}>
+              <ExcelScheduleManager
+                lang={lang}
+                onLoadRowToPackingSheet={handleLoadScheduleItemIntoSheet}
+                onNavigateToTab={tab => setActiveTab(tab)}
+                onDirectOutput={(target, item) => {
+                  handleLoadScheduleItemIntoSheet(item);
+                  if (target === 'table') {
+                    setActiveTab('table');
+                  } else if (target === 'sheet') {
+                    setActiveTab('sheet');
+                  } else if (target === 'stickers') {
+                    setActiveTab('stickers');
+                  } else if (target === 'print_stickers') {
+                    setActiveTab('stickers');
+                    setTimeout(() => handleRequestPrint('portrait'), 200);
+                  } else if (target === 'print_sheet') {
+                    setActiveTab('sheet');
+                    setTimeout(() => handleRequestPrint('landscape'), 200);
+                  } else if (target === 'challan') {
+                    setActiveTab('challan');
+                  }
+                }}
+              />
+            </Suspense>
           </div>
         )}
         {activeTab === 'tracker' && (
           <div className="print:hidden">
-            <ScheduleTracker />
+            <Suspense fallback={<div className="p-8 text-center text-slate-400">ট্র্যাকার লোড হচ্ছে...</div>}>
+              <ScheduleTracker />
+            </Suspense>
           </div>
         )}
         {activeTab === 'challan' && (
           <div className="print:hidden">
-            <ChallanGenerator />
+            <Suspense fallback={<div className="p-8 text-center text-slate-400">চালান লোড হচ্ছে...</div>}>
+              <ChallanGenerator />
+            </Suspense>
           </div>
         )}
         {activeTab === 'truck' && (
           <div className="print:hidden">
-            <TruckManager />
+            <Suspense fallback={<div className="p-8 text-center text-slate-400">ট্রাক লোড হচ্ছে...</div>}>
+              <TruckManager />
+            </Suspense>
           </div>
         )}
         {activeTab === 'report' && (
           <div className="print:hidden">
-            <DailyReportView />
+            <Suspense fallback={<div className="p-8 text-center text-slate-400">রিপোর্ট লোড হচ্ছে...</div>}>
+              <DailyReportView />
+            </Suspense>
           </div>
         )}
 
         {/* When printing from table view, automatically render factory sheet */}
         <div className="hidden print:block">
           {activeTab === 'stickers' ? (
-            <StickerLabelsView
-              sheetData={filteredSheetData}
-              summary={filteredSummary}
-              lang={lang}
-              onOpenCartonQr={handleOpenCartonQr}
-            />
+            <Suspense fallback={null}>
+              <StickerLabelsView
+                sheetData={filteredSheetData}
+                summary={filteredSummary}
+                lang={lang}
+                onOpenCartonQr={handleOpenCartonQr}
+              />
+            </Suspense>
           ) : (
             <FactorySheetView
               sheetData={filteredSheetData}

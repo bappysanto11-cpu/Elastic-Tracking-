@@ -726,9 +726,10 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
         if (el) {
           try {
             const blob = await toBlob(el, {
-              quality: 1,
-              pixelRatio: 2,
+              quality: 0.8,
+              pixelRatio: 1.5,
               backgroundColor: '#ffffff',
+              type: 'image/webp',
               style: {
                 margin: '0',
                 boxShadow: 'none',
@@ -736,7 +737,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
             });
             if (blob) {
               const paddedNo = String(c.cartonNo).padStart(3, '0');
-              const fileName = `Carton_${paddedNo}_${safeBuyer}_${safeRef}.png`;
+              const fileName = `Carton_${paddedNo}_${safeBuyer}_${safeRef}.webp`;
               zip.file(fileName, blob);
               successCount++;
             }
@@ -3674,3 +3675,5 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
     </div>
   );
 };
+
+export default StickerLabelsView;

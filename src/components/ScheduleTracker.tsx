@@ -528,3 +528,5 @@ export const ScheduleTracker: React.FC = () => {
     </div>
   );
 };
+
+export default ScheduleTracker;

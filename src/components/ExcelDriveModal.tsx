@@ -4,8 +4,10 @@ import { Language } from '../utils/translations';
 import { 
   exportPackingSheetToExcel, 
   exportPackingSheetToCsv, 
-  parseExcelOrCsvFile 
+  parseExcelOrCsvFile,
+  parseExcelWithWorker 
 } from '../utils/export';
+import { recomputeCarton, calculateSummary } from '../utils/calc';
 import { 
   FileSpreadsheet, 
   Upload, 
@@ -49,23 +51,46 @@ export const ExcelDriveModal: React.FC<ExcelDriveModalProps> = ({
     setImportStatus({ type: 'idle' });
 
     try {
-      const buffer = await file.arrayBuffer();
-      const result = await parseExcelOrCsvFile(buffer, sheetData);
+      const result = await parseExcelWithWorker(file, sheetData);
 
-      if (result.success && result.cartons.length > 0) {
+      if (result.success && result.cartons && result.cartons.length > 0) {
+        const defaultTare = sheetData.defaultTare ?? 0.5;
+        const defaultWtPerUnit = sheetData.defaultWtPerUnit ?? 30;
+        const computedCartons: CartonRow[] = result.cartons.map((c: any, idx: number) =>
+          recomputeCarton(c, idx, defaultTare, defaultWtPerUnit)
+        );
+        while (computedCartons.length < 12) {
+          const idx = computedCartons.length;
+          computedCartons.push(
+            recomputeCarton(
+              {
+                cartonNo: idx + 1,
+                grossWt: 0,
+                tareWt: defaultTare,
+                netWt: 0,
+                wtPerUnit: defaultWtPerUnit,
+              },
+              idx,
+              defaultTare,
+              defaultWtPerUnit
+            )
+          );
+        }
+        const summary = calculateSummary(computedCartons);
+
         setPreviewData({
-          cartons: result.cartons,
+          cartons: computedCartons,
           header: result.importedHeader,
-          summary: result.summary,
+          summary: result.summary || summary,
         });
         setImportStatus({
           type: 'success',
-          message: `${result.message || 'Excel file parsed successfully'} (${result.cartons.filter(c => c.netWt > 0).length} active cartons found)`,
+          message: `${result.message || 'Excel file parsed successfully with Web Worker'} (${result.cartons.filter((c: any) => c.grossWt > 0).length} active cartons found)`,
         });
       } else {
         setImportStatus({
           type: 'error',
-          message: result.message || 'Could not find carton weight data in this file.',
+          message: result.error || result.message || 'Could not find carton weight data in this file.',
         });
       }
     } catch (err: any) {

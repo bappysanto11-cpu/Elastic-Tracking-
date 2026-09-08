@@ -256,3 +256,5 @@ export const DailyReportView: React.FC = () => {
     </div>
   );
 };
+
+export default DailyReportView;

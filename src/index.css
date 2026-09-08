@@ -33,7 +33,35 @@
 }
 
 @media print {
-  /* Force hide all top chrome, headers, navigation bars, footers, buttons, and floating UI */
+  /* main ট্যাগের ভেতরের সব এলিমেন্ট লুকাও, কিন্তু .print:block ক্লাসওয়ালা এলিমেন্ট ছাড়া */
+  main > *:not(.print\:block) {
+    display: none !important;
+  }
+
+  /* প্রিন্ট ব্লকটি যেন সঠিকভাবে দৃশ্যমান হয় */
+  main .print\:block {
+    display: block !important;
+  }
+
+  /* প্রয়োজনে মার্জিন ও প্যাডিং শূন্য করুন */
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* স্টিকার কন্টেইনার যেন পুরো পৃষ্ঠা জুড়ে থাকে */
+  #root,
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* হেডার, ফুটার ইতিমধ্যে print:hidden পেয়েছে, তাও নিশ্চিত করুন */
   header,
   footer,
   nav,
@@ -41,15 +69,6 @@
   .no-print,
   .print\:hidden {
     display: none !important;
-  }
-
-  body {
-    background-color: #ffffff !important;
-    color: #000000 !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-    margin: 0 !important;
-    padding: 0 !important;
   }
 
   /* Ensure background colors (e.g. black Buyer badge) print accurately */
