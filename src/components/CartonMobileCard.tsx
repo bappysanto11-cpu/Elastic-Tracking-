@@ -255,14 +255,7 @@ export const CartonMobileCard = memo<CartonMobileCardProps>(({
                 : 'bg-white border-slate-300 text-slate-900 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'
             }`}
           />
-          {isGrossDeviating && batchAvgGrossWt > 0 && (
-            <div className={`mt-1 text-[10px] font-bold font-mono text-right flex items-center justify-end gap-1 ${
-              isOverweightAvg ? 'text-amber-700' : 'text-sky-700'
-            }`}>
-              {isOverweightAvg ? <TrendingUp className="w-2.5 h-2.5" /> : <TrendingDown className="w-2.5 h-2.5" />}
-              <span>{isOverweightAvg ? '+' : ''}{grossDevPercent.toFixed(1)}% vs avg</span>
-            </div>
-          )}
+
         </div>
 
         {/* Net Weight (Calculated) */}

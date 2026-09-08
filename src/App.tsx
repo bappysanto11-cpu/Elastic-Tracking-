@@ -36,7 +36,7 @@ import { loadDemands, saveDemands } from './utils/elasticDemandStorage';
 import { useHistory } from './utils/useHistory';
 import { useAuth } from './context/AuthContext';
 import { useRealtimeSync } from './hooks/useRealtimeSync';
-import { Table, LayoutGrid, Tag, Layers, Check, QrCode, BarChart3, Undo2, Redo2, Search, RotateCcw, ClipboardList, Upload, FileText, Truck, Package, FileSpreadsheet } from 'lucide-react';
+import { Table, LayoutGrid, Tag, Layers, Check, QrCode, BarChart3, Undo2, Redo2, Search, RotateCcw, ClipboardList, Upload, FileText, Truck, Package, FileSpreadsheet, SlidersHorizontal } from 'lucide-react';
 import { ExcelScheduleManager } from './components/ExcelScheduleManager';
 import { ScheduleUploader } from './components/ScheduleUploader';
 import { ScheduleTracker } from './components/ScheduleTracker';
@@ -86,6 +86,7 @@ export default function App() {
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState<boolean>(false);
   const [printOrientation, setPrintOrientation] = useState<'landscape' | 'portrait'>('landscape');
   const [isPrintToastVisible, setIsPrintToastVisible] = useState<boolean>(false);
+  const [isOrderHeaderVisible, setIsOrderHeaderVisible] = useState<boolean>(false);
 
   // QR Code Carton Inspection Modal
   const [isCartonQrModalOpen, setIsCartonQrModalOpen] = useState<boolean>(false);
@@ -999,19 +1000,6 @@ export default function App() {
           </div>
         )}
 
-        {/* Order Header Input Form */}
-        <div className="print:hidden">
-          <OrderHeaderForm
-            sheetData={sheetData}
-            onChange={handleUpdateHeader}
-            onApplyDefaultWeights={handleApplyDefaultWeights}
-            lang={lang}
-            demands={demands}
-            onSelectDemand={handleLoadDemandIntoSheet}
-            onOpenDemandsView={() => setActiveTab('demands')}
-          />
-        </div>
-
         {/* Real-time Summary Cards */}
         <div className="print:hidden">
           <SummaryCards 
@@ -1137,6 +1125,9 @@ export default function App() {
               activeScheduleItem={activePackingScheduleItem}
               onCompletePackingAndReturn={handleCompletePackingAndReturn}
               onReturnToPreviousTab={handleReturnToPreviousTab}
+              onUpdateHeader={handleUpdateHeader}
+              onApplyDefaultWeights={handleApplyDefaultWeights}
+              onOpenDemandsView={() => setActiveTab('demands')}
             />
           </div>
         )}

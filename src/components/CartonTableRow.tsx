@@ -403,28 +403,7 @@ export const CartonTableRow = memo<CartonTableRowProps>(({
             />
           </div>
         )}
-        {/* Batch Average Gross Weight Deviation Badge */}
-        {batchAvgGrossWt > 0 && carton.grossWt > 0 && isGrossDeviating && (
-          <div 
-            className={`mt-1 flex items-center justify-end gap-1 px-1.5 py-0.5 rounded text-[9.5px] font-mono font-bold leading-none border shadow-2xs ${
-              isOverweightAvg
-                ? 'bg-amber-100/90 text-amber-950 border-amber-300' 
-                : 'bg-sky-100/90 text-sky-950 border-sky-300'
-            }`}
-            title={
-              lang === 'en'
-                ? `Carton Gross Wt (${carton.grossWt.toFixed(2)} ${wUnit}) deviates by ${isOverweightAvg ? '+' : ''}${grossDevPercent.toFixed(1)}% from Batch Avg (${batchAvgGrossWt.toFixed(2)} ${wUnit})`
-                : `কার্টন গ্রস ওজন (${carton.grossWt.toFixed(2)} ${wUnit}) ব্যাচ গড় (${batchAvgGrossWt.toFixed(2)} ${wUnit}) থেকে ${isOverweightAvg ? '+' : ''}${grossDevPercent.toFixed(1)}% বিচ্যুত`
-            }
-          >
-            {isOverweightAvg ? (
-              <TrendingUp className="w-2.5 h-2.5 text-amber-800 shrink-0" />
-            ) : (
-              <TrendingDown className="w-2.5 h-2.5 text-sky-800 shrink-0" />
-            )}
-            <span>{isOverweightAvg ? '+' : ''}{grossDevPercent.toFixed(1)}% {lang === 'en' ? 'vs avg' : 'গড় থেকে'}</span>
-          </div>
-        )}
+
       </td>
 
       {/* Tare Wt */}

@@ -671,19 +671,27 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
       const file = new File([blob], `sticker-ctn-${cartonNo}.png`, { type: 'image/png' });
 
       if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({
-          files: [file],
-          title: `Carton #${cartonNo} Sticker`,
-          text: `Shipping sticker for Carton #${cartonNo} (${sheetData.ref})`
-        });
-      } else {
-        handleDownloadSticker(cartonId, cartonNo);
+        try {
+          await navigator.share({
+            files: [file],
+            title: `Carton #${cartonNo} Sticker`,
+            text: `Shipping sticker for Carton #${cartonNo} (${sheetData.ref})`
+          });
+          return;
+        } catch (err: any) {
+          if (err.name === 'AbortError' || err.message?.toLowerCase().includes('cancel')) {
+            return;
+          }
+          console.warn('Native share failed/expired, falling back to download:', err);
+        }
       }
+      handleDownloadSticker(cartonId, cartonNo);
     } catch (err: any) {
       if (err.name === 'AbortError' || err.message?.toLowerCase().includes('cancel')) {
         return;
       }
-      console.error('Share failed', err);
+      console.error('Sticker share/generation failed', err);
+      handleDownloadSticker(cartonId, cartonNo);
     }
   };
 

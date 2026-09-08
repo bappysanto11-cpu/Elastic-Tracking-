@@ -7,6 +7,7 @@ import { QuickFillModal, QuickFillPreset } from './QuickFillModal';
 import { PasteWeightsModal } from './PasteWeightsModal';
 import { CartonTableRow } from './CartonTableRow';
 import { CartonMobileCard } from './CartonMobileCard';
+import { OrderHeaderForm } from './OrderHeaderForm';
 import { 
   DemandComplianceReport, 
   analyzeCartonDeviations, 
@@ -87,6 +88,9 @@ interface CartonTableProps {
   activeScheduleItem?: ScheduleItem | null;
   onCompletePackingAndReturn?: (packedTotalQty?: number) => void;
   onReturnToPreviousTab?: () => void;
+  onUpdateHeader?: (updated: Partial<PackingSheetData>) => void;
+  onApplyDefaultWeights?: () => void;
+  onOpenDemandsView?: () => void;
 }
 
 export const CartonTable: React.FC<CartonTableProps> = ({
@@ -109,6 +113,9 @@ export const CartonTable: React.FC<CartonTableProps> = ({
   activeScheduleItem,
   onCompletePackingAndReturn,
   onReturnToPreviousTab,
+  onUpdateHeader,
+  onApplyDefaultWeights,
+  onOpenDemandsView,
 }) => {
   const t = translations[lang]; const wUnit = sheetData.weightUnit === "gm" ? "Gm" : "Kg";
   const [bulkCount, setBulkCount] = useState(5);
@@ -1768,6 +1775,20 @@ export const CartonTable: React.FC<CartonTableProps> = ({
             </button>
           </div>
         </div>
+      )}
+
+      {/* Embedded Order & Item Specifications Control Bar */}
+      {onUpdateHeader && (
+        <OrderHeaderForm
+          sheetData={sheetData}
+          onChange={onUpdateHeader}
+          onApplyDefaultWeights={onApplyDefaultWeights || (() => {})}
+          lang={lang}
+          demands={demands}
+          onSelectDemand={onSelectDemand}
+          onOpenDemandsView={onOpenDemandsView}
+          isEmbeddedInTable={true}
+        />
       )}
 
       {/* Main Content Area: Cards View or Table View */}

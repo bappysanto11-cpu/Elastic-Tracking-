@@ -20,6 +20,7 @@ import {
   Package,
   Layers,
   Sparkles,
+  X,
 } from 'lucide-react';
 import { AutocompleteInput } from './AutocompleteInput';
 
@@ -31,20 +32,19 @@ interface OrderHeaderFormProps {
   demands?: any[];
   onSelectDemand?: (demand: any) => void;
   onOpenDemandsView?: () => void;
+  onClose?: () => void;
+  isEmbeddedInTable?: boolean;
 }
-
-const COMMON_BUYERS = ['HCF', 'Sports Direct', 'H&M', 'Zara', 'M&S', 'Next', 'Decathlon', 'Primark', 'Target', 'Walmart'];
-const COMMON_SIZES = ['5 MM', '6 MM', '7 MM', '8 MM', '10 MM', '12 MM', '15 MM', '20 MM', '25 MM', '30 MM', '32 MM', '38 MM', '40 MM', '50 MM', '61 MM'];
-const COMMON_COLORS = ['WHITE', 'BLACK', 'NAVY', 'GREY', 'OPTICAL WHITE', 'OFF WHITE', 'ROYAL BLUE', 'RED'];
 
 export const OrderHeaderForm: React.FC<OrderHeaderFormProps> = ({
   sheetData,
   onChange,
   onApplyDefaultWeights,
   lang,
+  onClose,
+  isEmbeddedInTable = false,
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [activeChipTray, setActiveChipTray] = useState<'buyer' | 'size' | 'color' | 'none'>('buyer');
   const [copied, setCopied] = useState(false);
   const [syncApplied, setSyncApplied] = useState(false);
 
@@ -94,7 +94,13 @@ export const OrderHeaderForm: React.FC<OrderHeaderFormProps> = ({
   ].filter(Boolean).length;
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs mb-3 transition-all overflow-hidden">
+    <div
+      className={`bg-white transition-all overflow-hidden ${
+        isEmbeddedInTable
+          ? 'border-b border-slate-300 shadow-none'
+          : 'rounded-xl border border-slate-200/90 shadow-2xs mb-3'
+      }`}
+    >
       {/* Sleek Top Smart Control Ribbon */}
       <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 px-3 py-1.5 flex items-center justify-between gap-2 text-white">
         {/* Left: Title, Live Status & PO pill */}
@@ -186,9 +192,21 @@ export const OrderHeaderForm: React.FC<OrderHeaderFormProps> = ({
             className="flex items-center gap-0.5 px-2 py-0.5 rounded bg-slate-800/90 hover:bg-slate-700 text-slate-300 hover:text-white text-[10.5px] font-medium border border-slate-700/80 transition cursor-pointer"
             title={isCollapsed ? 'Expand specifications' : 'Collapse specifications'}
           >
-            <span>{isCollapsed ? (lang === 'en' ? 'Expand' : 'খুলুন') : (lang === 'en' ? 'Hide' : 'লুকান')}</span>
+            <span>{isCollapsed ? (lang === 'en' ? 'Expand' : 'খুলুন') : (lang === 'en' ? 'Collapse' : 'সংক্ষেপ')}</span>
             {isCollapsed ? <ChevronDown className="w-3 h-3" /> : <ChevronUp className="w-3 h-3" />}
           </button>
+
+          {/* Close/Remove Control Bar Button */}
+          {onClose && (
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-1 rounded bg-rose-600/80 hover:bg-rose-600 text-white transition cursor-pointer"
+              title={lang === 'en' ? 'Close & hide control bar' : 'কন্ট্রোল বার বন্ধ/লুকান'}
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -468,103 +486,6 @@ export const OrderHeaderForm: React.FC<OrderHeaderFormProps> = ({
                   </>
                 )}
               </button>
-            </div>
-
-            {/* Right: Quick Preset Switchers */}
-            <div className="flex items-center gap-1.5 overflow-x-auto py-1 max-w-full">
-              <div className="flex items-center gap-1 bg-slate-200/90 p-1 rounded-lg shrink-0 shadow-inner">
-                <button
-                  type="button"
-                  onClick={() => setActiveChipTray(activeChipTray === 'buyer' ? 'none' : 'buyer')}
-                  className={`px-3 py-1.5 rounded-md text-xs sm:text-sm font-bold transition cursor-pointer ${
-                    activeChipTray === 'buyer' 
-                      ? 'bg-white text-violet-800 shadow-xs ring-1 ring-violet-300 font-extrabold' 
-                      : 'text-slate-700 hover:text-slate-950'
-                  }`}
-                >
-                  {t.buyer}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveChipTray(activeChipTray === 'size' ? 'none' : 'size')}
-                  className={`px-3 py-1.5 rounded-md text-xs sm:text-sm font-bold transition cursor-pointer ${
-                    activeChipTray === 'size' 
-                      ? 'bg-white text-emerald-800 shadow-xs ring-1 ring-emerald-300 font-extrabold' 
-                      : 'text-slate-700 hover:text-slate-950'
-                  }`}
-                >
-                  {t.size}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveChipTray(activeChipTray === 'color' ? 'none' : 'color')}
-                  className={`px-3 py-1.5 rounded-md text-xs sm:text-sm font-bold transition cursor-pointer ${
-                    activeChipTray === 'color' 
-                      ? 'bg-white text-rose-800 shadow-xs ring-1 ring-rose-300 font-extrabold' 
-                      : 'text-slate-700 hover:text-slate-950'
-                  }`}
-                >
-                  {t.color}
-                </button>
-              </div>
-
-              {/* Chips */}
-              {activeChipTray === 'buyer' && (
-                <div className="flex items-center gap-1.5 overflow-x-auto py-0.5">
-                  {COMMON_BUYERS.slice(0, 7).map(b => (
-                    <button
-                      key={b}
-                      type="button"
-                      onClick={() => onChange({ buyer: b })}
-                      className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition cursor-pointer shadow-xs border ${
-                        sheetData.buyer === b
-                          ? 'bg-violet-900 text-white font-bold border-violet-900 shadow-xs'
-                          : 'bg-white hover:bg-violet-50 text-slate-800 border-slate-300'
-                      }`}
-                    >
-                      {b}
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {activeChipTray === 'size' && (
-                <div className="flex items-center gap-1.5 overflow-x-auto py-0.5">
-                  {COMMON_SIZES.slice(0, 8).map(s => (
-                    <button
-                      key={s}
-                      type="button"
-                      onClick={() => onChange({ size: s })}
-                      className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-mono whitespace-nowrap transition cursor-pointer shadow-xs border ${
-                        sheetData.size === s
-                          ? 'bg-emerald-900 text-white font-bold border-emerald-900 shadow-xs'
-                          : 'bg-white hover:bg-emerald-50 text-slate-800 border-slate-300'
-                      }`}
-                    >
-                      {s}
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {activeChipTray === 'color' && (
-                <div className="flex items-center gap-1.5 overflow-x-auto py-0.5">
-                  {COMMON_COLORS.slice(0, 6).map(c => (
-                    <button
-                      key={c}
-                      type="button"
-                      onClick={() => onChange({ color: c })}
-                      className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm whitespace-nowrap transition cursor-pointer shadow-xs border ${
-                        sheetData.color === c
-                          ? 'bg-rose-900 text-white font-bold border-rose-900 shadow-xs'
-                          : 'bg-white hover:bg-rose-50 text-slate-800 border-slate-300'
-                      }`}
-                    >
-                      {c}
-                    </button>
-                  ))}
-                </div>
-              )}
             </div>
           </div>
         </div>

@@ -214,16 +214,15 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
           title: `Packing Summary: ${sheetData.ref}`,
           text: text,
         });
+        return;
       } catch (err: any) {
         if (err.name === 'AbortError' || err.message?.toLowerCase().includes('cancel')) {
           return;
         }
-        console.error('Share failed', err);
-        handleCopySummary();
+        console.warn('Share not allowed or failed, falling back to copy', err);
       }
-    } else {
-      handleCopySummary();
     }
+    handleCopySummary();
   };
 
   const fileInputRef = useRef<HTMLInputElement>(null);
