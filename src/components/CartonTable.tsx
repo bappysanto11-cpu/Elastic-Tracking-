@@ -56,7 +56,8 @@ import {
   TrendingUp,
   TrendingDown,
   LayoutGrid,
-  ArrowLeft
+  ArrowLeft,
+  Camera
 } from 'lucide-react';
 import { ScheduleItem } from '../types/schedule';
 
@@ -74,6 +75,7 @@ interface CartonTableProps {
   onDuplicateCarton: (carton: CartonRow) => void;
   onClearEmpty: () => void;
   onOpenCartonQr?: (carton: CartonRow) => void;
+  onOpenAiPhotoScanner?: () => void;
   onBulkPasteWeights?: (
     weights: number[],
     mode?: 'append' | 'replace' | 'fromIndex',
@@ -105,6 +107,7 @@ export const CartonTable: React.FC<CartonTableProps> = ({
   onDuplicateCarton,
   onClearEmpty,
   onOpenCartonQr,
+  onOpenAiPhotoScanner,
   onBulkPasteWeights,
   lang,
   demands = [],
@@ -1392,6 +1395,21 @@ export const CartonTable: React.FC<CartonTableProps> = ({
               Paste
             </kbd>
           </button>
+
+          {/* AI Photo Weight Scanner Button */}
+          {onOpenAiPhotoScanner && (
+            <button
+              onClick={onOpenAiPhotoScanner}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold shadow-xs transition cursor-pointer"
+              title={lang === 'en' ? 'Scan photos of cartons or weighing scale to auto-detect gross weights' : 'কার্টনের ছবি থেকে ওজন স্ক্যান করে অটো বসান'}
+            >
+              <Camera className="w-3.5 h-3.5 text-white" />
+              <span>{lang === 'en' ? 'AI Photo Scan' : '📷 AI ছবি স্ক্যান'}</span>
+              <span className="hidden sm:inline-block px-1 py-0.2 text-[9px] bg-emerald-800 text-emerald-100 rounded font-semibold uppercase">
+                AI
+              </span>
+            </button>
+          )}
 
           {/* Clear Empty Rows */}
           <button

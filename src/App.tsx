@@ -24,6 +24,7 @@ import { CartonQrDetailModal } from './components/CartonQrDetailModal';
 import { ApkDownloadModal } from './components/ApkDownloadModal';
 import { IndexedDbBackupModal } from './components/IndexedDbBackupModal';
 import { AuthModal } from './components/AuthModal';
+import { AiPhotoScannerModal } from './components/AiPhotoScannerModal';
 import { triggerIndexedDbBackup, openIndexedDB } from './utils/indexedDbBackup';
 import { WorkspaceModal } from './components/WorkspaceModal';
 import { DEFAULT_WORKSPACE_ID, loadWorkspaceData, saveWorkspaceData } from './utils/workspaceManager';
@@ -89,6 +90,7 @@ export default function App() {
   const [printOrientation, setPrintOrientation] = useState<'landscape' | 'portrait'>('landscape');
   const [isPrintToastVisible, setIsPrintToastVisible] = useState<boolean>(false);
   const [isOrderHeaderVisible, setIsOrderHeaderVisible] = useState<boolean>(false);
+  const [isAiPhotoScannerOpen, setIsAiPhotoScannerOpen] = useState<boolean>(false);
 
   // QR Code Carton Inspection Modal
   const [isCartonQrModalOpen, setIsCartonQrModalOpen] = useState<boolean>(false);
@@ -873,7 +875,29 @@ export default function App() {
     });
   };
 
-  // Apply extracted AI data
+  // Apply extracted AI data from Carton Photos
+  const handleApplyScannedCartons = (newCartons: CartonRow[], mode: 'replace' | 'append') => {
+    setSheetData(prev => {
+      let mergedCartons: CartonRow[];
+      if (mode === 'replace') {
+        mergedCartons = newCartons;
+      } else {
+        const startNo = prev.cartons.length > 0 ? Math.max(...prev.cartons.map(c => c.cartonNo || 0)) + 1 : 1;
+        const renumbered = newCartons.map((c, i) => ({
+          ...c,
+          cartonNo: startNo + i,
+        }));
+        mergedCartons = [...prev.cartons, ...renumbered];
+      }
+
+      return {
+        ...prev,
+        cartons: mergedCartons,
+        logs: [...(prev.logs || []), createLog('BATCH', `AI Photo Scanner: populated ${newCartons.length} cartons (${mode})`)].slice(-50),
+      };
+    });
+  };
+
   // Import data from Excel / OneDrive
   const handleImportExcelData = (importedCartons: CartonRow[], importedHeader?: Partial<PackingSheetData>) => {
     setSheetData(prev => ({
@@ -1116,6 +1140,7 @@ export default function App() {
               onDuplicateCarton={handleDuplicateCarton}
               onClearEmpty={handleClearEmpty}
               onOpenCartonQr={handleOpenCartonQr}
+              onOpenAiPhotoScanner={() => setIsAiPhotoScannerOpen(true)}
               lang={lang}
               demands={demands}
               onBulkPasteWeights={handleBulkPasteWeights}
@@ -1163,6 +1188,7 @@ export default function App() {
                 onDuplicateCarton={handleDuplicateCarton}
                 onAddBulk={handleAddBulk}
                 onReorderCartons={handleReorderCartons}
+                onOpenAiPhotoScanner={() => setIsAiPhotoScannerOpen(true)}
               />
             </Suspense>
           </div>
@@ -1388,6 +1414,15 @@ export default function App() {
         onClose={() => setIsShareModalOpen(false)}
         sheetData={sheetData}
         lang={lang}
+      />
+
+      <AiPhotoScannerModal
+        isOpen={isAiPhotoScannerOpen}
+        onClose={() => setIsAiPhotoScannerOpen(false)}
+        sheetData={sheetData}
+        lang={lang}
+        onApplyCartons={handleApplyScannedCartons}
+        onNavigateToStickers={() => setActiveTab('stickers')}
       />
     </div>
   );

@@ -124,7 +124,7 @@ If certain values are blank/0.00, capture the actual populated cartons. Return s
       });
 
       const response = await ai.models.generateContent({
-        model: 'gemini-3.7-flash',
+        model: 'gemini-3.8-flash',
         contents: { parts },
         config: {
           systemInstruction,
@@ -168,6 +168,166 @@ If certain values are blank/0.00, capture the actual populated cartons. Return s
     } catch (err: any) {
       console.error('Error in scan-sheet API:', err);
       return res.status(500).json({ error: err?.message || 'Failed to analyze image' });
+    }
+  });
+
+  // Dedicated AI Photo Weight Scanner Endpoint
+  // Supports single carton photo, multi-carton pallet shots (e.g. 10-25 cartons in 1 photo), or batch photos
+  app.post('/api/scan-carton-weights', rateLimitMiddleware, async (req, res) => {
+    try {
+      const { images, imageBase64, mimeType = 'image/jpeg', expectedCartonNo = 1 } = req.body || {};
+
+      if (!process.env.GEMINI_API_KEY) {
+        return res.status(500).json({ error: 'GEMINI_API_KEY is not configured on server' });
+      }
+
+      const imageList: Array<{ id: string; base64: string; mimeType: string; expectedNo: number }> = [];
+
+      if (Array.isArray(images) && images.length > 0) {
+        for (let i = 0; i < images.length; i++) {
+          const img = images[i];
+          if (img && typeof img.imageBase64 === 'string') {
+            const clean = img.imageBase64.replace(/^data:[^;]+;base64,/, '');
+            imageList.push({
+              id: img.id || `img-${i + 1}`,
+              base64: clean,
+              mimeType: img.mimeType || 'image/jpeg',
+              expectedNo: img.expectedCartonNo || (i + 1),
+            });
+          }
+        }
+      } else if (typeof imageBase64 === 'string') {
+        const clean = imageBase64.replace(/^data:[^;]+;base64,/, '');
+        imageList.push({
+          id: 'single-img-1',
+          base64: clean,
+          mimeType,
+          expectedNo: expectedCartonNo || 1,
+        });
+      }
+
+      if (imageList.length === 0) {
+        return res.status(400).json({ error: 'No valid image data provided for scanning.' });
+      }
+
+      const ai = getGeminiClient();
+
+      const systemInstruction = `You are an elite Garment Quality Control & Warehouse AI Vision Scanner.
+Your job is to read photos of carton boxes, warehouse pallets, stacks of cartons, and weighing scale markings.
+
+CRITICAL INSTRUCTION FOR MULTI-CARTON PHOTOS:
+- A single photo may contain 1, 5, 10, 20, or even 30 carton boxes stacked on a pallet or warehouse floor.
+- You MUST thoroughly scan the ENTIRE image from top-to-bottom and left-to-right, detecting EVERY SINGLE visible carton that has a handwritten or printed Gross Weight (G.W, GW, Gross Wt, kg, or clear numbers) or carton label.
+- Do NOT stop after finding 1 carton. If there are 20 cartons in the photo, return all 20 detected carton items in the 'detectedCartons' array!
+- If a carton has a written carton number (like C/1, C/No 2, Box #3, or simply numbers 1, 2, 3), use that cartonNo. If no carton number is written on a box, assign sequential carton numbers starting from the requested start index.
+- Gross weight (grossWt) should be the decimal number in KG (e.g., 24.5, 21.8, 19.0). If written with comma like 24,5 kg, convert to 24.5.
+- If Tare Wt (T.W) or Net Wt (N.W) are visible, extract them as numbers, otherwise null.
+- rawDetectedText: State what exact text was seen on this carton (e.g., "C/No: 5, G.W: 23.40 KG" or "Carton top right: 21.5 kg").
+- confidence: 'high' | 'medium' | 'low'.`;
+
+      const scannedResults: any[] = [];
+
+      for (let i = 0; i < imageList.length; i++) {
+        const item = imageList[i];
+        try {
+          const parts: any[] = [
+            {
+              inlineData: {
+                mimeType: item.mimeType,
+                data: item.base64,
+              },
+            },
+            {
+              text: `Thoroughly scan and extract ALL cartons in this photo. If there are multiple cartons (e.g. 5, 10, 20 boxes stacked together), list EACH AND EVERY carton separately with its carton number and Gross Weight (KG). Base starting carton index is ${item.expectedNo}.`,
+            },
+          ];
+
+          const response = await ai.models.generateContent({
+            model: 'gemini-3.8-flash',
+            contents: { parts },
+            config: {
+              systemInstruction,
+              responseMimeType: 'application/json',
+              responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                  detectedCartons: {
+                    type: Type.ARRAY,
+                    items: {
+                      type: Type.OBJECT,
+                      properties: {
+                        cartonNo: { type: Type.INTEGER },
+                        grossWt: { type: Type.NUMBER },
+                        tareWt: { type: Type.NUMBER },
+                        netWt: { type: Type.NUMBER },
+                        rawDetectedText: { type: Type.STRING },
+                        boxLocation: { type: Type.STRING },
+                        confidence: { type: Type.STRING },
+                        notes: { type: Type.STRING },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          });
+
+          const resText = response.text || '{"detectedCartons":[]}';
+          const parsed = JSON.parse(resText);
+          const detectedList = parsed.detectedCartons || [];
+
+          if (detectedList.length > 0) {
+            detectedList.forEach((c: any, subIdx: number) => {
+              scannedResults.push({
+                imageId: item.id,
+                cartonNo: c.cartonNo || (item.expectedNo + subIdx),
+                grossWt: typeof c.grossWt === 'number' ? c.grossWt : 0,
+                tareWt: typeof c.tareWt === 'number' ? c.tareWt : null,
+                netWt: typeof c.netWt === 'number' ? c.netWt : null,
+                rawDetectedText: c.rawDetectedText || '',
+                boxLocation: c.boxLocation || '',
+                confidence: c.confidence || 'high',
+                notes: c.notes || '',
+                subIndex: subIdx,
+              });
+            });
+          } else {
+            scannedResults.push({
+              imageId: item.id,
+              cartonNo: item.expectedNo,
+              grossWt: 0,
+              tareWt: null,
+              netWt: null,
+              rawDetectedText: 'No cartons/weights detected',
+              confidence: 'low',
+              notes: 'No numeric gross weights identified in this photo',
+              subIndex: 0,
+            });
+          }
+        } catch (itemErr: any) {
+          console.error(`Error scanning image ${item.id}:`, itemErr);
+          scannedResults.push({
+            imageId: item.id,
+            cartonNo: item.expectedNo,
+            grossWt: 0,
+            tareWt: null,
+            netWt: null,
+            rawDetectedText: 'Scan error',
+            confidence: 'low',
+            notes: itemErr?.message || 'Failed to scan image',
+            subIndex: 0,
+          });
+        }
+      }
+
+      return res.status(200).json({
+        success: true,
+        count: scannedResults.length,
+        results: scannedResults,
+      });
+    } catch (err: any) {
+      console.error('Error in scan-carton-weights API:', err);
+      return res.status(500).json({ error: err?.message || 'Failed to process carton images' });
     }
   });
 

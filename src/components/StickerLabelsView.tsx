@@ -56,7 +56,8 @@ import {
   Minimize2,
   Maximize2,
   Scan,
-  Scissors
+  Scissors,
+  Camera
 } from 'lucide-react';
 import { 
   StickerCustomizationSettings, 
@@ -98,6 +99,7 @@ interface StickerLabelsViewProps {
   onDuplicateCarton?: (carton: CartonRow) => void;
   onAddBulk?: (count: number) => void;
   onReorderCartons?: (newCartons: CartonRow[]) => void;
+  onOpenAiPhotoScanner?: () => void;
 }
 
 export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
@@ -113,6 +115,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
   onDuplicateCarton,
   onAddBulk,
   onReorderCartons,
+  onOpenAiPhotoScanner,
 }) => {
   // View mode: showPreview toggles between full-page sticker preview mode and list-based data entry mode
   const [showPreview, setShowPreview] = useState<boolean>(true);
@@ -988,6 +991,22 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                 {STICKER_PAPER_SIZES[bulkConfig.paperSize]?.name.split(' ')[0] || 'A4'}
               </span>
             </button>
+
+            {/* AI Photo Weight Scanner Button */}
+            {onOpenAiPhotoScanner && (
+              <button
+                type="button"
+                onClick={onOpenAiPhotoScanner}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold shadow-xs transition cursor-pointer"
+                title={lang === 'en' ? 'Scan photos of cartons or weighing scales to auto-detect gross weights and generate stickers' : 'কার্টনের ছবি থেকে ওজন স্ক্যান করে স্টিকার তৈরি করুন'}
+              >
+                <Camera className="w-3.5 h-3.5 text-white" />
+                <span>{lang === 'en' ? 'AI Photo Scan' : '📷 AI ছবি স্ক্যান'}</span>
+                <span className="hidden sm:inline-block px-1 py-0.2 text-[9px] bg-emerald-800 text-emerald-100 rounded font-semibold uppercase">
+                  AI
+                </span>
+              </button>
+            )}
 
             {/* Sticker Styling & Branding Button */}
             <button
