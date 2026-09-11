@@ -9,12 +9,17 @@ import {
   Loader2, 
   Trash2, 
   Eye, 
-  ArrowRight,
-  Plus,
-  Tag,
-  Layers,
-  Edit3,
-  Image as ImageIcon
+  ArrowRight, 
+  Plus, 
+  Tag, 
+  Layers, 
+  Edit3, 
+  Image as ImageIcon,
+  Grid,
+  Check,
+  RotateCcw,
+  Sliders,
+  Maximize2
 } from 'lucide-react';
 import { CartonRow, PackingSheetData } from '../types/calculator';
 import { recomputeCarton } from '../utils/calc';
@@ -28,16 +33,18 @@ interface PhotoItem {
   errorMessage?: string;
 }
 
-export interface DetectedCartonItem {
+export interface DetectedCartonDetail {
   id: string;
-  photoId: string;
-  photoPreviewUrl: string;
   cartonNo: number;
   grossWt: number;
   tareWt?: number | null;
   netWt?: number | null;
-  detectedText?: string;
+  color?: string;
+  size?: string;
+  qtyPcs?: number;
+  pkts?: number;
   boxLocation?: string;
+  rawDetectedText?: string;
   confidence?: 'high' | 'medium' | 'low';
 }
 
@@ -51,10 +58,10 @@ interface AiPhotoScannerModalProps {
 }
 
 /**
- * Resizes and compresses an image to max 1920px (Full HD) JPEG to keep handwritten numbers
- * on stacks of 15-25 cartons crystal clear while reducing bandwidth.
+ * Compresses an image to max 2560px JPEG to keep handwritten numbers,
+ * printed shipping marks, and up to 20 small labels on a pallet crystal clear.
  */
-async function compressImage(file: File): Promise<{ base64: string; mimeType: string }> {
+async function compressImageForBatch(file: File): Promise<{ base64: string; mimeType: string }> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     const reader = new FileReader();
@@ -65,7 +72,7 @@ async function compressImage(file: File): Promise<{ base64: string; mimeType: st
     reader.onerror = reject;
 
     img.onload = () => {
-      const maxDim = 1920;
+      const maxDim = 2560; // Extra resolution for 20-carton wide shots
       let { width, height } = img;
 
       if (width > maxDim || height > maxDim) {
@@ -87,7 +94,7 @@ async function compressImage(file: File): Promise<{ base64: string; mimeType: st
       }
 
       ctx.drawImage(img, 0, 0, width, height);
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.90);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
       resolve({
         base64: dataUrl,
         mimeType: 'image/jpeg',
@@ -107,246 +114,283 @@ export const AiPhotoScannerModal: React.FC<AiPhotoScannerModalProps> = ({
   onApplyCartons,
   onNavigateToStickers,
 }) => {
-  const [photos, setPhotos] = useState<PhotoItem[]>([]);
-  const [detectedCartons, setDetectedCartons] = useState<DetectedCartonItem[]>([]);
-  const [isScanning, setIsScanning] = useState<boolean>(false);
-  const [scanProgress, setScanProgress] = useState<{ current: number; total: number } | null>(null);
+  // Scanner modes: 'batch20' (1 photo containing up to 20 carton labels) vs 'multiPhoto' (individual photos)
+  const [activeMode, setActiveMode] = useState<'batch20' | 'multiPhoto'>('batch20');
+
+  // Batch Mode States (Up to 20 labels in 1 photo)
+  const [batchPhoto, setBatchPhoto] = useState<{ file: File; previewUrl: string } | null>(null);
+  const [startCartonNo, setStartCartonNo] = useState<number>(() => {
+    return sheetData.cartons.length > 0 ? sheetData.cartons.length + 1 : 1;
+  });
+  const [parsedCartonRows, setParsedCartonRows] = useState<CartonRow[]>([]);
+  const [detectedDetails, setDetectedDetails] = useState<DetectedCartonDetail[]>([]);
+  const [isBatchScanning, setIsBatchScanning] = useState<boolean>(false);
+
+  // Multi-Photo Mode States
+  const [multiPhotos, setMultiPhotos] = useState<PhotoItem[]>([]);
+  const [isMultiScanning, setIsMultiScanning] = useState<boolean>(false);
+  const [multiProgress, setMultiProgress] = useState<{ current: number; total: number } | null>(null);
+
+  // Shared Modal States
   const [applyMode, setApplyMode] = useState<'replace' | 'append'>('replace');
   const [autoGoToStickers, setAutoGoToStickers] = useState<boolean>(true);
   const [previewZoomUrl, setPreviewZoomUrl] = useState<string | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const batchFileInputRef = useRef<HTMLInputElement>(null);
+  const batchCameraInputRef = useRef<HTMLInputElement>(null);
+  const multiFileInputRef = useRef<HTMLInputElement>(null);
+  const multiCameraInputRef = useRef<HTMLInputElement>(null);
 
   if (!isOpen) return null;
 
+  const defaultTare = sheetData.defaultTare || 0.50;
+  const defaultWtPerUnit = sheetData.defaultWtPerUnit || 30.0;
+  const deliveryUnit = sheetData.deliveryUnit || 'mtr';
+  const pcsPerPkt = sheetData.pcsPerPkt;
+  const weightUnit = sheetData.weightUnit || 'kg';
+
   const t = {
-    modalTitle: lang === 'en' ? 'AI Carton Photo Weight Scanner' : 'AI কার্টন ফটো ওজন স্ক্যানার (সিঙ্গেল ও মাল্টি-কার্টন)',
-    modalSubtitle: lang === 'en' 
-      ? 'Upload 1 photo containing 20+ cartons on a pallet or individual photos. AI extracts all carton numbers & gross weights!'
-      : 'এক ছবিতে ২০টি কার্টন থাকলে বা আলাদা আলাদা ছবি দিলে—এআই এক ক্লিকেই প্রতিটি কার্টনের গ্রস ওজন শনাক্ত করবে!',
-    addPhotos: lang === 'en' ? 'Choose Photos / Pallet Shots' : 'ছবি বা প্যালেটের ছবি সিলেক্ট করুন',
-    snapCamera: lang === 'en' ? 'Take Photo with Camera' : 'মোবাইল ক্যামেরা দিয়ে ছবি তুলুন',
-    scanButton: lang === 'en' ? 'Detect All Cartons with Gemini AI' : 'Gemini AI দিয়ে সব কার্টনের ওজন বের করুন',
-    scanning: lang === 'en' ? 'AI is analyzing carton boxes...' : 'এআই সব কার্টন ও ওজন স্ক্যান করছে...',
-    clearAll: lang === 'en' ? 'Clear All' : 'সব মুছুন',
-    cartonLabel: lang === 'en' ? 'Carton #' : 'কার্টন #',
+    modalTitle: lang === 'en' ? 'AI Carton Photo Scanner' : 'AI কার্টন ফটো স্ক্যানার',
+    batchTab: lang === 'en' ? 'Batch Mode (Up to 20 Labels in 1 Photo)' : 'ব্যাচ মোড (১ ছবিতে সর্বোচ্চ ২০টি লেবেল)',
+    multiTab: lang === 'en' ? 'Multi-Photo Mode (1 Photo per Carton)' : 'মাল্টি-ফটো মোড (প্রতি কার্টনের আলাদা ছবি)',
+    batchDescription: lang === 'en'
+      ? 'Upload 1 photo containing up to 20 carton labels (pallet stack, warehouse floor, or shipping mark grid). AI parses each label into CartonRow objects!'
+      : 'প্যালেট বা ফ্লোরে থাকা ২০টি কার্টনের একটিমাত্র ছবি দিন। এআই প্রতিটি লেবেল শনাক্ত করে আলাদা কার্টন রো (CartonRow) তৈরি করবে!',
+    uploadBatchPhoto: lang === 'en' ? 'Select 1 Photo with up to 20 Cartons' : 'সর্বোচ্চ ২০ কার্টনের ১টি ছবি সিলেক্ট করুন',
+    snapBatchPhoto: lang === 'en' ? 'Snap Photo of Pallet / Carton Stack' : 'প্যালেট বা কার্টন স্তূপের ছবি তুলুন',
+    startScanBtn: lang === 'en' ? '⚡ Detect & Parse Up to 20 Labels' : '⚡ এক ক্লিকে ২০টি কার্টন লেবেল শনাক্ত করুন',
+    scanningText: lang === 'en' ? 'Gemini AI is parsing up to 20 carton labels...' : 'এআই ছবির সব (সর্বোচ্চ ২০টি) কার্টন লেবেল স্ক্যান করছে...',
+    cartonNoLabel: lang === 'en' ? 'C/No' : 'কার্টন নং',
     grossWtLabel: lang === 'en' ? 'Gross Wt (KG)' : 'গ্রস ওজন (কেজি)',
-    applyButton: lang === 'en' ? 'Apply Cartons to Sheet & Stickers' : 'প্যাকিং শিট ও স্টিকারে বসান',
+    tareWtLabel: lang === 'en' ? 'Tare Wt' : 'ট্যার ওজন',
+    netWtLabel: lang === 'en' ? 'Net Wt' : 'নেট ওজন',
+    lengthOrPcsLabel: deliveryUnit === 'pcs' ? (lang === 'en' ? 'Qty (Pcs)' : 'পরিমাণ (পিস)') : (lang === 'en' ? 'Length (Mtr)' : 'দৈর্ঘ্য (মিটার)'),
+    labelsDetected: lang === 'en' ? 'Carton Labels Detected' : 'শনাক্তকৃত কার্টন লেবেল',
+    totalGross: lang === 'en' ? 'Total Gross Wt' : 'মোট গ্রস ওজন',
+    totalNet: lang === 'en' ? 'Total Net Wt' : 'মোট নেট ওজন',
+    applyButton: lang === 'en' ? 'Populate Table with CartonRows' : 'টেবিলে কার্টনগুলো বসান',
     replaceOption: lang === 'en' ? 'Replace current carton rows' : 'বর্তমান কার্টনগুলোর ওপর বসান',
-    appendOption: lang === 'en' ? 'Append as new cartons' : 'নতুন কার্টন হিসেবে শেষে যোগ করুন',
+    appendOption: lang === 'en' ? 'Append to existing cartons' : 'নতুন কার্টন হিসেবে শেষে যোগ করুন',
     goToStickersCheck: lang === 'en' ? 'Open Stickers View immediately after applying' : 'প্রয়োগ করার সাথে সাথে স্টিকার ভিউ ওপেন করুন',
-    multiCartonBanner: lang === 'en'
-      ? '💡 Multi-Carton Support: You can photograph an entire stack or pallet of 10-25 cartons together in ONE photo! AI will identify each carton separately.'
-      : '💡 মাল্টি-কার্টন সাপোর্ট: এক ছবিতে স্তূপ করা ১০ থেকে ২৫টি কার্টন একসাথে থাকলেও এআই প্রতিটি কার্টনের ওজন আলাদাভাবে খুঁজে বের করবে!',
+    startCartonHint: lang === 'en' ? 'Start Carton #:' : 'শুরুর কার্টন নং:',
+    addRowBtn: lang === 'en' ? '+ Add Extra Row' : '+ অতিরিক্ত রো যোগ করুন',
+    clearPhoto: lang === 'en' ? 'Remove Photo' : 'ছবি মুছুন',
   };
 
-  const handleFilesSelected = (files: FileList | null) => {
+  // Helper to recompute carton row on client
+  const recomputeRow = (row: Partial<CartonRow>, idx: number): CartonRow => {
+    return recomputeCarton(row, idx, defaultTare, defaultWtPerUnit, deliveryUnit, pcsPerPkt, weightUnit);
+  };
+
+  // Handler: Select Batch Single Photo
+  const handleBatchPhotoSelected = (files: FileList | null) => {
     if (!files || files.length === 0) return;
+    const file = files[0];
+    if (!file.type.startsWith('image/')) return;
 
-    setApiError(null);
-    const newItems: PhotoItem[] = [];
-
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      if (!file.type.startsWith('image/')) continue;
-
-      const id = `photo-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
-      const previewUrl = URL.createObjectURL(file);
-
-      newItems.push({
-        id,
-        file,
-        previewUrl,
-        status: 'pending',
-      });
+    if (batchPhoto) {
+      URL.revokeObjectURL(batchPhoto.previewUrl);
     }
 
-    setPhotos(prev => [...prev, ...newItems]);
-  };
-
-  const handleRemovePhoto = (photoId: string) => {
-    setPhotos(prev => {
-      const target = prev.find(p => p.id === photoId);
-      if (target) URL.revokeObjectURL(target.previewUrl);
-      return prev.filter(p => p.id !== photoId);
+    setBatchPhoto({
+      file,
+      previewUrl: URL.createObjectURL(file),
     });
-    setDetectedCartons(prev => prev.filter(c => c.photoId !== photoId));
+    setApiError(null);
+    setParsedCartonRows([]);
+    setDetectedDetails([]);
   };
 
-  const handleClearAll = () => {
-    photos.forEach(p => URL.revokeObjectURL(p.previewUrl));
-    setPhotos([]);
-    setDetectedCartons([]);
-    setScanProgress(null);
+  // Run AI Batch Scanner on single photo with up to 20 labels
+  const handleExecuteBatchScan = async () => {
+    if (!batchPhoto) return;
+
+    setIsBatchScanning(true);
     setApiError(null);
-  };
-
-  // Run AI Weight Scan across all uploaded photos
-  const handleStartScan = async () => {
-    if (photos.length === 0) return;
-
-    setIsScanning(true);
-    setApiError(null);
-    setScanProgress({ current: 0, total: photos.length });
-
-    const collectedCartons: DetectedCartonItem[] = [];
-    const updatedPhotos = [...photos];
-    let nextCartonNumber = 1;
 
     try {
-      for (let i = 0; i < updatedPhotos.length; i++) {
-        setScanProgress({ current: i + 1, total: updatedPhotos.length });
-        const currentItem = updatedPhotos[i];
+      const { base64, mimeType } = await compressImageForBatch(batchPhoto.file);
 
-        updatedPhotos[i] = { ...currentItem, status: 'scanning' };
-        setPhotos([...updatedPhotos]);
+      const res = await fetch('/api/scan-carton-labels-batch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageBase64: base64,
+          mimeType,
+          startCartonNo: Number(startCartonNo) || 1,
+          maxCartons: 20,
+          sheetContext: {
+            defaultTare,
+            defaultWtPerUnit,
+            deliveryUnit,
+            pcsPerPkt,
+            weightUnit,
+            color: sheetData.color || '',
+            size: sheetData.size || '',
+            itemType: sheetData.itemType || 'elastic',
+          },
+        }),
+      });
 
-        try {
-          const { base64, mimeType } = await compressImage(currentItem.file);
-
-          const res = await fetch('/api/scan-carton-weights', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              imageBase64: base64,
-              mimeType,
-              expectedCartonNo: nextCartonNumber,
-            }),
-          });
-
-          if (!res.ok) {
-            const errData = await res.json().catch(() => ({}));
-            throw new Error(errData.error || `Server responded with ${res.status}`);
-          }
-
-          const result = await res.json();
-          const detectedList = result.results || [];
-          let photoCartonCount = 0;
-
-          if (detectedList.length > 0) {
-            detectedList.forEach((c: any, subIdx: number) => {
-              const assignedNo = c.cartonNo || (nextCartonNumber + subIdx);
-              const grossVal = typeof c.grossWt === 'number' ? c.grossWt : 0;
-
-              collectedCartons.push({
-                id: `carton-${Date.now()}-${subIdx}-${Math.random().toString(36).substr(2, 5)}`,
-                photoId: currentItem.id,
-                photoPreviewUrl: currentItem.previewUrl,
-                cartonNo: assignedNo,
-                grossWt: grossVal,
-                tareWt: c.tareWt,
-                netWt: c.netWt,
-                detectedText: c.rawDetectedText,
-                boxLocation: c.boxLocation,
-                confidence: c.confidence || 'high',
-              });
-
-              if (grossVal > 0) photoCartonCount++;
-            });
-
-            nextCartonNumber += detectedList.length;
-          }
-
-          updatedPhotos[i] = {
-            ...currentItem,
-            status: 'done',
-            detectedCount: photoCartonCount || detectedList.length,
-          };
-        } catch (itemErr: any) {
-          console.error(`Error scanning image ${currentItem.id}:`, itemErr);
-          updatedPhotos[i] = {
-            ...currentItem,
-            status: 'error',
-            errorMessage: itemErr.message || 'Scan failed',
-          };
-        }
-
-        setPhotos([...updatedPhotos]);
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.error || `Server responded with ${res.status}`);
       }
 
-      // Sort detected cartons logically by Carton Number
-      collectedCartons.sort((a, b) => a.cartonNo - b.cartonNo);
-      setDetectedCartons(collectedCartons);
+      const data = await res.json();
+      const rawRows: CartonRow[] = data.cartonRows || [];
+      const rawDetected: any[] = data.detectedCartons || [];
+
+      if (rawRows.length === 0) {
+        setApiError(
+          lang === 'en'
+            ? 'No carton labels or weight markings could be detected in this photo. Please ensure numbers or labels are visible.'
+            : 'এই ছবিতে কোনো কার্টন লেবেল বা ওজনের লেখা স্পষ্টভাবে শনাক্ত করা যায়নি। অনুগ্রহ করে পরিষ্কার ছবি দিন।'
+        );
+        return;
+      }
+
+      // Ensure client-side recomputation with exact parameters
+      const computedRows = rawRows.map((r, i) => recomputeRow(r, i));
+
+      setParsedCartonRows(computedRows);
+      setDetectedDetails(
+        rawDetected.map((c, i) => ({
+          id: `det-${i}`,
+          cartonNo: c.cartonNo || i + 1,
+          grossWt: c.grossWt || 0,
+          tareWt: c.tareWt,
+          netWt: c.netWt,
+          color: c.color,
+          size: c.size,
+          qtyPcs: c.qtyPcs,
+          pkts: c.pkts,
+          boxLocation: c.boxLocation,
+          rawDetectedText: c.rawDetectedText,
+          confidence: c.confidence || 'high',
+        }))
+      );
     } catch (err: any) {
-      console.error('Fatal scan error:', err);
-      setApiError(err?.message || 'Error occurred during AI scanning');
+      console.error('Batch scan error:', err);
+      setApiError(err?.message || 'Error occurred during AI batch scanning');
     } finally {
-      setIsScanning(false);
+      setIsBatchScanning(false);
     }
   };
 
-  const handleGrossWtChange = (id: string, val: number) => {
-    setDetectedCartons(prev =>
-      prev.map(c => (c.id === id ? { ...c, grossWt: val } : c))
-    );
-  };
+  // Run AI Scanner on multiple individual photos
+  const handleExecuteMultiScan = async () => {
+    if (multiPhotos.length === 0) return;
 
-  const handleCartonNoChange = (id: string, val: number) => {
-    setDetectedCartons(prev =>
-      prev.map(c => (c.id === id ? { ...c, cartonNo: val } : c))
-    );
-  };
+    setIsMultiScanning(true);
+    setApiError(null);
+    setMultiProgress({ current: 0, total: multiPhotos.length });
 
-  const handleRemoveDetectedCarton = (id: string) => {
-    setDetectedCartons(prev => prev.filter(c => c.id !== id));
-  };
+    try {
+      const payloadImages: Array<{ id: string; imageBase64: string; mimeType: string; expectedCartonNo: number }> = [];
 
-  const handleAddManualCarton = () => {
-    const nextNo = detectedCartons.length > 0 
-      ? Math.max(...detectedCartons.map(c => c.cartonNo)) + 1 
-      : 1;
-    
-    setDetectedCartons(prev => [
-      ...prev,
-      {
-        id: `carton-manual-${Date.now()}`,
-        photoId: photos[0]?.id || 'manual',
-        photoPreviewUrl: photos[0]?.previewUrl || '',
-        cartonNo: nextNo,
-        grossWt: 0,
-        detectedText: 'Manual addition',
-        confidence: 'high',
-      },
-    ]);
-  };
+      for (let i = 0; i < multiPhotos.length; i++) {
+        setMultiProgress({ current: i + 1, total: multiPhotos.length });
+        const { base64, mimeType } = await compressImageForBatch(multiPhotos[i].file);
+        payloadImages.push({
+          id: multiPhotos[i].id,
+          imageBase64: base64,
+          mimeType,
+          expectedCartonNo: startCartonNo + i,
+        });
+      }
 
-  // Apply all detected cartons into the packing sheet
-  const handleApply = () => {
-    if (detectedCartons.length === 0) return;
+      const res = await fetch('/api/scan-carton-weights', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          images: payloadImages,
+        }),
+      });
 
-    const defaultTare = sheetData.defaultTare || 0.5;
-    const defaultWtPerUnit = sheetData.defaultWtPerUnit || 30.0;
-    const deliveryUnit = sheetData.deliveryUnit || 'mtr';
-    const pcsPerPkt = sheetData.pcsPerPkt;
-    const weightUnit = sheetData.weightUnit || 'kg';
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.error || `Server error: ${res.status}`);
+      }
 
-    const sortedCartons = [...detectedCartons].sort((a, b) => a.cartonNo - b.cartonNo);
+      const data = await res.json();
+      const results: any[] = data.results || [];
 
-    const generatedRows: CartonRow[] = sortedCartons.map((item, idx) => {
-      const cNo = item.cartonNo || (idx + 1);
-      const gross = item.grossWt || 0;
-      const tare = item.tareWt && item.tareWt > 0 ? item.tareWt : defaultTare;
+      const newRows: CartonRow[] = results.map((r, i) => {
+        return recomputeRow({
+          id: `ctn-multi-${Date.now()}-${i}`,
+          cartonNo: r.cartonNo || (startCartonNo + i),
+          grossWt: typeof r.grossWt === 'number' ? r.grossWt : 0,
+          tareWt: typeof r.tareWt === 'number' ? r.tareWt : defaultTare,
+          netWt: typeof r.netWt === 'number' ? r.netWt : undefined,
+          notes: r.rawDetectedText ? `Scan: ${r.rawDetectedText}` : undefined,
+        }, i);
+      });
 
-      return recomputeCarton(
-        {
-          cartonNo: cNo,
-          grossWt: gross,
-          tareWt: tare,
-          wtPerUnit: defaultWtPerUnit,
-          notes: item.detectedText ? `AI Scan: ${item.detectedText}` : undefined,
-        },
-        idx,
-        defaultTare,
-        defaultWtPerUnit,
-        deliveryUnit,
-        pcsPerPkt,
-        weightUnit
+      setParsedCartonRows(newRows);
+      setDetectedDetails(
+        results.map((r, i) => ({
+          id: `det-multi-${i}`,
+          cartonNo: r.cartonNo || (startCartonNo + i),
+          grossWt: r.grossWt || 0,
+          tareWt: r.tareWt,
+          netWt: r.netWt,
+          boxLocation: r.boxLocation,
+          rawDetectedText: r.rawDetectedText,
+          confidence: r.confidence || 'high',
+        }))
       );
-    });
 
-    onApplyCartons(generatedRows, applyMode);
+      // Switch to table view to display parsed rows
+      setActiveMode('batch20');
+    } catch (err: any) {
+      console.error('Multi-photo scan error:', err);
+      setApiError(err?.message || 'Error occurred during multi-photo scanning');
+    } finally {
+      setIsMultiScanning(false);
+      setMultiProgress(null);
+    }
+  };
+
+  // Modify parsed carton row field inline
+  const handleUpdateParsedRow = (index: number, field: keyof CartonRow, value: any) => {
+    setParsedCartonRows(prev => {
+      const updated = [...prev];
+      const target = { ...updated[index], [field]: value };
+      updated[index] = recomputeRow(target, index);
+      return updated;
+    });
+  };
+
+  // Remove one parsed row
+  const handleRemoveParsedRow = (index: number) => {
+    setParsedCartonRows(prev => prev.filter((_, idx) => idx !== index));
+    setDetectedDetails(prev => prev.filter((_, idx) => idx !== index));
+  };
+
+  // Add extra carton row manually
+  const handleAddParsedRow = () => {
+    const nextNo = parsedCartonRows.length > 0 
+      ? Math.max(...parsedCartonRows.map(r => r.cartonNo || 0)) + 1 
+      : 1;
+
+    const newRow = recomputeRow({
+      id: `ctn-extra-${Date.now()}`,
+      cartonNo: nextNo,
+      grossWt: 0,
+      tareWt: defaultTare,
+      notes: 'Manual extra carton',
+    }, parsedCartonRows.length);
+
+    setParsedCartonRows(prev => [...prev, newRow]);
+  };
+
+  // Apply parsed CartonRow[] into main packing sheet table
+  const handleApplyCartonsToTable = () => {
+    if (parsedCartonRows.length === 0) return;
+
+    onApplyCartons(parsedCartonRows, applyMode);
     onClose();
 
     if (autoGoToStickers && onNavigateToStickers) {
@@ -354,8 +398,11 @@ export const AiPhotoScannerModal: React.FC<AiPhotoScannerModalProps> = ({
     }
   };
 
-  const totalGrossWeight = detectedCartons.reduce((sum, c) => sum + (c.grossWt || 0), 0);
-  const avgGrossWeight = detectedCartons.length > 0 ? (totalGrossWeight / detectedCartons.length) : 0;
+  // Summary statistics for parsed rows
+  const totalGrossWeight = parsedCartonRows.reduce((sum, r) => sum + (r.grossWt || 0), 0);
+  const totalNetWeight = parsedCartonRows.reduce((sum, r) => sum + (r.netWt || 0), 0);
+  const totalLengthMtr = parsedCartonRows.reduce((sum, r) => sum + (r.lengthMtr || 0), 0);
+  const totalQtyPcs = parsedCartonRows.reduce((sum, r) => sum + (r.qtyPcs || 0), 0);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/80 backdrop-blur-xs overflow-y-auto">
@@ -374,11 +421,11 @@ export const AiPhotoScannerModal: React.FC<AiPhotoScannerModalProps> = ({
                 </h3>
                 <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-mono px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
                   <Sparkles className="w-3 h-3 text-emerald-400" />
-                  Gemini Vision (Multi-Box)
+                  Gemini Vision 20-Carton Batch
                 </span>
               </div>
               <p className="text-xs text-slate-300 line-clamp-1">
-                {t.modalSubtitle}
+                {t.batchDescription}
               </p>
             </div>
           </div>
@@ -392,298 +439,500 @@ export const AiPhotoScannerModal: React.FC<AiPhotoScannerModalProps> = ({
           </button>
         </div>
 
-        {/* Informative Banner for Single Photo 20 Cartons */}
-        <div className="px-5 py-2.5 bg-gradient-to-r from-indigo-50 to-emerald-50 border-b border-indigo-100 flex items-center gap-2 text-xs text-indigo-950 font-medium">
-          <Layers className="w-4 h-4 text-indigo-600 shrink-0" />
-          <span>{t.multiCartonBanner}</span>
-        </div>
+        {/* Mode Selector Tabs */}
+        <div className="px-5 pt-3 pb-2 bg-slate-100 border-b border-slate-200 flex items-center justify-between flex-wrap gap-2">
+          <div className="flex items-center gap-1.5 p-1 bg-slate-200/80 rounded-xl">
+            <button
+              onClick={() => setActiveMode('batch20')}
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                activeMode === 'batch20'
+                  ? 'bg-white text-indigo-900 shadow-xs ring-1 ring-black/5'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Grid className="w-3.5 h-3.5 text-indigo-600" />
+              <span>{t.batchTab}</span>
+              <span className="bg-emerald-100 text-emerald-800 text-[10px] font-mono px-1.5 py-0.2 rounded font-extrabold">
+                RECOMMENDED
+              </span>
+            </button>
 
-        {/* Content Body */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
-          
-          {/* Action Bar / Dropzone */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            
-            {/* Pick from Gallery / Files */}
-            <label className="flex items-center justify-center gap-3 p-3.5 rounded-xl border-2 border-dashed border-indigo-300 hover:border-indigo-500 bg-indigo-50/50 hover:bg-indigo-50 transition cursor-pointer group">
-              <div className="w-9 h-9 rounded-lg bg-indigo-600 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
-                <Upload className="w-4 h-4" />
-              </div>
-              <div className="text-left">
-                <span className="block text-xs sm:text-sm font-bold text-indigo-900">
-                  {t.addPhotos}
-                </span>
-                <span className="block text-[11px] text-indigo-600">
-                  {lang === 'en' ? 'Upload 1 photo with 20 cartons or multiple photos' : '১ ছবিতে ২০ কার্টনের ছবি বা একাধিক ছবি নিন'}
-                </span>
-              </div>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                multiple
-                className="hidden"
-                onChange={(e) => handleFilesSelected(e.target.files)}
-              />
-            </label>
-
-            {/* Direct Camera Capture */}
-            <label className="flex items-center justify-center gap-3 p-3.5 rounded-xl border-2 border-dashed border-emerald-300 hover:border-emerald-500 bg-emerald-50/50 hover:bg-emerald-50 transition cursor-pointer group">
-              <div className="w-9 h-9 rounded-lg bg-emerald-600 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
-                <Camera className="w-4 h-4" />
-              </div>
-              <div className="text-left">
-                <span className="block text-xs sm:text-sm font-bold text-emerald-900">
-                  {t.snapCamera}
-                </span>
-                <span className="block text-[11px] text-emerald-600">
-                  {lang === 'en' ? 'Snap photo of pallet/carton stack' : 'কার্টন স্তূপ বা প্যালেটের ছবি তুলুন'}
-                </span>
-              </div>
-              <input
-                ref={cameraInputRef}
-                type="file"
-                accept="image/*"
-                capture="environment"
-                multiple
-                className="hidden"
-                onChange={(e) => handleFilesSelected(e.target.files)}
-              />
-            </label>
+            <button
+              onClick={() => setActiveMode('multiPhoto')}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                activeMode === 'multiPhoto'
+                  ? 'bg-white text-indigo-900 shadow-xs ring-1 ring-black/5'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <ImageIcon className="w-3.5 h-3.5 text-slate-500" />
+              <span>{t.multiTab}</span>
+            </button>
           </div>
 
-          {/* Uploaded Photos Strip */}
-          {photos.length > 0 && (
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2.5">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
-                  <ImageIcon className="w-4 h-4 text-indigo-600" />
-                  <span>
-                    {lang === 'en' ? 'Uploaded Photo(s):' : 'আপলোডকৃত ছবি:'}{' '}
-                    <span className="font-mono text-indigo-600 font-bold bg-indigo-100 px-2 py-0.5 rounded">
-                      {photos.length}
-                    </span>
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={handleClearAll}
-                    disabled={isScanning}
-                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-rose-600 hover:bg-rose-50 transition cursor-pointer disabled:opacity-50"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    <span>{t.clearAll}</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleStartScan}
-                    disabled={isScanning || photos.length === 0}
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs sm:text-sm font-bold shadow-md shadow-emerald-600/20 transition cursor-pointer disabled:opacity-60"
-                  >
-                    {isScanning ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin text-white" />
-                        <span>{t.scanning}</span>
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="w-4 h-4 text-amber-300" />
-                        <span>{t.scanButton}</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              {/* Thumbnails row */}
-              <div className="flex items-center gap-2.5 overflow-x-auto pb-1">
-                {photos.map((p, pIdx) => (
-                  <div key={p.id} className="relative shrink-0 w-24 h-20 rounded-lg overflow-hidden border border-slate-300 bg-black group">
-                    <img src={p.previewUrl} alt="uploaded carton" className="w-full h-full object-cover" />
-                    <button
-                      type="button"
-                      onClick={() => setPreviewZoomUrl(p.previewUrl)}
-                      className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition cursor-pointer"
-                    >
-                      <Eye className="w-4 h-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleRemovePhoto(p.id)}
-                      className="absolute top-1 right-1 p-0.5 bg-rose-600 text-white rounded hover:bg-rose-700 cursor-pointer"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                    <span className="absolute bottom-1 left-1 bg-black/70 text-white text-[9px] font-mono px-1 rounded">
-                      #{pIdx + 1}
-                    </span>
-                    {p.status === 'scanning' && (
-                      <div className="absolute inset-0 bg-indigo-950/70 flex items-center justify-center">
-                        <Loader2 className="w-4 h-4 text-white animate-spin" />
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
+          {/* Quick starting carton # setting */}
+          {activeMode === 'batch20' && (
+            <div className="flex items-center gap-2 text-xs">
+              <span className="text-slate-600 font-semibold">{t.startCartonHint}</span>
+              <input
+                type="number"
+                min="1"
+                value={startCartonNo}
+                onChange={(e) => setStartCartonNo(parseInt(e.target.value, 10) || 1)}
+                className="w-16 px-2 py-1 text-xs font-mono font-bold bg-white border border-slate-300 rounded-lg focus:border-indigo-500 focus:outline-none"
+              />
             </div>
           )}
+        </div>
 
-          {/* Scanning Progress Bar */}
-          {isScanning && scanProgress && (
-            <div className="p-3 bg-indigo-50 border border-indigo-200 rounded-xl space-y-1.5 animate-in fade-in duration-200">
-              <div className="flex justify-between text-xs font-bold text-indigo-900">
-                <span className="flex items-center gap-1.5">
-                  <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-600" />
-                  <span>{lang === 'en' ? 'Scanning Photo' : 'ছবি বিশ্লেষণ হচ্ছে'}: {scanProgress.current} / {scanProgress.total}</span>
-                </span>
-                <span className="font-mono">
-                  {Math.round((scanProgress.current / scanProgress.total) * 100)}%
-                </span>
-              </div>
-              <div className="w-full h-2 bg-indigo-200 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-indigo-600 rounded-full transition-all duration-300"
-                  style={{ width: `${(scanProgress.current / scanProgress.total) * 100}%` }}
-                />
-              </div>
-            </div>
-          )}
+        {/* Modal Body */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
 
-          {/* API Error Toast */}
-          {apiError && (
-            <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-xl flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
-              <span>{apiError}</span>
-            </div>
-          )}
+          {/* BATCH MODE CONTENT (Up to 20 labels in 1 photo) */}
+          {activeMode === 'batch20' && (
+            <div className="space-y-4">
+              
+              {/* Photo Upload Card */}
+              {!batchPhoto ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Select File */}
+                  <label className="flex items-center justify-center gap-3 p-4 rounded-xl border-2 border-dashed border-indigo-300 hover:border-indigo-500 bg-indigo-50/40 hover:bg-indigo-50 transition cursor-pointer group">
+                    <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+                      <Upload className="w-5 h-5" />
+                    </div>
+                    <div className="text-left">
+                      <span className="block text-xs sm:text-sm font-bold text-indigo-950">
+                        {t.uploadBatchPhoto}
+                      </span>
+                      <span className="block text-[11px] text-indigo-600">
+                        {lang === 'en' ? 'JPG, PNG of carton pallet or label grid' : 'প্যালেট বা কার্টনের ছবি সিলেক্ট করুন'}
+                      </span>
+                    </div>
+                    <input
+                      ref={batchFileInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => handleBatchPhotoSelected(e.target.files)}
+                    />
+                  </label>
 
-          {/* Detected Cartons Section */}
-          {detectedCartons.length > 0 ? (
-            <div className="space-y-3">
-              {/* Summary Bar */}
-              <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-emerald-50/80 border border-emerald-200 rounded-xl">
-                <div className="flex items-center gap-3 text-xs flex-wrap">
-                  <span className="font-bold text-emerald-950 flex items-center gap-1.5">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                    <span>
-                      {lang === 'en' ? 'Cartons Detected:' : 'শনাক্তকৃত কার্টন:'}{' '}
-                      <strong className="text-emerald-700 font-mono text-sm font-extrabold">
-                        {detectedCartons.length}
-                      </strong>{' '}
-                      {lang === 'en' ? 'cartons' : 'টি'}
-                    </span>
-                  </span>
-
-                  <span className="text-slate-600">
-                    {lang === 'en' ? 'Total G.W:' : 'মোট ওজন:'}{' '}
-                    <strong className="text-slate-900 font-mono font-bold">
-                      {totalGrossWeight.toFixed(2)} KG
-                    </strong>
-                  </span>
-
-                  <span className="text-slate-600">
-                    {lang === 'en' ? 'Avg G.W:' : 'গড় ওজন:'}{' '}
-                    <strong className="text-slate-900 font-mono font-bold">
-                      {avgGrossWeight.toFixed(2)} KG
-                    </strong>
-                  </span>
+                  {/* Camera Snap */}
+                  <label className="flex items-center justify-center gap-3 p-4 rounded-xl border-2 border-dashed border-emerald-300 hover:border-emerald-500 bg-emerald-50/40 hover:bg-emerald-50 transition cursor-pointer group">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+                      <Camera className="w-5 h-5" />
+                    </div>
+                    <div className="text-left">
+                      <span className="block text-xs sm:text-sm font-bold text-emerald-950">
+                        {t.snapBatchPhoto}
+                      </span>
+                      <span className="block text-[11px] text-emerald-600">
+                        {lang === 'en' ? 'Take live photo with smartphone camera' : 'মোবাইল ক্যামেরা দিয়ে সরাসরি ছবি তুলুন'}
+                      </span>
+                    </div>
+                    <input
+                      ref={batchCameraInputRef}
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      className="hidden"
+                      onChange={(e) => handleBatchPhotoSelected(e.target.files)}
+                    />
+                  </label>
                 </div>
-
-                <button
-                  type="button"
-                  onClick={handleAddManualCarton}
-                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white border border-emerald-300 hover:bg-emerald-50 text-emerald-800 text-xs font-bold transition cursor-pointer"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>{lang === 'en' ? 'Add Extra Carton' : '+ কার্টন যোগ করুন'}</span>
-                </button>
-              </div>
-
-              {/* Cartons Grid / Table */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                {detectedCartons.map((item) => (
-                  <div
-                    key={item.id}
-                    className="p-3 rounded-xl border border-slate-200 hover:border-emerald-400 bg-white shadow-2xs hover:shadow-xs transition flex flex-col justify-between"
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-xs font-bold text-slate-800 font-mono bg-slate-100 px-2 py-0.5 rounded">
-                          C/No:
+              ) : (
+                /* Photo Preview & Control Bar */
+                <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-100 text-indigo-900 text-xs font-bold">
+                        <ImageIcon className="w-3.5 h-3.5 text-indigo-600" />
+                        <span>{batchPhoto.file.name}</span>
+                        <span className="text-[10px] text-indigo-600 font-normal">
+                          ({(batchPhoto.file.size / 1024).toFixed(0)} KB)
                         </span>
-                        <input
-                          type="number"
-                          value={item.cartonNo}
-                          onChange={(e) => handleCartonNoChange(item.id, parseInt(e.target.value, 10) || 1)}
-                          className="w-14 px-1.5 py-0.5 text-xs font-bold font-mono border border-slate-300 rounded focus:border-indigo-500 focus:outline-none"
-                        />
-                      </div>
+                      </span>
 
                       <button
                         type="button"
-                        onClick={() => handleRemoveDetectedCarton(item.id)}
-                        className="text-slate-400 hover:text-rose-600 p-1 cursor-pointer"
-                        title="Remove carton"
+                        onClick={() => setPreviewZoomUrl(batchPhoto.previewUrl)}
+                        className="flex items-center gap-1 px-2 py-1 text-xs text-slate-600 hover:text-slate-900 hover:bg-slate-200 rounded cursor-pointer"
+                        title="Zoom Image"
                       >
-                        <X className="w-3.5 h-3.5" />
+                        <Maximize2 className="w-3.5 h-3.5" />
+                        <span>{lang === 'en' ? 'View' : 'বড় করে দেখুন'}</span>
                       </button>
                     </div>
 
-                    <div className="mb-2">
-                      <label className="block text-[10px] font-bold text-emerald-800 mb-0.5">
-                        {t.grossWtLabel}
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="number"
-                          step="0.01"
-                          value={item.grossWt > 0 ? item.grossWt : ''}
-                          onChange={(e) => handleGrossWtChange(item.id, parseFloat(e.target.value) || 0)}
-                          placeholder="0.00"
-                          className="w-full pl-2 pr-8 py-1 text-sm font-extrabold font-mono text-emerald-700 bg-emerald-50/50 border border-emerald-300 rounded-md focus:border-emerald-600 focus:outline-none"
-                        />
-                        <span className="absolute right-2 top-1 text-[11px] font-bold text-slate-400">
-                          KG
-                        </span>
-                      </div>
-                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (batchPhoto) URL.revokeObjectURL(batchPhoto.previewUrl);
+                          setBatchPhoto(null);
+                          setParsedCartonRows([]);
+                          setDetectedDetails([]);
+                        }}
+                        disabled={isBatchScanning}
+                        className="flex items-center gap-1 px-2.5 py-1 text-xs text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>{t.clearPhoto}</span>
+                      </button>
 
-                    {item.detectedText && (
-                      <p className="text-[10px] text-slate-500 truncate" title={item.detectedText}>
-                        🔍 {item.detectedText}
-                      </p>
+                      <button
+                        type="button"
+                        onClick={handleExecuteBatchScan}
+                        disabled={isBatchScanning}
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs sm:text-sm font-bold shadow-md shadow-emerald-600/20 transition cursor-pointer disabled:opacity-60"
+                      >
+                        {isBatchScanning ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin text-white" />
+                            <span>{t.scanningText}</span>
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="w-4 h-4 text-amber-300" />
+                            <span>{t.startScanBtn}</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Compact Preview Thumbnail with Scan Radar Indicator */}
+                  <div className="relative w-full h-32 sm:h-44 rounded-xl overflow-hidden bg-slate-900 border border-slate-300 flex items-center justify-center">
+                    <img
+                      src={batchPhoto.previewUrl}
+                      alt="Batch Pallet Cartons"
+                      className="w-full h-full object-contain"
+                    />
+
+                    {isBatchScanning && (
+                      <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-xs flex flex-col items-center justify-center text-white space-y-2">
+                        <div className="relative">
+                          <Loader2 className="w-8 h-8 animate-spin text-emerald-400" />
+                          <Sparkles className="w-4 h-4 text-amber-300 absolute -top-1 -right-1" />
+                        </div>
+                        <p className="text-xs font-bold tracking-wide text-emerald-300">
+                          {lang === 'en' ? 'Scanning image to isolate up to 20 carton labels...' : 'ছবি থেকে ২০টি কার্টন লেবেল পৃথকভাবে শনাক্ত হচ্ছে...'}
+                        </p>
+                      </div>
                     )}
                   </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            photos.length === 0 && (
-              <div className="py-12 flex flex-col items-center justify-center text-center border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50/50">
-                <div className="w-14 h-14 rounded-2xl bg-indigo-50 text-indigo-500 flex items-center justify-center mb-3">
-                  <Camera className="w-7 h-7" />
                 </div>
-                <h4 className="text-sm font-bold text-slate-700 mb-1">
-                  {lang === 'en' ? 'Upload Carton Photo(s)' : 'কার্টনের ছবি আপলোড করুন'}
-                </h4>
-                <p className="text-xs text-slate-500 max-w-md mb-4">
-                  {lang === 'en'
-                    ? 'Take 1 photo of an entire stack of 20 cartons or multiple individual photos. AI extracts all carton numbers and weights automatically!'
-                    : 'একটি ছবিতে স্তূপ করে রাখা ২০টি কার্টনের ছবি তুলুন অথবা আলাদা আলাদা ছবি দিন। এআই এক ক্লিকেই প্রতিটি কার্টন শনাক্ত করে ফেলবে!'}
-                </p>
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition shadow-xs cursor-pointer"
-                >
-                  <Upload className="w-4 h-4" />
-                  <span>{t.addPhotos}</span>
-                </button>
-              </div>
-            )
+              )}
+
+              {/* Error Message */}
+              {apiError && (
+                <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-xl flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                  <span>{apiError}</span>
+                </div>
+              )}
+
+              {/* Parsed CartonRows Section */}
+              {parsedCartonRows.length > 0 && (
+                <div className="space-y-3">
+                  {/* Summary Bar */}
+                  <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-emerald-50/80 border border-emerald-200 rounded-xl">
+                    <div className="flex items-center gap-3 sm:gap-4 text-xs flex-wrap">
+                      <span className="font-bold text-emerald-950 flex items-center gap-1.5">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                        <span>
+                          {t.labelsDetected}:{' '}
+                          <strong className="text-emerald-700 font-mono text-sm font-extrabold">
+                            {parsedCartonRows.length}
+                          </strong>{' '}
+                          {lang === 'en' ? 'CartonRows' : 'টি কার্টন'}
+                        </span>
+                      </span>
+
+                      <span className="text-slate-600">
+                        {t.totalGross}:{' '}
+                        <strong className="text-slate-900 font-mono font-bold">
+                          {totalGrossWeight.toFixed(2)} KG
+                        </strong>
+                      </span>
+
+                      <span className="text-slate-600">
+                        {t.totalNet}:{' '}
+                        <strong className="text-slate-900 font-mono font-bold">
+                          {totalNetWeight.toFixed(2)} KG
+                        </strong>
+                      </span>
+
+                      {deliveryUnit === 'pcs' ? (
+                        <span className="text-slate-600">
+                          {lang === 'en' ? 'Total Pcs:' : 'মোট পিস:'}{' '}
+                          <strong className="text-slate-900 font-mono font-bold">
+                            {totalQtyPcs.toLocaleString()} PCS
+                          </strong>
+                        </span>
+                      ) : (
+                        <span className="text-slate-600">
+                          {lang === 'en' ? 'Total Mtr:' : 'মোট দৈর্ঘ্য:'}{' '}
+                          <strong className="text-slate-900 font-mono font-bold">
+                            {totalLengthMtr.toFixed(2)} Mtr
+                          </strong>
+                        </span>
+                      )}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleAddParsedRow}
+                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white border border-emerald-300 hover:bg-emerald-50 text-emerald-800 text-xs font-bold transition cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>{t.addRowBtn}</span>
+                    </button>
+                  </div>
+
+                  {/* CartonRows Editable Table / Grid */}
+                  <div className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-2xs">
+                    <div className="overflow-x-auto max-h-80">
+                      <table className="w-full text-left border-collapse text-xs">
+                        <thead className="bg-slate-100 text-slate-700 font-bold sticky top-0 z-10 border-b border-slate-200">
+                          <tr>
+                            <th className="py-2 px-3">{t.cartonNoLabel}</th>
+                            <th className="py-2 px-3">{lang === 'en' ? 'Label Location' : 'লেবেলের স্থান'}</th>
+                            <th className="py-2 px-3">{t.grossWtLabel}</th>
+                            <th className="py-2 px-3">{t.tareWtLabel}</th>
+                            <th className="py-2 px-3">{t.netWtLabel}</th>
+                            <th className="py-2 px-3">{t.lengthOrPcsLabel}</th>
+                            <th className="py-2 px-3">{lang === 'en' ? 'Color / Size' : 'কালার / সাইজ'}</th>
+                            <th className="py-2 px-3 text-right">{lang === 'en' ? 'Action' : 'অ্যাকশন'}</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {parsedCartonRows.map((row, idx) => {
+                            const detail = detectedDetails[idx];
+                            return (
+                              <tr key={row.id || idx} className="hover:bg-indigo-50/40 transition">
+                                {/* Carton No */}
+                                <td className="py-1.5 px-3">
+                                  <input
+                                    type="number"
+                                    min="1"
+                                    value={row.cartonNo}
+                                    onChange={(e) => handleUpdateParsedRow(idx, 'cartonNo', parseInt(e.target.value, 10) || 1)}
+                                    className="w-14 px-1.5 py-0.5 font-mono font-bold text-slate-900 border border-slate-300 rounded focus:border-indigo-500 focus:outline-none"
+                                  />
+                                </td>
+
+                                {/* Label Location in Photo */}
+                                <td className="py-1.5 px-3">
+                                  <span className="inline-block px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-mono text-[10px] font-semibold truncate max-w-[140px]">
+                                    {detail?.boxLocation || `Label #${idx + 1}`}
+                                  </span>
+                                </td>
+
+                                {/* Gross Wt (Editable) */}
+                                <td className="py-1.5 px-3">
+                                  <div className="relative w-24">
+                                    <input
+                                      type="number"
+                                      step="0.01"
+                                      value={row.grossWt > 0 ? row.grossWt : ''}
+                                      onChange={(e) => handleUpdateParsedRow(idx, 'grossWt', parseFloat(e.target.value) || 0)}
+                                      placeholder="0.00"
+                                      className="w-full pl-1.5 pr-6 py-0.5 font-mono font-bold text-emerald-700 bg-emerald-50/50 border border-emerald-300 rounded focus:border-emerald-600 focus:outline-none"
+                                    />
+                                    <span className="absolute right-1.5 top-1 text-[10px] font-bold text-slate-400">
+                                      KG
+                                    </span>
+                                  </div>
+                                </td>
+
+                                {/* Tare Wt (Editable) */}
+                                <td className="py-1.5 px-3">
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    value={row.tareWt}
+                                    onChange={(e) => handleUpdateParsedRow(idx, 'tareWt', parseFloat(e.target.value) || defaultTare)}
+                                    className="w-16 px-1.5 py-0.5 font-mono text-slate-600 border border-slate-200 rounded focus:border-indigo-500 focus:outline-none"
+                                  />
+                                </td>
+
+                                {/* Net Wt (Auto computed) */}
+                                <td className="py-1.5 px-3 font-mono font-bold text-slate-800">
+                                  {row.netWt > 0 ? `${row.netWt.toFixed(2)} KG` : '0.00'}
+                                </td>
+
+                                {/* Length or Pcs */}
+                                <td className="py-1.5 px-3 font-mono font-bold text-indigo-700">
+                                  {deliveryUnit === 'pcs'
+                                    ? `${(row.qtyPcs || 0).toLocaleString()} Pcs`
+                                    : `${(row.lengthMtr || 0).toFixed(2)} Mtr`}
+                                </td>
+
+                                {/* Color / Size */}
+                                <td className="py-1.5 px-3">
+                                  <span className="text-[11px] text-slate-600">
+                                    {row.color || sheetData.color || '-'} {row.size ? `(${row.size})` : ''}
+                                  </span>
+                                </td>
+
+                                {/* Action Delete */}
+                                <td className="py-1.5 px-3 text-right">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveParsedRow(idx)}
+                                    className="text-slate-400 hover:text-rose-600 p-1 cursor-pointer"
+                                    title="Delete row"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           )}
+
+          {/* MULTI-PHOTO MODE CONTENT (Individual photos) */}
+          {activeMode === 'multiPhoto' && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <label className="flex items-center justify-center gap-3 p-4 rounded-xl border-2 border-dashed border-indigo-300 hover:border-indigo-500 bg-indigo-50/40 hover:bg-indigo-50 transition cursor-pointer group">
+                  <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+                    <Upload className="w-5 h-5" />
+                  </div>
+                  <div className="text-left">
+                    <span className="block text-xs sm:text-sm font-bold text-indigo-950">
+                      {lang === 'en' ? 'Select Multiple Photos' : 'একাধিক ছবি সিলেক্ট করুন'}
+                    </span>
+                    <span className="block text-[11px] text-indigo-600">
+                      {lang === 'en' ? 'Select 1 photo per carton box' : 'প্রতিটি কার্টনের জন্য আলাদা ছবি নির্বাচন করুন'}
+                    </span>
+                  </div>
+                  <input
+                    ref={multiFileInputRef}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    onChange={(e) => {
+                      if (!e.target.files) return;
+                      const newItems: PhotoItem[] = [];
+                      for (let i = 0; i < e.target.files.length; i++) {
+                        const file = e.target.files[i];
+                        if (file.type.startsWith('image/')) {
+                          newItems.push({
+                            id: `mphoto-${Date.now()}-${i}`,
+                            file,
+                            previewUrl: URL.createObjectURL(file),
+                            status: 'pending',
+                          });
+                        }
+                      }
+                      setMultiPhotos(prev => [...prev, ...newItems]);
+                    }}
+                  />
+                </label>
+
+                <label className="flex items-center justify-center gap-3 p-4 rounded-xl border-2 border-dashed border-emerald-300 hover:border-emerald-500 bg-emerald-50/40 hover:bg-emerald-50 transition cursor-pointer group">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+                    <Camera className="w-5 h-5" />
+                  </div>
+                  <div className="text-left">
+                    <span className="block text-xs sm:text-sm font-bold text-emerald-950">
+                      {lang === 'en' ? 'Camera Snap' : 'ক্যামেরা দিয়ে ছবি'}
+                    </span>
+                    <span className="block text-[11px] text-emerald-600">
+                      {lang === 'en' ? 'Take sequential photos of cartons' : 'একের পর এক কার্টনের ছবি তুলুন'}
+                    </span>
+                  </div>
+                  <input
+                    ref={multiCameraInputRef}
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    multiple
+                    className="hidden"
+                    onChange={(e) => {
+                      if (!e.target.files) return;
+                      const newItems: PhotoItem[] = [];
+                      for (let i = 0; i < e.target.files.length; i++) {
+                        const file = e.target.files[i];
+                        if (file.type.startsWith('image/')) {
+                          newItems.push({
+                            id: `mphoto-${Date.now()}-${i}`,
+                            file,
+                            previewUrl: URL.createObjectURL(file),
+                            status: 'pending',
+                          });
+                        }
+                      }
+                      setMultiPhotos(prev => [...prev, ...newItems]);
+                    }}
+                  />
+                </label>
+              </div>
+
+              {/* Multi-Photo Grid */}
+              {multiPhotos.length > 0 && (
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <span className="text-xs font-bold text-slate-700">
+                      {lang === 'en' ? 'Photos Added:' : 'যুক্তকৃত ছবি:'} {multiPhotos.length}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          multiPhotos.forEach(p => URL.revokeObjectURL(p.previewUrl));
+                          setMultiPhotos([]);
+                        }}
+                        className="text-xs text-rose-600 hover:bg-rose-50 px-2 py-1 rounded"
+                      >
+                        {lang === 'en' ? 'Clear Photos' : 'ছবি মুছুন'}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleExecuteMultiScan}
+                        disabled={isMultiScanning}
+                        className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition cursor-pointer disabled:opacity-60"
+                      >
+                        {isMultiScanning ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            <span>{lang === 'en' ? `Scanning (${multiProgress?.current || 0}/${multiProgress?.total || multiPhotos.length})...` : 'স্ক্যান করা হচ্ছে...'}</span>
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                            <span>{lang === 'en' ? 'Scan All Photos with AI' : 'সব ছবি স্ক্যান করুন'}</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 overflow-x-auto pb-1">
+                    {multiPhotos.map((p, idx) => (
+                      <div key={p.id} className="relative w-20 h-16 shrink-0 rounded-lg overflow-hidden border border-slate-300">
+                        <img src={p.previewUrl} alt="carton" className="w-full h-full object-cover" />
+                        <span className="absolute bottom-0.5 left-0.5 bg-black/70 text-white text-[9px] px-1 rounded font-mono">
+                          #{idx + 1}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
         </div>
 
         {/* Footer: Application Options & Master Apply */}
@@ -728,13 +977,13 @@ export const AiPhotoScannerModal: React.FC<AiPhotoScannerModalProps> = ({
 
             <button
               type="button"
-              onClick={handleApply}
-              disabled={detectedCartons.length === 0}
+              onClick={handleApplyCartonsToTable}
+              disabled={parsedCartonRows.length === 0}
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-700 to-indigo-800 hover:from-indigo-500 hover:to-indigo-700 text-white text-xs sm:text-sm font-bold shadow-md shadow-indigo-500/25 transition cursor-pointer disabled:opacity-50"
             >
-              <Tag className="w-4 h-4 text-amber-300" />
+              <Check className="w-4 h-4 text-emerald-300" />
               <span>
-                {t.applyButton} ({detectedCartons.length})
+                {t.applyButton} ({parsedCartonRows.length} CartonRows)
               </span>
               <ArrowRight className="w-4 h-4" />
             </button>
@@ -747,18 +996,18 @@ export const AiPhotoScannerModal: React.FC<AiPhotoScannerModalProps> = ({
             className="fixed inset-0 z-60 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
             onClick={() => setPreviewZoomUrl(null)}
           >
-            <div className="relative max-w-3xl max-h-[85vh] bg-black rounded-xl overflow-hidden shadow-2xl">
+            <div className="relative max-w-4xl max-h-[88vh] bg-black rounded-xl overflow-hidden shadow-2xl">
               <button
                 type="button"
                 onClick={() => setPreviewZoomUrl(null)}
-                className="absolute top-2 right-2 p-1.5 bg-black/60 text-white rounded-full hover:bg-black/90 cursor-pointer"
+                className="absolute top-3 right-3 p-1.5 bg-black/70 text-white rounded-full hover:bg-black/90 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
               <img
                 src={previewZoomUrl}
                 alt="Enlarged carton preview"
-                className="w-full h-full object-contain max-h-[85vh]"
+                className="w-full h-full object-contain max-h-[88vh]"
               />
             </div>
           </div>

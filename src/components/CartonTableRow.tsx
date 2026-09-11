@@ -121,10 +121,6 @@ export const CartonTableRow = memo<CartonTableRowProps>(({
   const isGrossDeviating = Math.abs(grossDevPercent) >= weightDevThresholdPercent;
   const isOverweightAvg = isGrossDeviating && grossDevPercent > 0;
 
-  const netDiff = carton.netWt - batchAvgNetWt;
-  const netDevPercent = batchAvgNetWt > 0 && carton.netWt > 0 ? (netDiff / batchAvgNetWt) * 100 : 0;
-  const isNetDeviating = Math.abs(netDevPercent) >= weightDevThresholdPercent;
-
   const isConverting = converterState?.id === carton.id;
 
   const getGroupColor = (val?: string) => {
@@ -474,19 +470,6 @@ export const CartonTableRow = memo<CartonTableRowProps>(({
         ) : overpackDev ? (
           <div className="text-[9px] font-sans font-bold text-amber-700 tracking-tight leading-none mt-0.5">
             {lang === 'en' ? '⚠️ Overpacked' : '⚠️ অতিরিক্ত প্যাক'}
-          </div>
-        ) : isNetDeviating && batchAvgNetWt > 0 && carton.netWt > 0 ? (
-          <div 
-            className={`text-[9px] font-mono font-bold tracking-tight leading-none mt-0.5 flex items-center justify-end gap-0.5 ${
-              netDevPercent > 0 ? 'text-amber-800' : 'text-sky-800'
-            }`}
-            title={
-              lang === 'en'
-                ? `Net Wt deviates by ${netDevPercent > 0 ? '+' : ''}${netDevPercent.toFixed(1)}% from Batch Net Avg (${batchAvgNetWt.toFixed(2)} ${wUnit})`
-                : `নেট ওজন ব্যাচ গড় থেকে ${netDevPercent > 0 ? '+' : ''}${netDevPercent.toFixed(1)}% বিচ্যুত`
-            }
-          >
-            <span>{netDevPercent > 0 ? '▲' : '▼'} Net {netDevPercent > 0 ? '+' : ''}{netDevPercent.toFixed(1)}%</span>
           </div>
         ) : null}
       </td>
