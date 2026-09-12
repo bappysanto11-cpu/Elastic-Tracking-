@@ -32,6 +32,12 @@ import {
   Layers,
   LayoutGrid,
   List,
+  Table,
+  BarChart3,
+  Package,
+  Ruler,
+  Users,
+  Check,
 } from 'lucide-react';
 import { ScheduleItem, TrackedExcelFile } from '../types/schedule';
 import {
@@ -51,8 +57,11 @@ import {
 interface ExcelScheduleManagerProps {
   lang: 'en' | 'bn';
   onLoadRowToPackingSheet?: (item: ScheduleItem) => void;
-  onNavigateToTab?: (tab: 'table' | 'sheet' | 'stickers' | 'analytics' | 'tracker' | 'challan' | 'upload') => void;
+  onNavigateToTab?: (tab: 'table' | 'sheet' | 'stickers' | 'analytics' | 'tracker' | 'challan' | 'upload' | 'demands') => void;
   onDirectOutput?: (target: 'table' | 'sheet' | 'stickers' | 'print_stickers' | 'print_sheet' | 'challan', item: ScheduleItem) => void;
+  activeTab?: string;
+  onTabChange?: (tab: 'table' | 'sheet' | 'stickers' | 'analytics' | 'tracker' | 'challan' | 'upload' | 'demands') => void;
+  cartonCount?: number;
 }
 
 export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
@@ -60,6 +69,9 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
   onLoadRowToPackingSheet,
   onNavigateToTab,
   onDirectOutput,
+  activeTab = 'upload',
+  onTabChange,
+  cartonCount = 0,
 }) => {
   // Tracked Files State - Initialize synchronously from local cache so screen opens instantly
   const [trackedFiles, setTrackedFiles] = useState<TrackedExcelFile[]>(() => getLocalTrackedFiles());
@@ -77,6 +89,31 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [showFileDrawer, setShowFileDrawer] = useState<boolean>(false); // collapsed by default to save mobile screen space
+
+  // Views Dropdown inside Dashboard (1 Live Calculation Table, 2 Factory Sheet, 3 Carton Stickers)
+  const [isViewsDropdownOpen, setIsViewsDropdownOpen] = useState<boolean>(false);
+  const viewsDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Hub Actions Dropdown inside Dashboard (Upload, Sample, Export, Save)
+  const [isHubDropdownOpen, setIsHubDropdownOpen] = useState<boolean>(false);
+  const hubDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (viewsDropdownRef.current && !viewsDropdownRef.current.contains(event.target as Node)) {
+        setIsViewsDropdownOpen(false);
+      }
+      if (hubDropdownRef.current && !hubDropdownRef.current.contains(event.target as Node)) {
+        setIsHubDropdownOpen(false);
+      }
+    };
+    if (isViewsDropdownOpen || isHubDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isViewsDropdownOpen, isHubDropdownOpen]);
 
   // View Mode: Table vs Card (Cards are super fast and touch-friendly on mobile phones)
   const [viewMode, setViewMode] = useState<'table' | 'cards'>(() => {
@@ -731,84 +768,312 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
 
   return (
     <div className="w-full max-w-7xl mx-auto space-y-4 animate-in fade-in duration-150">
-      {/* 1. TOP HUB BANNER & CONTROLS */}
-      <div className="bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-800 rounded-2xl shadow-lg p-4 sm:p-6 text-white border border-blue-600/50">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2.5 mb-1.5">
-              <span className="p-2 rounded-xl bg-white/10 backdrop-blur-xs text-blue-200 border border-white/10 shrink-0">
-                <FileSpreadsheet className="w-5 h-5 sm:w-6 sm:h-6" />
-              </span>
-              <div>
-                <h2 className="text-lg sm:text-2xl font-black tracking-tight text-white flex items-center gap-2 flex-wrap">
-                  <span>
-                    {lang === 'en'
-                      ? 'Excel Schedule & Production Output Hub'
-                      : 'এক্সেল শিডিউল ও প্রোডাকশন আউটপুট হাব'}
-                  </span>
-                  <span className="text-[10px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
-                    ⚡ Fast Mobile Sync
-                  </span>
-                </h2>
-                <p className="text-xs sm:text-sm text-blue-100/90 font-normal">
-                  {lang === 'en'
-                    ? 'All outputs originate here: select any order below to generate Packing Sheets, Stickers, Challans, or Excel exports.'
-                    : 'সকল আউটপুটের মূল কেন্দ্র: যেকোনো অর্ডার থেকে সরাসরি প্যাকিং শিট, কার্টন স্টিকার, চালান বা এক্সেল ফাইল তৈরি করুন।'}
-                </p>
-              </div>
+      {/* 1. UNIFIED PRODUCTION DASHBOARD & OPERATIONS HUB (সব অপশন একটা ড্যাশবোর্ডের ভিতর) */}
+      <div className="bg-slate-900 rounded-2xl p-3 sm:p-3.5 text-white border border-slate-700/80 shadow-md relative">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          {/* Left: View Switching Tabs (Hub with nested actions, Table/Sheet/Stickers 3-in-1, Analytics) */}
+          <div className="flex items-center flex-wrap gap-2 w-full sm:w-auto">
+            {/* Hub Button with Nested Actions Dropdown */}
+            <div ref={hubDropdownRef} className="relative">
+              <button
+                type="button"
+                onClick={() => {
+                  if (onTabChange) onTabChange('upload');
+                  else if (onNavigateToTab) onNavigateToTab('upload');
+                  setIsHubDropdownOpen(prev => !prev);
+                }}
+                className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer shadow-xs ${
+                  activeTab === 'upload'
+                    ? 'bg-blue-600 text-white border border-blue-400/50 shadow-md shadow-blue-950/40'
+                    : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700'
+                }`}
+                title={lang === 'en' ? 'Click to open Hub & Schedule Actions' : 'শিডিউল হাব ও ফাইল অপশন খুলতে ক্লিক করুন'}
+              >
+                <FileSpreadsheet className="w-4 h-4 text-emerald-300" />
+                <span>{lang === 'en' ? 'Schedule & Output Hub' : 'শিডিউল ও আউটপুট হাব'}</span>
+                <span className="text-[10px] bg-blue-900/90 text-blue-200 px-1.5 py-0.2 rounded font-mono font-bold border border-blue-400/30">
+                  Hub
+                </span>
+                <ChevronDown className={`w-3.5 h-3.5 text-slate-300 transition-transform duration-200 ${isHubDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {/* Hub Dropdown Menu: Upload, Sample, Export, Save */}
+              {isHubDropdownOpen && (
+                <div className="absolute left-0 mt-2 w-72 sm:w-84 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-150 space-y-1.5">
+                  <div className="px-2.5 py-1.5 border-b border-slate-800 flex items-center justify-between text-[11px] text-slate-400 font-semibold">
+                    <span>{lang === 'en' ? 'Schedule & File Actions' : 'শিডিউল হাব ও ফাইল অপশন'}</span>
+                    <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/70 px-1.5 py-0.5 rounded border border-emerald-500/30">
+                      Hub Menu
+                    </span>
+                  </div>
+
+                  {/* 1. Upload Excel File */}
+                  <label className="w-full flex items-center justify-between p-2.5 rounded-lg text-xs transition cursor-pointer text-slate-200 hover:bg-slate-800 hover:text-white group">
+                    <div className="flex items-center gap-2.5">
+                      <span className="p-1.5 rounded-lg bg-blue-600/20 text-blue-400 border border-blue-500/30 group-hover:bg-blue-600 group-hover:text-white transition">
+                        {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                      </span>
+                      <div>
+                        <div className="font-semibold text-xs text-white">
+                          {lang === 'en' ? 'Upload Excel File' : 'এক্সেল ফাইল আপলোড'}
+                        </div>
+                        <p className="text-[10px] text-slate-400 leading-tight mt-0.5">
+                          {lang === 'en' ? 'Import .xlsx or .xls order schedule' : '.xlsx বা .xls শিডিউল ফাইল আপলোড করুন'}
+                        </p>
+                      </div>
+                    </div>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".xlsx,.xls"
+                      onChange={(e) => {
+                        handleFileUpload(e);
+                        setIsHubDropdownOpen(false);
+                      }}
+                      className="hidden"
+                    />
+                  </label>
+
+                  {/* 2. Sample Schedule */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleLoadSample();
+                      setIsHubDropdownOpen(false);
+                    }}
+                    className="w-full flex items-center justify-between p-2.5 rounded-lg text-xs transition cursor-pointer text-slate-200 hover:bg-slate-800 hover:text-white group text-left"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <span className="p-1.5 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/30 group-hover:bg-amber-600 group-hover:text-white transition">
+                        <Sparkles className="w-4 h-4" />
+                      </span>
+                      <div>
+                        <div className="font-semibold text-xs text-white">
+                          {lang === 'en' ? 'Sample Schedule' : 'নমুনা শিডিউল'}
+                        </div>
+                        <p className="text-[10px] text-slate-400 leading-tight mt-0.5">
+                          {lang === 'en' ? 'Load standard European export schedule' : 'ইউরোপীয় স্ট্যান্ডার্ড ডেমো শিডিউল লোড করুন'}
+                        </p>
+                      </div>
+                    </div>
+                  </button>
+
+                  {/* 3. Export .xlsx */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleExportExcel();
+                      setIsHubDropdownOpen(false);
+                    }}
+                    disabled={!activeFile}
+                    className={`w-full flex items-center justify-between p-2.5 rounded-lg text-xs transition text-left ${
+                      activeFile
+                        ? 'cursor-pointer text-slate-200 hover:bg-slate-800 hover:text-white group'
+                        : 'opacity-40 cursor-not-allowed text-slate-500'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <span className={`p-1.5 rounded-lg ${activeFile ? 'bg-sky-500/20 text-sky-400 border border-sky-500/30 group-hover:bg-sky-600 group-hover:text-white transition' : 'bg-slate-800 text-slate-600 border border-slate-700'}`}>
+                        <Download className="w-4 h-4" />
+                      </span>
+                      <div>
+                        <div className="font-semibold text-xs text-white">
+                          {lang === 'en' ? 'Export .xlsx' : 'এক্সেল ডাউনলোড (.xlsx)'}
+                        </div>
+                        <p className="text-[10px] text-slate-400 leading-tight mt-0.5">
+                          {activeFile
+                            ? (lang === 'en' ? `Download active file (${activeFile.fileName})` : `বর্তমান শিডিউল ফাইলে সেভ করে ডাউনলোড করুন`)
+                            : (lang === 'en' ? 'No active file loaded' : 'কোনো সক্রিয় ফাইল নেই')}
+                        </p>
+                      </div>
+                    </div>
+                  </button>
+
+                  {/* 4. Save Changes */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleSaveChanges();
+                      setIsHubDropdownOpen(false);
+                    }}
+                    disabled={!activeFile || isSaving}
+                    className={`w-full flex items-center justify-between p-2.5 rounded-lg text-xs transition text-left ${
+                      activeFile && !isSaving
+                        ? 'cursor-pointer text-slate-200 hover:bg-slate-800 hover:text-white group'
+                        : 'opacity-40 cursor-not-allowed text-slate-500'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <span className={`p-1.5 rounded-lg ${activeFile ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 group-hover:bg-emerald-600 group-hover:text-white transition' : 'bg-slate-800 text-slate-600 border border-slate-700'}`}>
+                        {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                      </span>
+                      <div>
+                        <div className="font-semibold text-xs text-white">
+                          {lang === 'en' ? 'Save Changes' : 'পরিবর্তন সেভ'}
+                        </div>
+                        <p className="text-[10px] text-slate-400 leading-tight mt-0.5">
+                          {lang === 'en' ? 'Save order updates & status to database' : 'সকল ডাটা ও স্ট্যাটাস ক্লাউড ও স্টোরেজে সেভ করুন'}
+                        </p>
+                      </div>
+                    </div>
+                  </button>
+                </div>
+              )}
             </div>
-          </div>
 
-          {/* Quick Action Buttons */}
-          <div className="flex flex-wrap items-center gap-2">
-            {/* Upload File Input Button */}
-            <label className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white text-blue-800 hover:bg-blue-50 font-bold text-xs shadow-sm transition cursor-pointer border border-white">
-              {isLoading ? <Loader2 className="w-4 h-4 animate-spin text-blue-600" /> : <Upload className="w-4 h-4 text-blue-600" />}
-              <span>{lang === 'en' ? 'Upload Excel (.xlsx)' : 'এক্সেল আপলোড'}</span>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".xlsx,.xls"
-                onChange={handleFileUpload}
-                className="hidden"
-              />
-            </label>
+            {/* 3-in-1 Views Dropdown Button (1. Live Table, 2. Factory Sheet, 3. Carton Stickers) */}
+            <div ref={viewsDropdownRef} className="relative">
+              <button
+                type="button"
+                onClick={() => setIsViewsDropdownOpen(prev => !prev)}
+                className={`flex items-center gap-2 px-3.5 py-2.5 text-xs rounded-xl transition cursor-pointer font-bold border ${
+                  activeTab === 'table' || activeTab === 'sheet' || activeTab === 'stickers'
+                    ? 'bg-blue-600 text-white shadow-md shadow-blue-950/40 border-blue-400/50'
+                    : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'
+                }`}
+                title={lang === 'en' ? 'Choose from 1. Live Table, 2. Factory Sheet, 3. Carton Stickers' : '১. লাইভ টেবিল, ২. ফ্যাক্টরি শিট, বা ৩. কার্টন স্টিকার নির্বাচন করুন'}
+              >
+                <Layers className="w-4 h-4 text-sky-400" />
+                <span>{lang === 'en' ? 'Table, Sheet & Stickers' : 'টেবিল, শিট ও স্টিকার'}</span>
+                <span className="text-[10px] bg-slate-900 text-sky-200 px-1.5 py-0.5 rounded font-mono font-bold border border-slate-700">
+                  3-in-1
+                </span>
+                <ChevronDown className={`w-3.5 h-3.5 text-slate-300 transition-transform duration-200 ${isViewsDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
 
-            {/* Load Sample Button */}
+              {/* Dropdown Menu */}
+              {isViewsDropdownOpen && (
+                <div className="absolute left-0 mt-2 w-72 sm:w-80 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-150 space-y-1.5">
+                  <div className="px-2.5 py-1.5 border-b border-slate-800 flex items-center justify-between text-[11px] text-slate-400 font-semibold">
+                    <span>{lang === 'en' ? 'Select Production View' : 'প্রোডাকশন ভিউ অপশন নির্বাচন করুন'}</span>
+                    <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/70 px-1.5 py-0.5 rounded border border-emerald-500/30">
+                      3 Options
+                    </span>
+                  </div>
+
+                  {/* 1. Live Calculation Table */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsViewsDropdownOpen(false);
+                      if (onTabChange) onTabChange('table');
+                      else if (onNavigateToTab) onNavigateToTab('table');
+                    }}
+                    className={`w-full flex items-center justify-between p-2.5 rounded-lg text-xs transition cursor-pointer text-left ${
+                      activeTab === 'table'
+                        ? 'bg-blue-600 text-white font-bold shadow-xs'
+                        : 'text-slate-200 hover:bg-slate-800 hover:text-white'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <span className={`p-1.5 rounded-lg ${activeTab === 'table' ? 'bg-blue-700 text-white' : 'bg-slate-800 text-blue-400 border border-slate-700'}`}>
+                        <Table className="w-4 h-4" />
+                      </span>
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs font-mono font-bold text-amber-400">1.</span>
+                          <span className="font-semibold text-xs">{lang === 'en' ? 'Live Calculation Table' : 'লাইভ ক্যালকুলেশন টেবিল'}</span>
+                        </div>
+                        <p className={`text-[10px] leading-tight mt-0.5 ${activeTab === 'table' ? 'text-blue-100' : 'text-slate-400'}`}>
+                          {lang === 'en' ? 'Live data entry, tare/gross weight & meters' : 'লাইভ ডাটা এন্ট্রি ও মিটার হিসাব টেবিল'}
+                        </p>
+                      </div>
+                    </div>
+                    {cartonCount > 0 && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded font-mono font-bold bg-slate-800 text-slate-300 border border-slate-700">
+                        {cartonCount}
+                      </span>
+                    )}
+                  </button>
+
+                  {/* 2. Factory Sheet Layout (Photo Match) */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsViewsDropdownOpen(false);
+                      if (onTabChange) onTabChange('sheet');
+                      else if (onNavigateToTab) onNavigateToTab('sheet');
+                    }}
+                    className={`w-full flex items-center justify-between p-2.5 rounded-lg text-xs transition cursor-pointer text-left ${
+                      activeTab === 'sheet'
+                        ? 'bg-blue-600 text-white font-bold shadow-xs'
+                        : 'text-slate-200 hover:bg-slate-800 hover:text-white'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <span className={`p-1.5 rounded-lg ${activeTab === 'sheet' ? 'bg-blue-700 text-white' : 'bg-slate-800 text-emerald-400 border border-slate-700'}`}>
+                        <LayoutGrid className="w-4 h-4" />
+                      </span>
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs font-mono font-bold text-amber-400">2.</span>
+                          <span className="font-semibold text-xs">{lang === 'en' ? 'Factory Sheet Layout' : 'ফ্যাক্টরি শিট লেআউট (হুবহু প্রিন্ট)'}</span>
+                        </div>
+                        <p className={`text-[10px] leading-tight mt-0.5 ${activeTab === 'sheet' ? 'text-blue-100' : 'text-slate-400'}`}>
+                          {lang === 'en' ? 'Exact replica of factory printed packing sheet' : 'ফ্যাক্টরি পেপারের হুবহু প্রিন্ট ভিউ'}
+                        </p>
+                      </div>
+                    </div>
+                  </button>
+
+                  {/* 3. Print Carton Stickers */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsViewsDropdownOpen(false);
+                      if (onTabChange) onTabChange('stickers');
+                      else if (onNavigateToTab) onNavigateToTab('stickers');
+                    }}
+                    className={`w-full flex items-center justify-between p-2.5 rounded-lg text-xs transition cursor-pointer text-left ${
+                      activeTab === 'stickers'
+                        ? 'bg-blue-600 text-white font-bold shadow-xs'
+                        : 'text-slate-200 hover:bg-slate-800 hover:text-white'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <span className={`p-1.5 rounded-lg ${activeTab === 'stickers' ? 'bg-blue-700 text-white' : 'bg-slate-800 text-indigo-400 border border-slate-700'}`}>
+                        <Tag className="w-4 h-4" />
+                      </span>
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs font-mono font-bold text-amber-400">3.</span>
+                          <span className="font-semibold text-xs">{lang === 'en' ? 'Print Carton Stickers' : 'কার্টন স্টিকার লেবেল'}</span>
+                        </div>
+                        <p className={`text-[10px] leading-tight mt-0.5 ${activeTab === 'stickers' ? 'text-blue-100' : 'text-slate-400'}`}>
+                          {lang === 'en' ? 'Carton sticker barcodes, QR & packing details' : 'কার্টনের গায়ে লাগানোর বারকোড ও কিউআর স্টিকার'}
+                        </p>
+                      </div>
+                    </div>
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Analytics Tab */}
             <button
-              onClick={handleLoadSample}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-blue-600/60 hover:bg-blue-600 text-white font-semibold text-xs border border-white/20 transition cursor-pointer"
-              title="Load standard European export schedule"
+              type="button"
+              onClick={() => {
+                if (onTabChange) onTabChange('analytics');
+                else if (onNavigateToTab) onNavigateToTab('analytics');
+              }}
+              className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer shadow-xs ${
+                activeTab === 'analytics'
+                  ? 'bg-blue-600 text-white border border-blue-400/50 shadow-md'
+                  : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700'
+              }`}
             >
-              <Sparkles className="w-4 h-4 text-amber-300" />
-              <span className="hidden sm:inline">{lang === 'en' ? 'Sample Schedule' : 'নমুনা শিডিউল'}</span>
-              <span className="sm:hidden">{lang === 'en' ? 'Sample' : 'নমুনা'}</span>
+              <BarChart3 className="w-4 h-4 text-rose-400" />
+              <span>{lang === 'en' ? 'Analytics' : 'অ্যানালিটিক্স'}</span>
             </button>
-
-            {/* Export Current File to Excel */}
-            {activeFile && (
-              <button
-                onClick={handleExportExcel}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-sm border border-emerald-400 transition cursor-pointer"
-                title="Download edited schedule back to .xlsx"
-              >
-                <Download className="w-4 h-4" />
-                <span>{lang === 'en' ? 'Export .xlsx' : 'এক্সেল ডাউনলোড'}</span>
-              </button>
-            )}
-
-            {/* Save Edits Button */}
-            {activeFile && (
-              <button
-                onClick={handleSaveChanges}
-                disabled={isSaving}
-                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-sm border border-amber-300 transition cursor-pointer disabled:opacity-50"
-              >
-                {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                <span>{lang === 'en' ? 'Save Changes' : 'সেভ করুন'}</span>
-              </button>
-            )}
           </div>
+
+          {/* Right: Quick sync / file status indicator */}
+          {activeFile && (
+            <div className="hidden sm:flex items-center gap-2 text-xs text-slate-400 bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700/60 font-mono">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span className="truncate max-w-[160px] text-slate-300 font-semibold">{activeFile.fileName}</span>
+            </div>
+          )}
         </div>
 
         {/* Status Alert */}
@@ -999,39 +1264,61 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
           </div>
 
           {/* Quick Metrics Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 p-3 sm:p-4 bg-white border-b border-slate-200">
-            <div className="p-2.5 sm:p-3 rounded-xl bg-blue-50/70 border border-blue-200/80">
-              <p className="text-[10px] font-semibold text-blue-700 uppercase tracking-wider">
-                {lang === 'en' ? 'Total Orders' : 'মোট অর্ডার'}
-              </p>
-              <p className="text-lg sm:text-xl font-black text-blue-950 mt-0.5">{activeFile.items.length}</p>
-            </div>
-
-            <div className="p-2.5 sm:p-3 rounded-xl bg-indigo-50/70 border border-indigo-200/80">
-              <p className="text-[10px] font-semibold text-indigo-700 uppercase tracking-wider">
-                {lang === 'en' ? 'Total Demand' : 'মোট চাহিদা'}
-              </p>
-              <p className="text-lg sm:text-xl font-black text-indigo-950 mt-0.5">
-                {metrics.totalDemand.toLocaleString()}{' '}
-                <span className="text-xs font-medium text-indigo-600">{activeFile.unit || 'Mtr'}</span>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 p-3 sm:p-4 bg-slate-50/50 border-b border-slate-200">
+            <div className="bg-white rounded-xl p-3 sm:p-3.5 border border-slate-200/90 shadow-2xs">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  {lang === 'en' ? 'Total Orders' : 'মোট অর্ডার'}
+                </span>
+                <span className="w-6 h-6 rounded-md bg-slate-100 flex items-center justify-center text-slate-600">
+                  <Package className="w-3.5 h-3.5" />
+                </span>
+              </div>
+              <p className="text-xl sm:text-2xl font-bold font-mono text-slate-900 tabular-nums tracking-tight">
+                {activeFile.items.length}
               </p>
             </div>
 
-            <div className="p-2.5 sm:p-3 rounded-xl bg-emerald-50/70 border border-emerald-200/80">
-              <p className="text-[10px] font-semibold text-emerald-700 uppercase tracking-wider">
-                {lang === 'en' ? 'Completed Qty' : 'সম্পন্ন পরিমাণ'}
-              </p>
-              <p className="text-lg sm:text-xl font-black text-emerald-950 mt-0.5">
-                {metrics.totalCompleted.toLocaleString()}{' '}
-                <span className="text-xs font-medium text-emerald-600">({metrics.pct}%)</span>
+            <div className="bg-white rounded-xl p-3 sm:p-3.5 border border-slate-200/90 shadow-2xs">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  {lang === 'en' ? 'Total Demand' : 'মোট চাহিদা'}
+                </span>
+                <span className="w-6 h-6 rounded-md bg-blue-50 flex items-center justify-center text-blue-600">
+                  <Ruler className="w-3.5 h-3.5" />
+                </span>
+              </div>
+              <p className="text-xl sm:text-2xl font-bold font-mono text-slate-900 tabular-nums tracking-tight">
+                {metrics.totalDemand.toLocaleString()}
+                <span className="text-xs font-medium text-slate-500 ml-1">{activeFile.unit || 'Mtr'}</span>
               </p>
             </div>
 
-            <div className="p-2.5 sm:p-3 rounded-xl bg-purple-50/70 border border-purple-200/80">
-              <p className="text-[10px] font-semibold text-purple-700 uppercase tracking-wider">
-                {lang === 'en' ? 'Unique Buyers' : 'বায়ার সংখ্যা'}
+            <div className="bg-white rounded-xl p-3 sm:p-3.5 border border-slate-200/90 shadow-2xs">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  {lang === 'en' ? 'Completed Qty' : 'সম্পন্ন পরিমাণ'}
+                </span>
+                <span className="w-6 h-6 rounded-md bg-emerald-50 flex items-center justify-center text-emerald-600">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                </span>
+              </div>
+              <p className="text-xl sm:text-2xl font-bold font-mono text-slate-900 tabular-nums tracking-tight">
+                {metrics.totalCompleted.toLocaleString()}
+                <span className="text-xs font-semibold text-emerald-600 ml-1">({metrics.pct}%)</span>
               </p>
-              <p className="text-lg sm:text-xl font-black text-purple-950 mt-0.5">
+            </div>
+
+            <div className="bg-white rounded-xl p-3 sm:p-3.5 border border-slate-200/90 shadow-2xs">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  {lang === 'en' ? 'Unique Buyers' : 'বায়ার সংখ্যা'}
+                </span>
+                <span className="w-6 h-6 rounded-md bg-purple-50 flex items-center justify-center text-purple-600">
+                  <Users className="w-3.5 h-3.5" />
+                </span>
+              </div>
+              <p className="text-xl sm:text-2xl font-bold font-mono text-slate-900 tabular-nums tracking-tight">
                 {new Set(activeFile.items.map(it => it.buyer).filter(Boolean)).size}
               </p>
             </div>
@@ -1090,10 +1377,10 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
 
           {/* BULK ACTIONS FLOATING COMMAND BAR */}
           {selectedItemIds.length > 0 && (
-            <div className="p-3 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white border-y border-indigo-700/50 flex flex-wrap items-center justify-between gap-2.5 animate-in fade-in">
+            <div className="p-2.5 sm:p-3 bg-slate-900 text-white border-y border-slate-800 flex flex-wrap items-center justify-between gap-2 animate-in fade-in">
               <div className="flex items-center gap-2">
-                <span className="px-2.5 py-0.5 rounded-full bg-blue-500 text-white font-black text-xs flex items-center gap-1 shadow-xs">
-                  <Zap className="w-3 h-3 text-amber-300" />
+                <span className="px-2.5 py-1 rounded-md bg-blue-600 text-white font-bold text-xs flex items-center gap-1.5 shadow-2xs">
+                  <Zap className="w-3.5 h-3.5" />
                   <span>
                     {selectedItemIds.length}{' '}
                     {lang === 'en' ? 'Selected' : 'সিলেক্টেড'}
@@ -1104,11 +1391,11 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
               {/* Bulk Controls Group */}
               <div className="flex flex-wrap items-center gap-2">
                 {/* 1. Bulk Status Control */}
-                <div className="flex items-center gap-1 bg-white/10 backdrop-blur-xs p-1 rounded-lg border border-white/15">
+                <div className="flex items-center gap-1 bg-slate-800/80 p-1 rounded-lg border border-slate-700">
                   <select
                     value={bulkStatus}
                     onChange={e => setBulkStatus(e.target.value as any)}
-                    className="bg-slate-800 text-white text-[11px] font-bold px-2 py-0.5 rounded border border-slate-600 focus:outline-hidden"
+                    className="bg-slate-800 text-slate-100 text-xs font-medium px-2 py-0.5 rounded border border-slate-700 focus:outline-hidden cursor-pointer"
                   >
                     <option value="pending">Pending</option>
                     <option value="in-progress">In Progress</option>
@@ -1118,25 +1405,25 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                   <button
                     onClick={handleApplyBulkStatus}
                     disabled={isBulkApplying}
-                    className="px-2 py-0.5 bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-bold rounded transition cursor-pointer"
+                    className="px-2.5 py-0.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium rounded transition cursor-pointer"
                   >
                     {lang === 'en' ? 'Set Status' : 'স্ট্যাটাস দিন'}
                   </button>
                 </div>
 
                 {/* 2. Bulk Challan Reference Control */}
-                <div className="flex items-center gap-1 bg-white/10 backdrop-blur-xs p-1 rounded-lg border border-white/15">
+                <div className="flex items-center gap-1 bg-slate-800/80 p-1 rounded-lg border border-slate-700">
                   <input
                     type="text"
                     placeholder="Challan #"
                     value={bulkChallanRef}
                     onChange={e => setBulkChallanRef(e.target.value)}
-                    className="bg-slate-800 text-white placeholder:text-slate-400 font-mono text-[11px] px-2 py-0.5 rounded border border-slate-600 w-24 focus:outline-hidden"
+                    className="bg-slate-800 text-slate-100 placeholder:text-slate-500 font-mono text-xs px-2 py-0.5 rounded border border-slate-700 w-24 focus:outline-hidden"
                   />
                   <button
                     onClick={handleApplyBulkChallanRef}
                     disabled={isBulkApplying}
-                    className="px-2 py-0.5 bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold rounded transition cursor-pointer"
+                    className="px-2.5 py-0.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium rounded transition cursor-pointer"
                   >
                     {lang === 'en' ? 'Set Challan' : 'চালান দিন'}
                   </button>
@@ -1145,28 +1432,29 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                 {/* 3. Quick 100% Done */}
                 <button
                   onClick={handleBulkComplete100}
-                  className="px-2.5 py-1 rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white text-[11px] font-bold transition cursor-pointer border border-emerald-500/50"
+                  className="px-2.5 py-1 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium transition cursor-pointer flex items-center gap-1 shadow-2xs"
                   title="Mark 100% completed"
                 >
-                  ✓ 100%
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>100%</span>
                 </button>
 
                 {/* 3.5. Bulk Download Selected */}
                 <button
                   onClick={handleDownloadSelectedOrders}
-                  className="px-2.5 py-1 rounded-lg bg-blue-700 hover:bg-blue-600 text-white text-[11px] font-bold transition cursor-pointer border border-blue-500/50 flex items-center gap-1"
+                  className="px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 text-xs font-medium transition cursor-pointer flex items-center gap-1 shadow-2xs"
                   title="Download all selected orders to Excel"
                 >
-                  <Download className="w-3 h-3" />
+                  <Download className="w-3.5 h-3.5 text-slate-400" />
                   <span>{lang === 'en' ? 'Download' : 'ডাউনলোড'}</span>
                 </button>
 
                 {/* 4. Bulk Delete */}
                 <button
                   onClick={handleBulkDeleteSelected}
-                  className="px-2 py-1 rounded-lg bg-rose-700 hover:bg-rose-600 text-white text-[11px] font-bold transition cursor-pointer border border-rose-500/50"
+                  className="px-2.5 py-1 rounded-md bg-rose-600 hover:bg-rose-500 text-white text-xs font-medium transition cursor-pointer flex items-center gap-1 shadow-2xs"
                 >
-                  <Trash2 className="w-3 h-3 inline mr-0.5" />
+                  <Trash2 className="w-3.5 h-3.5" />
                   <span>{lang === 'en' ? 'Delete' : 'মুছুন'}</span>
                 </button>
 
@@ -1202,11 +1490,11 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                     </th>
                     <th className="px-2 py-2.5 w-8 text-center">#</th>
 
-                    {/* এই option থিকেই সকল output চাচ্ছি এইটা সবার প্রথমে নিয়ে আসো */}
-                    <th className="px-3 py-2.5 min-w-[210px] text-center bg-blue-50 text-blue-900 border-x border-blue-200">
+                    {/* Direct Outputs header */}
+                    <th className="px-3 py-2.5 min-w-[210px] text-center bg-slate-100 text-slate-800 border-x border-slate-200">
                       <span className="font-bold flex items-center justify-center gap-1.5">
-                        <Zap className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
-                        <span>{lang === 'en' ? '🚀 Direct Outputs Hub' : '🚀 সকল আউটপুট (ডাইরেক্ট)'}</span>
+                        <Zap className="w-3.5 h-3.5 text-blue-600" />
+                        <span>{lang === 'en' ? 'Direct Outputs' : 'আউটপুট হাব'}</span>
                       </span>
                     </th>
 
@@ -1218,9 +1506,9 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                     <th className="px-3 py-2.5 min-w-[80px] text-right">{lang === 'en' ? 'Demand' : 'চাহিদা'}</th>
                     <th className="px-3 py-2.5 min-w-[70px] text-right">{lang === 'en' ? 'Done' : 'সম্পন্ন'}</th>
                     <th className="px-3 py-2.5 min-w-[95px]">{lang === 'en' ? 'Challan Ref' : 'চালান নং'}</th>
-                    {/* সব শেষে status option থাকবে complete ar sathe download option ও লাগবে */}
-                    <th className="px-3 py-2.5 min-w-[220px] text-center bg-slate-200/80 border-l border-slate-300">
-                      <span className="text-slate-900 font-bold flex items-center justify-center gap-1">
+                    {/* Status column */}
+                    <th className="px-3 py-2.5 min-w-[220px] text-center bg-slate-100 text-slate-800 border-l border-slate-200">
+                      <span className="font-bold flex items-center justify-center gap-1">
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                         <span>{lang === 'en' ? 'Status & Download' : 'স্ট্যাটাস ও ডাউনলোড'}</span>
                       </span>
@@ -1267,44 +1555,47 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                             {globalIndex}
                           </td>
 
-                          {/* DIRECT OUTPUTS ACTION BUTTONS - সবার প্রথমে আনা হয়েছে */}
-                          <td className="px-2 py-2 bg-blue-50/60 border-x border-blue-200">
+                          {/* DIRECT OUTPUTS ACTION BUTTONS */}
+                          <td className="px-2 py-2 bg-slate-50/60 border-x border-slate-200">
                             <div className="flex items-center justify-center gap-1 flex-wrap">
-                              {/* 1. Pack & Calculate (To Packing Sheet Table) */}
+                              {/* 1. Pack & Calculate */}
                               <button
                                 onClick={() => handleTriggerOutput('table', item)}
-                                className={`px-2 py-1 rounded text-white font-bold text-[10px] flex items-center gap-0.5 shadow-2xs transition cursor-pointer ${
-                                  isPackCompleted ? 'bg-slate-600 hover:bg-slate-700' : 'bg-blue-600 hover:bg-blue-700 ring-1 ring-blue-400'
+                                className={`px-2.5 py-1 rounded-md text-white font-medium text-xs flex items-center gap-1 shadow-2xs transition cursor-pointer ${
+                                  isPackCompleted ? 'bg-slate-700 hover:bg-slate-800' : 'bg-blue-600 hover:bg-blue-700'
                                 }`}
                                 title={lang === 'en' ? 'Load this order into live Packing Table' : 'এই অর্ডারটি দিয়ে প্যাকিং টেবিল ও ক্যালকুলেশন শুরু করুন'}
                               >
-                                <span>🚀 {isPackCompleted ? (lang === 'en' ? 'Re-Pack' : 'রি-প্যাক') : (lang === 'en' ? 'Pack' : 'প্যাক')}</span>
+                                <Package className="w-3.5 h-3.5" />
+                                <span>{isPackCompleted ? (lang === 'en' ? 'Re-Pack' : 'রি-প্যাক') : (lang === 'en' ? 'Pack' : 'প্যাক')}</span>
                               </button>
 
-                              {/* 2. Print/Download Stickers Output - ONLY IF PACK IS COMPLETED */}
+                              {/* 2. Print/Download Stickers Output */}
                               {isPackCompleted && (
                                 <button
                                   onClick={() => handleTriggerOutput('stickers', item)}
-                                  className="px-1.5 py-1 rounded bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[10px] flex items-center gap-0.5 shadow-2xs transition cursor-pointer animate-in fade-in"
+                                  className="px-2 py-1 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs flex items-center gap-1 shadow-2xs transition cursor-pointer"
                                   title={lang === 'en' ? 'Download / View Carton Stickers' : 'এই অর্ডারের কার্টন স্টিকার তৈরি ও ডাউনলোড করুন'}
                                 >
-                                  <span>🏷️ {lang === 'en' ? 'Stickers' : 'স্টিকার'}</span>
+                                  <Tag className="w-3 h-3" />
+                                  <span>{lang === 'en' ? 'Stickers' : 'স্টিকার'}</span>
                                 </button>
                               )}
 
                               {/* 3. Factory Sheet View Output */}
                               <button
                                 onClick={() => handleTriggerOutput('sheet', item)}
-                                className="px-1.5 py-1 rounded bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] flex items-center gap-0.5 shadow-2xs transition cursor-pointer"
+                                className="px-2 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-medium text-xs flex items-center gap-1 shadow-2xs transition cursor-pointer"
                                 title={lang === 'en' ? 'View Exact Factory Packing Sheet' : 'ফ্যাক্টরি প্যাকিং শিট ভিউ দেখুন'}
                               >
-                                <span>📄 {lang === 'en' ? 'Sheet' : 'শিট'}</span>
+                                <FileText className="w-3 h-3 text-emerald-400" />
+                                <span>{lang === 'en' ? 'Sheet' : 'শিট'}</span>
                               </button>
 
                               {/* Edit Modal Button */}
                               <button
                                 onClick={() => setEditingItem(item)}
-                                className="p-1 rounded text-slate-500 hover:text-slate-900 hover:bg-slate-200 transition cursor-pointer"
+                                className="p-1 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition cursor-pointer ml-0.5"
                                 title="Edit this order"
                               >
                                 <Edit3 className="w-3.5 h-3.5" />
@@ -1316,7 +1607,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                                 className="p-1 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition cursor-pointer"
                                 title="Duplicate order row"
                               >
-                                <Copy className="w-3 h-3" />
+                                <Copy className="w-3.5 h-3.5" />
                               </button>
 
                               {/* Delete */}
@@ -1325,7 +1616,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                                 className="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
                                 title="Delete order row"
                               >
-                                <Trash2 className="w-3 h-3" />
+                                <Trash2 className="w-3.5 h-3.5" />
                               </button>
                             </div>
                           </td>
@@ -1505,50 +1796,53 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                           </div>
                         </div>
 
-                        {/* Direct Outputs (সকল আউটপুট) - সবার প্রথমে আনা হয়েছে */}
-                        <div className="mb-3 p-2 bg-blue-50/80 rounded-lg border border-blue-200 flex items-center justify-between gap-1 flex-wrap">
+                        {/* Direct Outputs */}
+                        <div className="mb-2.5 p-2 bg-slate-50 rounded-lg border border-slate-200/80 flex items-center justify-between gap-1 flex-wrap">
                           <div className="flex items-center gap-1.5 flex-wrap">
                             <button
                               onClick={() => handleTriggerOutput('table', item)}
-                              className={`px-2.5 py-1 rounded text-white font-bold text-xs flex items-center gap-1 shadow-2xs transition cursor-pointer ${
-                                isPackCompleted ? 'bg-slate-600 hover:bg-slate-700' : 'bg-blue-600 hover:bg-blue-700 ring-2 ring-blue-400'
+                              className={`px-2.5 py-1 rounded-md text-white font-medium text-xs flex items-center gap-1 shadow-2xs transition cursor-pointer ${
+                                isPackCompleted ? 'bg-slate-700 hover:bg-slate-800' : 'bg-blue-600 hover:bg-blue-700'
                               }`}
                               title={lang === 'en' ? 'Pack & Calculate cartons' : 'প্যাকিং ও কার্টন ক্যালকুলেট করুন'}
                             >
-                              <span>🚀 {isPackCompleted ? (lang === 'en' ? 'Re-Pack' : 'রি-প্যাক') : (lang === 'en' ? 'Pack' : 'প্যাক')}</span>
+                              <Package className="w-3.5 h-3.5" />
+                              <span>{isPackCompleted ? (lang === 'en' ? 'Re-Pack' : 'রি-প্যাক') : (lang === 'en' ? 'Pack' : 'প্যাক')}</span>
                             </button>
 
-                            {/* "যদি Pack সম্পুর্ন হয়, তহলেই একমাত্র Sticker download option ta asbe" */}
+                            {/* Sticker option if completed */}
                             {isPackCompleted && (
                               <button
                                 onClick={() => handleTriggerOutput('stickers', item)}
-                                className="px-2.5 py-1 rounded bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center gap-1 shadow-2xs transition cursor-pointer animate-in fade-in"
+                                className="px-2.5 py-1 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs flex items-center gap-1 shadow-2xs transition cursor-pointer"
                                 title={lang === 'en' ? 'Download / View Carton Stickers' : 'কার্টন স্টিকার ডাউনলোড ও প্রিন্ট করুন'}
                               >
                                 <Tag className="w-3 h-3" />
-                                <span>🏷️ {lang === 'en' ? 'Stickers' : 'স্টিকার'}</span>
+                                <span>{lang === 'en' ? 'Stickers' : 'স্টিকার'}</span>
                               </button>
                             )}
 
                             <button
                               onClick={() => handleTriggerOutput('sheet', item)}
-                              className="px-2 py-1 rounded bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1 shadow-2xs transition cursor-pointer"
+                              className="px-2 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-medium text-xs flex items-center gap-1 shadow-2xs transition cursor-pointer"
+                              title={lang === 'en' ? 'View Sheet' : 'শিট ভিউ'}
                             >
-                              <span>📄 {lang === 'en' ? 'Sheet' : 'শিট'}</span>
+                              <FileText className="w-3 h-3 text-emerald-400" />
+                              <span>{lang === 'en' ? 'Sheet' : 'শিট'}</span>
                             </button>
                           </div>
 
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center gap-0.5">
                             <button
                               onClick={() => setEditingItem(item)}
-                              className="p-1 rounded text-slate-500 hover:text-slate-800 hover:bg-white transition"
+                              className="p-1 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition"
                               title="Edit"
                             >
                               <Edit3 className="w-3.5 h-3.5" />
                             </button>
                             <button
                               onClick={() => handleDuplicateRow(item)}
-                              className="p-1 rounded text-slate-400 hover:text-slate-700 hover:bg-white transition"
+                              className="p-1 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition"
                               title="Duplicate"
                             >
                               <Copy className="w-3.5 h-3.5" />

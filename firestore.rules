@@ -192,5 +192,13 @@ service cloud.firestore {
       allow read: if true;
       allow write: if isAdmin();
     }
+
+    // ==========================================
+    // 9. CONNECTION TESTING
+    // ==========================================
+    match /test/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
   }
 }

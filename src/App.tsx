@@ -1,4 +1,4 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react';
+import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { PackingSheetData, CartonRow } from './types/calculator';
 import { 
   INITIAL_IMAGE_DATA, 
@@ -35,7 +35,7 @@ import { loadDemands, saveDemands } from './utils/elasticDemandStorage';
 import { useHistory } from './utils/useHistory';
 import { useAuth } from './context/AuthContext';
 import { useRealtimeSync } from './hooks/useRealtimeSync';
-import { Table, LayoutGrid, Tag, Layers, Check, QrCode, BarChart3, Undo2, Redo2, Search, RotateCcw, ClipboardList, Upload, FileText, Truck, Package, FileSpreadsheet, SlidersHorizontal } from 'lucide-react';
+import { Table, LayoutGrid, Tag, Layers, Check, QrCode, BarChart3, Undo2, Redo2, Search, RotateCcw, ClipboardList, Upload, FileText, Truck, Package, FileSpreadsheet, SlidersHorizontal, ChevronDown } from 'lucide-react';
 import { ScheduleUploader } from './components/ScheduleUploader';
 import { ScheduleItem } from './types/schedule';
 import { completeScheduleItemInTracker } from './utils/excelFileTrackerService';
@@ -91,6 +91,24 @@ export default function App() {
   const [isPrintToastVisible, setIsPrintToastVisible] = useState<boolean>(false);
   const [isOrderHeaderVisible, setIsOrderHeaderVisible] = useState<boolean>(false);
   const [isAiPhotoScannerOpen, setIsAiPhotoScannerOpen] = useState<boolean>(false);
+
+  // Consolidated Views Dropdown (1 Live Calculation Table, 2 Factory Sheet Layout, 3 Print Carton Stickers)
+  const [isViewsDropdownOpen, setIsViewsDropdownOpen] = useState<boolean>(false);
+  const viewsDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (viewsDropdownRef.current && !viewsDropdownRef.current.contains(event.target as Node)) {
+        setIsViewsDropdownOpen(false);
+      }
+    };
+    if (isViewsDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isViewsDropdownOpen]);
 
   // QR Code Carton Inspection Modal
   const [isCartonQrModalOpen, setIsCartonQrModalOpen] = useState<boolean>(false);
@@ -1026,91 +1044,206 @@ export default function App() {
           </div>
         )}
 
-        {/* Real-time Summary Cards */}
-        <div className="print:hidden">
-          <SummaryCards 
-            summary={summary} 
-            sheetData={sheetData}
-            lang={lang} 
-          />
-        </div>
+        {/* View Switcher Tabs (Shown on non-hub views so user can navigate back to Hub or switch views) */}
+        {activeTab !== 'upload' && (
+          <div className="flex items-center flex-wrap gap-1.5 p-1 bg-slate-900 rounded-xl mb-4 border border-slate-800 shadow-sm print:hidden relative">
+          {/* Primary Tab 1: Upload Schedule & Production Output Hub */}
+          <button
+            onClick={() => setActiveTab('upload')}
+            className={`flex items-center gap-2 px-3.5 py-2 text-xs rounded-lg transition cursor-pointer shrink-0 ${
+              activeTab === 'upload'
+                ? 'bg-blue-600 text-white shadow-xs font-bold'
+                : 'text-slate-300 hover:text-white hover:bg-slate-800 font-medium'
+            }`}
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
+            <span>{lang === 'en' ? 'Schedule & Output Hub' : 'শিডিউল ও আউটপুট হাব'}</span>
+            <span className="text-[10px] bg-blue-950/80 text-blue-200 px-1.5 py-0.5 rounded font-mono font-bold border border-blue-500/30">
+              Hub
+            </span>
+          </button>
 
-        {/* View Switcher Tabs */}
-        <div className="flex items-center gap-2 mb-4 border-b border-slate-300 pb-2 print:hidden overflow-x-auto">
-            {/* Primary Tab 1: Upload Schedule & Production Output Hub */}
+          {/* Consolidated 3-in-1 Views Button: 1 Live Calculation Table, 2 Factory Sheet Layout, 3 Print Carton Stickers */}
+          <div ref={viewsDropdownRef} className="relative shrink-0">
             <button
-              onClick={() => setActiveTab('upload')}
-              className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition cursor-pointer shrink-0 ${
-                activeTab === 'upload'
-                  ? 'bg-blue-600 text-white shadow-md ring-2 ring-blue-400/40'
-                  : 'bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200'
+              type="button"
+              onClick={() => setIsViewsDropdownOpen(prev => !prev)}
+              className={`flex items-center gap-2 px-3.5 py-2 text-xs rounded-lg transition cursor-pointer shrink-0 ${
+                activeTab === 'table' || activeTab === 'sheet' || activeTab === 'stickers'
+                  ? 'bg-blue-600 text-white shadow-xs font-bold border border-blue-400/50'
+                  : 'text-slate-300 hover:text-white hover:bg-slate-800 font-medium border border-transparent'
               }`}
+              title={lang === 'en' ? 'Choose from 1. Live Table, 2. Factory Sheet, 3. Carton Stickers' : '১. লাইভ টেবিল, ২. ফ্যাক্টরি শিট, বা ৩. কার্টন স্টিকার নির্বাচন করুন'}
             >
-              <Upload className="w-4 h-4 text-blue-500" />
-              <span>{lang === 'en' ? 'Excel Schedule & Outputs' : 'শিডিউল ও আউটপুট হাব'}</span>
-              <span className="text-[10px] bg-blue-700 text-white px-1.5 py-0.2 rounded font-mono font-bold">
-                1st Hub
-              </span>
+              {activeTab === 'table' ? (
+                <>
+                  <Table className="w-3.5 h-3.5 text-white" />
+                  <span>1. {t.tableView}</span>
+                  <span className="text-[10px] bg-blue-900 text-blue-100 px-1.5 py-0.2 rounded font-mono font-bold border border-blue-400/40">
+                    {filteredCartons.length}
+                  </span>
+                </>
+              ) : activeTab === 'sheet' ? (
+                <>
+                  <LayoutGrid className="w-3.5 h-3.5 text-emerald-300" />
+                  <span>2. {t.exactSheetView}</span>
+                  <span className="text-[10px] bg-blue-900 text-emerald-200 px-1.5 py-0.2 rounded font-mono font-bold border border-blue-400/40">
+                    Sheet
+                  </span>
+                </>
+              ) : activeTab === 'stickers' ? (
+                <>
+                  <Tag className="w-3.5 h-3.5 text-indigo-200" />
+                  <span>3. {t.stickerLabels}</span>
+                  <span className="text-[10px] bg-blue-900 text-indigo-200 px-1.5 py-0.2 rounded font-mono font-bold border border-blue-400/40">
+                    Stickers
+                  </span>
+                </>
+              ) : (
+                <>
+                  <Layers className="w-3.5 h-3.5 text-sky-400" />
+                  <span>{lang === 'en' ? 'Table, Sheet & Stickers' : 'টেবিল, শিট ও স্টিকার'}</span>
+                  <span className="text-[10px] bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded font-mono border border-slate-700">
+                    3-in-1
+                  </span>
+                </>
+              )}
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isViewsDropdownOpen ? 'rotate-180' : ''}`} />
             </button>
 
-            {/* Tab 2: Table View Tab */}
-            <button
-              onClick={() => setActiveTab('table')}
-              className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition cursor-pointer shrink-0 ${
-                activeTab === 'table'
-                  ? 'bg-slate-900 text-white shadow-xs'
-                  : 'bg-white text-slate-600 hover:bg-slate-200 border border-slate-200'
-              }`}
-            >
-              <Table className="w-4 h-4" />
-              <span>{t.tableView}</span>
-              <span className="text-[10px] bg-slate-700 text-slate-200 px-1.5 py-0.2 rounded font-mono">
-                {filteredCartons.length}
-              </span>
-            </button>
+            {/* Dropdown Menu for the 3 options */}
+            {isViewsDropdownOpen && (
+              <div className="absolute left-0 mt-2 w-72 sm:w-84 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-150 space-y-1.5">
+                <div className="px-2.5 py-1.5 border-b border-slate-800 flex items-center justify-between text-[11px] text-slate-400 font-semibold">
+                  <span>{lang === 'en' ? 'Select Production View' : 'প্রোডাকশন ভিউ অপশন নির্বাচন করুন'}</span>
+                  <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/70 px-1.5 py-0.5 rounded border border-emerald-500/30">
+                    3 Options
+                  </span>
+                </div>
 
-            {/* Factory Sheet (Exact Photo Replica) Tab */}
-            <button
-              onClick={() => setActiveTab('sheet')}
-              className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition cursor-pointer shrink-0 ${
-                activeTab === 'sheet'
-                  ? 'bg-slate-900 text-white shadow-xs'
-                  : 'bg-white text-slate-600 hover:bg-slate-200 border border-slate-200'
-              }`}
-            >
-              <LayoutGrid className="w-4 h-4 text-emerald-400" />
-              <span>{t.exactSheetView}</span>
-              <span className="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.2 rounded font-mono font-bold">
-                Photo Grid
-              </span>
-            </button>
+                {/* 1. Live Calculation Table */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab('table');
+                    setIsViewsDropdownOpen(false);
+                  }}
+                  className={`w-full flex items-center justify-between p-2.5 rounded-lg text-xs transition cursor-pointer text-left ${
+                    activeTab === 'table'
+                      ? 'bg-blue-600 text-white font-bold shadow-xs'
+                      : 'text-slate-200 hover:bg-slate-800 hover:text-white'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <span className={`p-1.5 rounded-lg ${activeTab === 'table' ? 'bg-blue-700 text-white' : 'bg-slate-800 text-blue-400 border border-slate-700'}`}>
+                      <Table className="w-4 h-4" />
+                    </span>
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-mono font-bold text-amber-400">1.</span>
+                        <span className="font-semibold text-xs">{t.tableView}</span>
+                      </div>
+                      <p className={`text-[10px] leading-tight mt-0.5 ${activeTab === 'table' ? 'text-blue-100' : 'text-slate-400'}`}>
+                        {lang === 'en' ? 'Live data entry, tare/gross weight & meters' : 'লাইভ ডাটা এন্ট্রি ও মিটার হিসাব টেবিল'}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono font-bold ${activeTab === 'table' ? 'bg-blue-800 text-white' : 'bg-slate-800 text-slate-300 border border-slate-700'}`}>
+                      {filteredCartons.length}
+                    </span>
+                    {activeTab === 'table' && <Check className="w-3.5 h-3.5 text-white" />}
+                  </div>
+                </button>
 
-            {/* Sticker Labels Tab */}
-            <button
-              onClick={() => setActiveTab('stickers')}
-              className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition cursor-pointer shrink-0 ${
-                activeTab === 'stickers'
-                  ? 'bg-slate-900 text-white shadow-xs'
-                  : 'bg-white text-slate-600 hover:bg-slate-200 border border-slate-200'
-              }`}
-            >
-              <Tag className="w-4 h-4 text-indigo-400" />
-              <span>{t.stickerLabels}</span>
-            </button>
+                {/* 2. Factory Sheet Layout (Photo Match) */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab('sheet');
+                    setIsViewsDropdownOpen(false);
+                  }}
+                  className={`w-full flex items-center justify-between p-2.5 rounded-lg text-xs transition cursor-pointer text-left ${
+                    activeTab === 'sheet'
+                      ? 'bg-blue-600 text-white font-bold shadow-xs'
+                      : 'text-slate-200 hover:bg-slate-800 hover:text-white'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <span className={`p-1.5 rounded-lg ${activeTab === 'sheet' ? 'bg-blue-700 text-white' : 'bg-slate-800 text-emerald-400 border border-slate-700'}`}>
+                      <LayoutGrid className="w-4 h-4" />
+                    </span>
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-mono font-bold text-amber-400">2.</span>
+                        <span className="font-semibold text-xs">{t.exactSheetView}</span>
+                      </div>
+                      <p className={`text-[10px] leading-tight mt-0.5 ${activeTab === 'sheet' ? 'text-blue-100' : 'text-slate-400'}`}>
+                        {lang === 'en' ? 'Exact replica of factory printed packing sheet' : 'ফ্যাক্টরি পেপারের হুবহু প্রিন্ট ভিউ'}
+                      </p>
+                    </div>
+                  </div>
+                  {activeTab === 'sheet' && <Check className="w-3.5 h-3.5 text-white shrink-0" />}
+                </button>
 
-            {/* Analytics Tab */}
-            <button
-              onClick={() => setActiveTab('analytics')}
-              className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition cursor-pointer shrink-0 ${
-                activeTab === 'analytics'
-                  ? 'bg-slate-900 text-white shadow-xs'
-                  : 'bg-white text-slate-600 hover:bg-slate-200 border border-slate-200'
-              }`}
-            >
-              <BarChart3 className="w-4 h-4 text-rose-400" />
-              <span>{t.analyticsTab || 'Analytics'}</span>
-            </button>
+                {/* 3. Print Carton Stickers */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab('stickers');
+                    setIsViewsDropdownOpen(false);
+                  }}
+                  className={`w-full flex items-center justify-between p-2.5 rounded-lg text-xs transition cursor-pointer text-left ${
+                    activeTab === 'stickers'
+                      ? 'bg-blue-600 text-white font-bold shadow-xs'
+                      : 'text-slate-200 hover:bg-slate-800 hover:text-white'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <span className={`p-1.5 rounded-lg ${activeTab === 'stickers' ? 'bg-blue-700 text-white' : 'bg-slate-800 text-indigo-400 border border-slate-700'}`}>
+                      <Tag className="w-4 h-4" />
+                    </span>
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-mono font-bold text-amber-400">3.</span>
+                        <span className="font-semibold text-xs">{t.stickerLabels}</span>
+                      </div>
+                      <p className={`text-[10px] leading-tight mt-0.5 ${activeTab === 'stickers' ? 'text-blue-100' : 'text-slate-400'}`}>
+                        {lang === 'en' ? 'Carton sticker barcodes, QR & packing details' : 'কার্টনের গায়ে লাগানোর বারকোড ও কিউআর স্টিকার'}
+                      </p>
+                    </div>
+                  </div>
+                  {activeTab === 'stickers' && <Check className="w-3.5 h-3.5 text-white shrink-0" />}
+                </button>
+              </div>
+            )}
           </div>
+
+          {/* Analytics Tab */}
+          <button
+            onClick={() => setActiveTab('analytics')}
+            className={`flex items-center gap-2 px-3.5 py-2 text-xs rounded-lg transition cursor-pointer shrink-0 ${
+              activeTab === 'analytics'
+                ? 'bg-blue-600 text-white shadow-xs font-bold'
+                : 'text-slate-300 hover:text-white hover:bg-slate-800 font-medium'
+            }`}
+          >
+            <BarChart3 className="w-3.5 h-3.5 text-rose-400" />
+            <span>{t.analyticsTab || 'Analytics'}</span>
+          </button>
+        </div>
+        )}
+
+        {/* Real-time Summary Cards - Shown on Live Calculation, Sheet, Stickers & Analytics Views */}
+        {activeTab !== 'upload' && activeTab !== 'demands' && (
+          <div className="print:hidden mb-4">
+            <SummaryCards 
+              summary={summary} 
+              sheetData={sheetData}
+              lang={lang} 
+            />
+          </div>
+        )}
 
         {/* Tab Views */}
         {activeTab === 'demands' && (
@@ -1211,6 +1344,9 @@ export default function App() {
             <Suspense fallback={<div className="p-8 text-center text-slate-400">শিডিউল লোড হচ্ছে...</div>}>
               <ExcelScheduleManager
                 lang={lang}
+                activeTab={activeTab}
+                onTabChange={tab => setActiveTab(tab)}
+                cartonCount={filteredCartons.length}
                 onLoadRowToPackingSheet={handleLoadScheduleItemIntoSheet}
                 onNavigateToTab={tab => setActiveTab(tab)}
                 onDirectOutput={(target, item) => {

@@ -30,7 +30,11 @@ import {
   AlertCircle,
   QrCode,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Menu,
+  X,
+  SlidersHorizontal,
+  Layers
 } from 'lucide-react';
 import { Language, translations } from '../utils/translations';
 import { Folder, Activity } from 'lucide-react';
@@ -122,6 +126,7 @@ export const Header: React.FC<HeaderProps> = ({
   const { user } = useAuth();
 
   // Header Hide / Collapse state
+  const [isControlMenuOpen, setIsControlMenuOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
     try {
       return localStorage.getItem('garment_header_collapsed') === 'true';
@@ -165,8 +170,8 @@ export const Header: React.FC<HeaderProps> = ({
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
   };
 
-  const handleManualSyncClick = async (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleManualSyncClick = async (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     if (!onManualSync || isManualSyncing) return;
     setIsManualSyncing(true);
     try {
@@ -604,19 +609,33 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
           </div>
         </div>
 
-        {/* Right: Actions */}
+        {/* Right: Actions (Streamlined with Primary Control Menu Trigger) */}
         <div className="flex items-center flex-wrap gap-2 w-full md:w-auto justify-end">
-          {/* User Account / Google Login Button */}
+          {/* Main Control Menu Button (Primary Green Highlight Trigger) */}
+          <button
+            type="button"
+            onClick={() => setIsControlMenuOpen(true)}
+            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-md shadow-emerald-950/40 border border-emerald-400/50 transition cursor-pointer"
+            title="১ নাম্বারে থাকা সকল কন্ট্রোল অপশন ও টুলস একত্রে দেখুন"
+          >
+            <SlidersHorizontal className="w-4 h-4 text-emerald-100" />
+            <span>{lang === 'en' ? 'Control Menu & Tools' : 'কন্ট্রোল অপশন ও টুলস'}</span>
+            <span className="text-[10px] bg-emerald-950/80 px-1.5 py-0.2 rounded font-mono font-bold border border-emerald-400/40">
+              Menu
+            </span>
+          </button>
+
+          {/* Compact User Account / Login Button */}
           {onOpenAuthModal && (
             <button
               type="button"
               onClick={onOpenAuthModal}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-xs border transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold shadow-xs border transition-all cursor-pointer ${
                 user 
                   ? 'bg-slate-800 border-slate-700 hover:bg-slate-700 text-white' 
                   : 'bg-indigo-600 hover:bg-indigo-500 text-white border-indigo-500'
               }`}
-              title={user ? `Signed in as ${user.displayName || user.email}` : 'Sign in with Google or Email'}
+              title={user ? `Signed in as ${user.displayName || user.email}` : 'Sign in'}
             >
               {user ? (
                 <>
@@ -631,182 +650,16 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
                       {user.displayName?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'U'}
                     </div>
                   )}
-                  <span className="max-w-[80px] sm:max-w-[120px] truncate">
+                  <span className="max-w-[70px] sm:max-w-[100px] truncate">
                     {user.displayName?.split(' ')[0] || user.email?.split('@')[0] || 'User'}
                   </span>
-                  <span className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-400' : 'bg-amber-400'}`} title={isOnline ? "Cloud Active" : "Offline Mode"} />
                 </>
               ) : (
                 <>
-                  <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-                  </svg>
-                  <span>{t.loginAccount}</span>
+                  <LogIn className="w-3.5 h-3.5 text-indigo-200" />
+                  <span>{lang === 'en' ? 'Sign In' : 'লগইন'}</span>
                 </>
               )}
-            </button>
-          )}
-
-          {/* Upload Schedule & Excel Tracker Button */}
-          {onOpenScheduleUpload && (
-            <button
-              type="button"
-              onClick={onOpenScheduleUpload}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-xs border border-blue-400 transition-all cursor-pointer ring-2 ring-blue-400/20"
-              title="Upload Excel Schedule & Track/Edit Orders (এক্সেল শিডিউল আপলোড ও এডিটর)"
-            >
-              <Upload className="w-3.5 h-3.5 text-blue-100 animate-bounce" />
-              <span>{lang === 'en' ? 'Upload Schedule' : 'শিডিউল আপলোড'}</span>
-              <span className="hidden xl:inline text-[9px] bg-blue-800/80 px-1 py-0.2 rounded font-mono text-blue-200">
-                Excel
-              </span>
-            </button>
-          )}
-
-          {/* OneDrive / Excel Access Button */}
-          <button
-            type="button"
-            onClick={onOpenExcelDrive}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-semibold shadow-xs border border-emerald-600 transition-all cursor-pointer"
-            title="OneDrive & Excel Access: Import .xlsx from OneDrive or Export to Excel Online"
-          >
-            <Cloud className="w-4 h-4 text-sky-200" />
-            <span>{lang === 'en' ? 'OneDrive & Excel' : 'ওয়ানড্রাইভ ও এক্সেল'}</span>
-          </button>
-
-          {/* Android App APK Button */}
-          {onOpenApk && (
-            <button
-              type="button"
-              onClick={onOpenApk}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-800 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs border border-emerald-700 transition-all cursor-pointer"
-              title="Install App on Android Smartphone / Tablet"
-            >
-              <Smartphone className="w-4 h-4 text-emerald-200" />
-              <span>{lang === 'en' ? 'App / APK' : 'অ্যাপ / APK'}</span>
-            </button>
-          )}
-
-          {/* Tools Modal Button */}
-          <button
-            type="button"
-            onClick={onOpenTools}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 text-xs font-medium transition cursor-pointer shadow-xs"
-            title="Garment calculation tools: Sample Wt, Reverse Calculator, Bulk Paste"
-          >
-            <Wrench className="w-3.5 h-3.5 text-amber-400" />
-            <span className="hidden sm:inline">{t.utilityTools}</span>
-          </button>
-
-          {/* Share Summary */}
-          <button
-            type="button"
-            onClick={handleShareSummary}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-xs border border-indigo-500 transition-all cursor-pointer"
-            title="Share or Copy summary for WhatsApp / Email"
-          >
-            {copied ? (
-              <>
-                <Check className="w-3.5 h-3.5 text-emerald-300" />
-                <span className="text-white">Copied!</span>
-              </>
-            ) : (
-              <>
-                <Share2 className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Share Summary</span>
-              </>
-            )}
-          </button>
-
-          {/* Share QR */}
-          {onOpenShareSheet && (
-            <button
-              type="button"
-              onClick={onOpenShareSheet}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold shadow-xs border border-violet-500 transition-all cursor-pointer"
-              title="Generate a QR code to share this sheet data"
-            >
-              <QrCode className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Share QR</span>
-            </button>
-          )}
-
-          {/* Print */}
-          <button
-            type="button"
-            onClick={onPrint}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-xs border border-emerald-500 transition cursor-pointer"
-          >
-            <Printer className="w-3.5 h-3.5" />
-            <span>{t.printSheet}</span>
-          </button>
-
-          {/* Formula Help */}
-          <button
-            type="button"
-            onClick={onOpenHelp}
-            className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition cursor-pointer"
-            title="How calculations work (Formulas)"
-          >
-            <HelpCircle className="w-4 h-4" />
-          </button>
-
-          {/* Undo */}
-          {onUndo && (
-            <button
-              type="button"
-              onClick={onUndo}
-              disabled={!canUndo}
-              className={`p-2 rounded-lg border transition cursor-pointer flex items-center justify-center ${
-                canUndo 
-                  ? 'bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border-slate-700' 
-                  : 'bg-slate-800/40 text-slate-600 border-slate-800 cursor-not-allowed'
-              }`}
-              title="Undo last change"
-            >
-              <Undo2 className="w-4 h-4" />
-            </button>
-          )}
-
-          {/* Redo */}
-          {onRedo && (
-            <button
-              type="button"
-              onClick={onRedo}
-              disabled={!canRedo}
-              className={`p-2 rounded-lg border transition cursor-pointer flex items-center justify-center ${
-                canRedo 
-                  ? 'bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border-slate-700' 
-                  : 'bg-slate-800/40 text-slate-600 border-slate-800 cursor-not-allowed'
-              }`}
-              title="Redo last undone change"
-            >
-              <Redo2 className="w-4 h-4" />
-            </button>
-          )}
-
-          {/* Reset */}
-          <button
-            type="button"
-            onClick={onReset}
-            className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition cursor-pointer"
-            title={t.resetDefault}
-          >
-            <RotateCcw className="w-4 h-4" />
-          </button>
-
-          {/* Weight Unit Toggle */}
-          {onToggleWeightUnit && (
-            <button
-              type="button"
-              onClick={onToggleWeightUnit}
-              className="flex items-center justify-center min-w-[38px] px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 text-xs font-bold transition cursor-pointer"
-              title={lang === 'en' ? 'Toggle unit between KG and GM' : 'KG এবং GM এর মাঝে পরিবর্তন করুন'}
-            >
-              {weightUnit === 'gm' ? 'GM' : 'KG'}
             </button>
           )}
 
@@ -814,7 +667,7 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
           <button
             type="button"
             onClick={() => setLang(lang === 'en' ? 'bn' : 'en')}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 text-xs font-medium transition cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 text-xs font-medium transition cursor-pointer"
           >
             <Globe className="w-3.5 h-3.5 text-sky-400" />
             <span className="font-semibold">{lang === 'en' ? 'বাংলা' : 'English'}</span>
@@ -824,14 +677,302 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
           <button
             type="button"
             onClick={toggleCollapse}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-xs font-medium transition cursor-pointer"
+            className="flex items-center gap-1 px-2.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-xs font-medium transition cursor-pointer"
             title={lang === 'en' ? 'Hide header bar' : 'হেডার লুকান'}
           >
-            <span>{lang === 'en' ? 'Hide' : 'লুকান'}</span>
             <ChevronUp className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
+
+      {/* Control Menu Modal Dialog (১ নাম্বারে থাকা অপশন গুলো এর ড্রয়ার/পপআপ) */}
+      {isControlMenuOpen && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto text-white p-5 sm:p-6 space-y-5">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2.5">
+                <span className="p-2 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                  <SlidersHorizontal className="w-5 h-5" />
+                </span>
+                <div>
+                  <h3 className="font-bold text-base sm:text-lg text-white">
+                    {lang === 'en' ? 'Control Options & Tools Hub' : 'কন্ট্রোল অপশন ও টুলস হাব'}
+                  </h3>
+                  <p className="text-xs text-slate-400">
+                    {lang === 'en'
+                      ? 'All header control bar options consolidated into one page'
+                      : '১ নাম্বারে থাকা সকল কন্ট্রোল বার অপশন ও ফিচার এখানে এক জায়গায় সাজানো রয়েছে'}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsControlMenuOpen(false)}
+                className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Content Categories Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Category 1: User & Cloud Sync */}
+              <div className="p-3.5 rounded-xl bg-slate-800/60 border border-slate-700/60 space-y-2.5">
+                <h4 className="text-xs font-bold text-indigo-400 flex items-center gap-1.5">
+                  <Cloud className="w-4 h-4" />
+                  <span>{lang === 'en' ? 'Account & Cloud Sync' : 'একাউন্ট ও ক্লাউড সিঙ্ক'}</span>
+                </h4>
+                <div className="flex flex-col gap-2">
+                  {onOpenAuthModal && (
+                    <button
+                      onClick={() => {
+                        setIsControlMenuOpen(false);
+                        onOpenAuthModal();
+                      }}
+                      className="flex items-center justify-between p-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 transition text-left"
+                    >
+                      <div className="flex items-center gap-2">
+                        <User className="w-4 h-4 text-indigo-400" />
+                        <span>{user ? (user.displayName || user.email) : (lang === 'en' ? 'Sign In / Account' : 'লগইন / একাউন্ট')}</span>
+                      </div>
+                      <span className="text-[10px] bg-indigo-950 text-indigo-300 px-2 py-0.5 rounded font-mono">
+                        {user ? 'Signed In' : 'Guest'}
+                      </span>
+                    </button>
+                  )}
+
+                  <button
+                    onClick={() => {
+                      setIsControlMenuOpen(false);
+                      onOpenExcelDrive();
+                    }}
+                    className="flex items-center justify-between p-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 transition text-left"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Cloud className="w-4 h-4 text-sky-400" />
+                      <span>{lang === 'en' ? 'OneDrive & Excel Access' : 'ওয়ানড্রাইভ ও এক্সেল এক্সেস'}</span>
+                    </div>
+                  </button>
+
+                  {user && onManualSync && (
+                    <button
+                      onClick={() => {
+                        setIsControlMenuOpen(false);
+                        handleManualSyncClick();
+                      }}
+                      className="flex items-center justify-between p-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 transition text-left"
+                    >
+                      <div className="flex items-center gap-2">
+                        <RefreshCw className="w-4 h-4 text-emerald-400" />
+                        <span>{lang === 'en' ? 'Re-sync Cloud Firestore' : 'ফায়ারস্টোর সিঙ্ক করুন'}</span>
+                      </div>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Category 2: Schedules & Files */}
+              <div className="p-3.5 rounded-xl bg-slate-800/60 border border-slate-700/60 space-y-2.5">
+                <h4 className="text-xs font-bold text-blue-400 flex items-center gap-1.5">
+                  <FileSpreadsheet className="w-4 h-4" />
+                  <span>{lang === 'en' ? 'Schedules & Files' : 'শিডিউল ও ফাইল ব্যাকআপ'}</span>
+                </h4>
+                <div className="flex flex-col gap-2">
+                  {onOpenScheduleUpload && (
+                    <button
+                      onClick={() => {
+                        setIsControlMenuOpen(false);
+                        onOpenScheduleUpload();
+                      }}
+                      className="flex items-center justify-between p-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 transition text-left"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Upload className="w-4 h-4 text-blue-400" />
+                        <span>{lang === 'en' ? 'Upload Excel Schedule' : 'এক্সেল শিডিউল আপলোড'}</span>
+                      </div>
+                    </button>
+                  )}
+
+                  {onOpenApk && (
+                    <button
+                      onClick={() => {
+                        setIsControlMenuOpen(false);
+                        onOpenApk();
+                      }}
+                      className="flex items-center justify-between p-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 transition text-left"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Smartphone className="w-4 h-4 text-emerald-400" />
+                        <span>{lang === 'en' ? 'Install Mobile App / APK' : 'অ্যান্ড্রয়েড অ্যাপ / APK'}</span>
+                      </div>
+                    </button>
+                  )}
+
+                  {onOpenIndexedDbBackups && (
+                    <button
+                      onClick={() => {
+                        setIsControlMenuOpen(false);
+                        onOpenIndexedDbBackups();
+                      }}
+                      className="flex items-center justify-between p-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 transition text-left"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Database className="w-4 h-4 text-amber-400" />
+                        <span>{lang === 'en' ? 'IndexedDB Local Snapshots' : 'ইনডেক্সড-ডিবি লোকাল ব্যাকআপ'}</span>
+                      </div>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Category 3: Garment Tools & Guides */}
+              <div className="p-3.5 rounded-xl bg-slate-800/60 border border-slate-700/60 space-y-2.5">
+                <h4 className="text-xs font-bold text-amber-400 flex items-center gap-1.5">
+                  <Wrench className="w-4 h-4" />
+                  <span>{lang === 'en' ? 'Garment Tools & Guides' : 'গার্মেন্টস টুলস ও গাইড'}</span>
+                </h4>
+                <div className="flex flex-col gap-2">
+                  <button
+                    onClick={() => {
+                      setIsControlMenuOpen(false);
+                      onOpenTools();
+                    }}
+                    className="flex items-center justify-between p-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 transition text-left"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Wrench className="w-4 h-4 text-amber-400" />
+                      <span>{t.utilityTools}</span>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setIsControlMenuOpen(false);
+                      onOpenHelp();
+                    }}
+                    className="flex items-center justify-between p-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 transition text-left"
+                  >
+                    <div className="flex items-center gap-2">
+                      <HelpCircle className="w-4 h-4 text-sky-400" />
+                      <span>{lang === 'en' ? 'Calculation Formulas & Help' : 'হিসাব নিয়ম ও ফর্মুলা গাইড'}</span>
+                    </div>
+                  </button>
+
+                  {onToggleWeightUnit && (
+                    <button
+                      onClick={() => {
+                        onToggleWeightUnit();
+                      }}
+                      className="flex items-center justify-between p-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 transition text-left"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Calculator className="w-4 h-4 text-emerald-400" />
+                        <span>{lang === 'en' ? 'Toggle Weight Unit' : 'ওজন ইউনিট পরিবর্তন'}</span>
+                      </div>
+                      <span className="text-[10px] bg-emerald-950 text-emerald-300 font-mono font-bold px-2 py-0.5 rounded border border-emerald-500/30">
+                        {weightUnit.toUpperCase()}
+                      </span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Category 4: Print, Share & Actions */}
+              <div className="p-3.5 rounded-xl bg-slate-800/60 border border-slate-700/60 space-y-2.5">
+                <h4 className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+                  <Printer className="w-4 h-4" />
+                  <span>{lang === 'en' ? 'Print, Share & Export' : 'প্রিন্ট, শেয়ার ও এক্সপোর্ট'}</span>
+                </h4>
+                <div className="flex flex-col gap-2">
+                  <button
+                    onClick={() => {
+                      setIsControlMenuOpen(false);
+                      onPrint();
+                    }}
+                    className="flex items-center justify-between p-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 transition text-left"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Printer className="w-4 h-4 text-emerald-400" />
+                      <span>{t.printSheet}</span>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setIsControlMenuOpen(false);
+                      handleShareSummary();
+                    }}
+                    className="flex items-center justify-between p-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 transition text-left"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Share2 className="w-4 h-4 text-indigo-400" />
+                      <span>{lang === 'en' ? 'Share Summary (WhatsApp)' : 'প্যাকিং সামারি শেয়ার'}</span>
+                    </div>
+                  </button>
+
+                  {onOpenShareSheet && (
+                    <button
+                      onClick={() => {
+                        setIsControlMenuOpen(false);
+                        onOpenShareSheet();
+                      }}
+                      className="flex items-center justify-between p-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 transition text-left"
+                    >
+                      <div className="flex items-center gap-2">
+                        <QrCode className="w-4 h-4 text-rose-400" />
+                        <span>{lang === 'en' ? 'Generate QR Code' : 'কিউআর কোড স্ক্যানার'}</span>
+                      </div>
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom Row: History & Reset controls */}
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-slate-800">
+              <div className="flex items-center gap-1.5">
+                {onUndo && (
+                  <button
+                    onClick={onUndo}
+                    disabled={!canUndo}
+                    className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-xs font-semibold transition flex items-center gap-1 cursor-pointer"
+                  >
+                    <Undo2 className="w-3.5 h-3.5 text-slate-300" />
+                    <span>Undo</span>
+                  </button>
+                )}
+                {onRedo && (
+                  <button
+                    onClick={onRedo}
+                    disabled={!canRedo}
+                    className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-xs font-semibold transition flex items-center gap-1 cursor-pointer"
+                  >
+                    <Redo2 className="w-3.5 h-3.5 text-slate-300" />
+                    <span>Redo</span>
+                  </button>
+                )}
+                <button
+                  onClick={() => {
+                    setIsControlMenuOpen(false);
+                    onReset();
+                  }}
+                  className="px-3 py-1.5 rounded-lg bg-rose-950/60 hover:bg-rose-900 text-rose-300 border border-rose-500/40 text-xs font-semibold transition flex items-center gap-1 cursor-pointer"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>{t.resetDefault}</span>
+                </button>
+              </div>
+
+              <button
+                onClick={() => setIsControlMenuOpen(false)}
+                className="px-4 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs transition cursor-pointer"
+              >
+                {lang === 'en' ? 'Close Menu' : 'বন্ধ করুন'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 };
