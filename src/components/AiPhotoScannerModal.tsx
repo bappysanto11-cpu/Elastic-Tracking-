@@ -224,30 +224,55 @@ export const AiPhotoScannerModal: React.FC<AiPhotoScannerModalProps> = ({
     try {
       const { base64, mimeType } = await compressImageForBatch(batchPhoto.file);
 
-      const res = await fetch('/api/scan-carton-labels-batch', {
+      const requestPayload = {
+        imageBase64: base64,
+        mimeType,
+        startCartonNo: Number(startCartonNo) || 1,
+        maxCartons: 30,
+        sheetContext: {
+          defaultTare,
+          defaultWtPerUnit,
+          deliveryUnit,
+          pcsPerPkt,
+          weightUnit,
+          color: sheetData.color || '',
+          size: sheetData.size || '',
+          itemType: sheetData.itemType || 'elastic',
+        },
+      };
+
+      let res = await fetch('/api/scan-carton-labels-batch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          imageBase64: base64,
-          mimeType,
-          startCartonNo: Number(startCartonNo) || 1,
-          maxCartons: 30,
-          sheetContext: {
-            defaultTare,
-            defaultWtPerUnit,
-            deliveryUnit,
-            pcsPerPkt,
-            weightUnit,
-            color: sheetData.color || '',
-            size: sheetData.size || '',
-            itemType: sheetData.itemType || 'elastic',
-          },
-        }),
+        body: JSON.stringify(requestPayload),
       });
+
+      // Fallback alias if primary endpoint returned 404
+      if (res.status === 404) {
+        res = await fetch('/api/scan-carton-batch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(requestPayload),
+        });
+      }
 
       if (!res.ok) {
         const errJson = await res.json().catch(() => ({}));
-        throw new Error(errJson.error || `Server responded with ${res.status}`);
+        let errMsg = errJson.error;
+        if (!errMsg) {
+          if (res.status === 404) {
+            errMsg = lang === 'en'
+              ? 'Server was not ready (404). Please click Retry below to scan again.'
+              : 'সার্ভার এখনো সিঙ্ক হয়নি (404)। অনুগ্রহ করে নিচে "আবার চেষ্টা করুন" এ ক্লিক করুন।';
+          } else if (res.status === 503) {
+            errMsg = lang === 'en'
+              ? 'AI model service is busy. Please click Retry in a moment.'
+              : 'এআই সার্ভার সাময়িক ব্যস্ত। অনুগ্রহ করে কয়েক সেকেন্ড পর আবার চেষ্টা করুন।';
+          } else {
+            errMsg = `Server responded with ${res.status}`;
+          }
+        }
+        throw new Error(errMsg);
       }
 
       const data = await res.json();
@@ -649,9 +674,22 @@ export const AiPhotoScannerModal: React.FC<AiPhotoScannerModalProps> = ({
 
               {/* Error Message */}
               {apiError && (
-                <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-xl flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
-                  <span>{apiError}</span>
+                <div className="p-3.5 bg-rose-50 border border-rose-200 text-rose-800 text-xs rounded-xl flex flex-wrap items-center justify-between gap-2 shadow-xs">
+                  <div className="flex items-start gap-2 flex-1 min-w-[220px]">
+                    <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                    <span className="font-medium leading-relaxed">{apiError}</span>
+                  </div>
+                  {batchPhoto && (
+                    <button
+                      type="button"
+                      onClick={handleExecuteBatchScan}
+                      disabled={isBatchScanning}
+                      className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs flex items-center gap-1.5 shrink-0 transition cursor-pointer disabled:opacity-50"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      <span>{lang === 'en' ? 'Retry Scan' : 'আবার চেষ্টা করুন'}</span>
+                    </button>
+                  )}
                 </div>
               )}
 

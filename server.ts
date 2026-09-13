@@ -29,16 +29,68 @@ async function startServer() {
   const app = express();
   const PORT = 3000;
 
-  // Security Headers Middleware
+  // Helper to format AI errors into human-friendly messages
+  function formatAiError(err: any): string {
+    if (!err) return 'An unexpected error occurred during AI processing.';
+    const rawMsg = err?.message || String(err);
+    try {
+      const parsed = JSON.parse(rawMsg);
+      if (parsed?.error?.message) {
+        if (parsed.error.code === 400 && parsed.error.message.includes('Unable to process input image')) {
+          return 'The uploaded image could not be processed by AI vision. Please ensure the image is a clear, standard JPG/PNG photo of cartons.';
+        }
+        if (parsed.error.code === 429 || parsed.error.status === 'RESOURCE_EXHAUSTED') {
+          return 'AI service is temporarily busy (rate limit). Please retry in a few seconds.';
+        }
+        if (parsed.error.code === 503) {
+          return 'AI vision model is temporarily unavailable. Please retry shortly.';
+        }
+        return parsed.error.message;
+      }
+    } catch {
+      // raw string is not JSON
+    }
+    return rawMsg;
+  }
+
+  // Security & CORS Headers Middleware
   app.use((req, res, next) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('X-XSS-Protection', '1; mode=block');
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
     res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=*');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     // Disable Express fingerprinting
     res.removeHeader('X-Powered-By');
+
+    if (req.method === 'OPTIONS') {
+      return res.sendStatus(200);
+    }
     next();
   });
+
+  // Helper for resilient Gemini model calling with automatic fallback
+  async function generateContentWithFallback(ai: any, payload: any) {
+    const candidateModels = ['gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-3.1-flash-lite'];
+    let lastError: any = null;
+
+    for (const modelName of candidateModels) {
+      try {
+        const result = await ai.models.generateContent({
+          ...payload,
+          model: modelName,
+        });
+        return result;
+      } catch (err: any) {
+        lastError = err;
+        console.warn(`Model ${modelName} failed or unavailable: ${err?.message || err}. Trying next fallback...`);
+      }
+    }
+
+    throw lastError || new Error('All vision AI models are currently unavailable. Please try again.');
+  }
 
   // Simple in-memory rate limiter for AI scan operations (prevents abuse and quota exhaustion)
   const ipRateMap = new Map<string, { count: number; resetTime: number }>();
@@ -123,8 +175,7 @@ If certain values are blank/0.00, capture the actual populated cartons. Return s
         text: sanitizedPrompt,
       });
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-3.8-flash',
+      const response = await generateContentWithFallback(ai, {
         contents: { parts },
         config: {
           systemInstruction,
@@ -167,7 +218,7 @@ If certain values are blank/0.00, capture the actual populated cartons. Return s
       return res.status(200).json({ success: true, data });
     } catch (err: any) {
       console.error('Error in scan-sheet API:', err);
-      return res.status(500).json({ error: err?.message || 'Failed to analyze image' });
+      return res.status(500).json({ error: formatAiError(err) });
     }
   });
 
@@ -235,7 +286,7 @@ If certain values are blank/0.00, capture the actual populated cartons. Return s
     };
   }
 
-  app.post('/api/scan-carton-labels-batch', rateLimitMiddleware, async (req, res) => {
+  app.post(['/api/scan-carton-labels-batch', '/api/scan-carton-batch'], rateLimitMiddleware, async (req, res) => {
     try {
       const { 
         imageBase64, 
@@ -285,8 +336,7 @@ INSTRUCTIONS:
 
 3. Order detected cartons sequentially by carton number (or top-left to bottom-right). Return complete detectedCartons array.`;
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-3.8-flash',
+      const response = await generateContentWithFallback(ai, {
         contents: {
           parts: [
             {
@@ -382,7 +432,7 @@ INSTRUCTIONS:
       });
     } catch (err: any) {
       console.error('Error in scan-carton-labels-batch API:', err);
-      return res.status(500).json({ error: err?.message || 'Failed to batch-scan carton labels' });
+      return res.status(500).json({ error: formatAiError(err) });
     }
   });
 
@@ -457,8 +507,7 @@ CRITICAL INSTRUCTION FOR MULTI-CARTON PHOTOS:
             },
           ];
 
-          const response = await ai.models.generateContent({
-            model: 'gemini-3.8-flash',
+          const response = await generateContentWithFallback(ai, {
             contents: { parts },
             config: {
               systemInstruction,
@@ -542,8 +591,13 @@ CRITICAL INSTRUCTION FOR MULTI-CARTON PHOTOS:
       });
     } catch (err: any) {
       console.error('Error in scan-carton-weights API:', err);
-      return res.status(500).json({ error: err?.message || 'Failed to process carton images' });
+      return res.status(500).json({ error: formatAiError(err) });
     }
+  });
+
+  // Fallback for unmatched /api routes to prevent HTML 404
+  app.all('/api/*', (req, res) => {
+    res.status(404).json({ error: `API endpoint not found: ${req.method} ${req.path}` });
   });
 
   // Vite middleware for development vs Static serving for production
