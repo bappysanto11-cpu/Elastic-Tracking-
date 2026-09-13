@@ -1,9 +1,7 @@
 {
   "name": "GOOD & FAST Pa. Co. Ltd",
   "description": "Garment & textile elastic weight-to-length calculator, packing list and carton sticker label generator",
-  "requestFramePermissions": [
-    "camera"
-  ],
+  "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
 

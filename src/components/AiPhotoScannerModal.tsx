@@ -58,8 +58,9 @@ interface AiPhotoScannerModalProps {
 }
 
 /**
- * Compresses an image to max 2560px JPEG to keep handwritten numbers,
- * printed shipping marks, and up to 20 small labels on a pallet crystal clear.
+ * Compresses an image to max 1920px JPEG to keep handwritten numbers,
+ * printed shipping marks, and up to 20 small labels crystal clear while
+ * keeping the payload lightweight (~400KB) and fast for mobile devices.
  */
 async function compressImageForBatch(file: File): Promise<{ base64: string; mimeType: string }> {
   return new Promise((resolve, reject) => {
@@ -72,7 +73,7 @@ async function compressImageForBatch(file: File): Promise<{ base64: string; mime
     reader.onerror = reject;
 
     img.onload = () => {
-      const maxDim = 2560; // Extra resolution for 20-carton wide shots
+      const maxDim = 1920; // Optimal resolution for multi-carton vision AI without memory overhead
       let { width, height } = img;
 
       if (width > maxDim || height > maxDim) {
@@ -94,7 +95,7 @@ async function compressImageForBatch(file: File): Promise<{ base64: string; mime
       }
 
       ctx.drawImage(img, 0, 0, width, height);
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.88);
       resolve({
         base64: dataUrl,
         mimeType: 'image/jpeg',
@@ -104,6 +105,32 @@ async function compressImageForBatch(file: File): Promise<{ base64: string; mime
     img.onerror = reject;
     reader.readAsDataURL(file);
   });
+}
+
+/**
+ * Robust fetch helper with automated retries for transient server sync/cold-start states.
+ */
+async function fetchWithRetry(url: string, options: RequestInit, maxAttempts = 3): Promise<Response> {
+  let attempt = 0;
+  while (attempt < maxAttempts) {
+    try {
+      const res = await fetch(url, options);
+      if ((res.status === 404 || res.status === 502 || res.status === 503) && attempt < maxAttempts - 1) {
+        await new Promise((r) => setTimeout(r, 1200));
+        attempt++;
+        continue;
+      }
+      return res;
+    } catch (err) {
+      if (attempt < maxAttempts - 1) {
+        await new Promise((r) => setTimeout(r, 1200));
+        attempt++;
+        continue;
+      }
+      throw err;
+    }
+  }
+  return fetch(url, options);
 }
 
 export const AiPhotoScannerModal: React.FC<AiPhotoScannerModalProps> = ({
@@ -241,17 +268,19 @@ export const AiPhotoScannerModal: React.FC<AiPhotoScannerModalProps> = ({
         },
       };
 
-      let res = await fetch('/api/scan-carton-labels-batch', {
+      let res = await fetchWithRetry('/api/scan-carton-labels-batch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(requestPayload),
       });
 
       // Fallback alias if primary endpoint returned 404
       if (res.status === 404) {
-        res = await fetch('/api/scan-carton-batch', {
+        res = await fetchWithRetry('/api/scan-carton-batch', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify(requestPayload),
         });
       }
@@ -340,9 +369,10 @@ export const AiPhotoScannerModal: React.FC<AiPhotoScannerModalProps> = ({
         });
       }
 
-      const res = await fetch('/api/scan-carton-weights', {
+      const res = await fetchWithRetry('/api/scan-carton-weights', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           images: payloadImages,
         }),
