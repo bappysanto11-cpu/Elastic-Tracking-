@@ -1217,6 +1217,18 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
               )}
             </div>
 
+            {onOpenAiPhotoScanner && (
+              <button
+                type="button"
+                onClick={onOpenAiPhotoScanner}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-xs transition cursor-pointer"
+                title={lang === 'en' ? 'Scan carton photos to auto-populate stickers' : 'কার্টন ছবি স্ক্যান করে স্বয়ংক্রিয়ভাবে স্টিকার তৈরি করুন'}
+              >
+                <Camera className="w-3.5 h-3.5 text-amber-200" />
+                <span>{lang === 'en' ? 'AI Photo Scan' : 'ফটো স্ক্যান'}</span>
+              </button>
+            )}
+
             <button
               onClick={handleExportAllAsImages}
               disabled={isExportingAll || activeCartons.length === 0}

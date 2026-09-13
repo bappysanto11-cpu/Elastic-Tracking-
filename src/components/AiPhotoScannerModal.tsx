@@ -53,7 +53,7 @@ interface AiPhotoScannerModalProps {
   onClose: () => void;
   sheetData: PackingSheetData;
   lang: 'en' | 'bn';
-  onApplyCartons: (newCartons: CartonRow[], mode: 'replace' | 'append') => void;
+  onApplyCartons: (newCartons: CartonRow[], mode: 'replace' | 'append', headerData?: Partial<PackingSheetData>) => void;
   onNavigateToStickers?: () => void;
 }
 
@@ -124,6 +124,17 @@ export const AiPhotoScannerModal: React.FC<AiPhotoScannerModalProps> = ({
   });
   const [parsedCartonRows, setParsedCartonRows] = useState<CartonRow[]>([]);
   const [detectedDetails, setDetectedDetails] = useState<DetectedCartonDetail[]>([]);
+  const [detectedHeader, setDetectedHeader] = useState<{
+    companyName?: string;
+    buyer?: string;
+    ref?: string;
+    jobNo?: string;
+    color?: string;
+    size?: string;
+    defaultTare?: number;
+    defaultWtPerUnit?: number;
+  }>({});
+  const [shouldUpdateHeader, setShouldUpdateHeader] = useState<boolean>(true);
   const [isBatchScanning, setIsBatchScanning] = useState<boolean>(false);
 
   // Multi-Photo Mode States
@@ -200,6 +211,7 @@ export const AiPhotoScannerModal: React.FC<AiPhotoScannerModalProps> = ({
     setApiError(null);
     setParsedCartonRows([]);
     setDetectedDetails([]);
+    setDetectedHeader({});
   };
 
   // Run AI Batch Scanner on single photo with up to 20 labels
@@ -219,7 +231,7 @@ export const AiPhotoScannerModal: React.FC<AiPhotoScannerModalProps> = ({
           imageBase64: base64,
           mimeType,
           startCartonNo: Number(startCartonNo) || 1,
-          maxCartons: 20,
+          maxCartons: 30,
           sheetContext: {
             defaultTare,
             defaultWtPerUnit,
@@ -241,6 +253,7 @@ export const AiPhotoScannerModal: React.FC<AiPhotoScannerModalProps> = ({
       const data = await res.json();
       const rawRows: CartonRow[] = data.cartonRows || [];
       const rawDetected: any[] = data.detectedCartons || [];
+      const rawHeader = data.detectedHeader || {};
 
       if (rawRows.length === 0) {
         setApiError(
@@ -255,6 +268,7 @@ export const AiPhotoScannerModal: React.FC<AiPhotoScannerModalProps> = ({
       const computedRows = rawRows.map((r, i) => recomputeRow(r, i));
 
       setParsedCartonRows(computedRows);
+      setDetectedHeader(rawHeader);
       setDetectedDetails(
         rawDetected.map((c, i) => ({
           id: `det-${i}`,
@@ -390,7 +404,7 @@ export const AiPhotoScannerModal: React.FC<AiPhotoScannerModalProps> = ({
   const handleApplyCartonsToTable = () => {
     if (parsedCartonRows.length === 0) return;
 
-    onApplyCartons(parsedCartonRows, applyMode);
+    onApplyCartons(parsedCartonRows, applyMode, shouldUpdateHeader ? detectedHeader : undefined);
     onClose();
 
     if (autoGoToStickers && onNavigateToStickers) {
@@ -403,6 +417,15 @@ export const AiPhotoScannerModal: React.FC<AiPhotoScannerModalProps> = ({
   const totalNetWeight = parsedCartonRows.reduce((sum, r) => sum + (r.netWt || 0), 0);
   const totalLengthMtr = parsedCartonRows.reduce((sum, r) => sum + (r.lengthMtr || 0), 0);
   const totalQtyPcs = parsedCartonRows.reduce((sum, r) => sum + (r.qtyPcs || 0), 0);
+
+  const hasDetectedHeaderInfo = !!(
+    detectedHeader.buyer || 
+    detectedHeader.ref || 
+    detectedHeader.jobNo || 
+    detectedHeader.color || 
+    detectedHeader.companyName ||
+    (detectedHeader.defaultTare && detectedHeader.defaultTare > 0)
+  );
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/80 backdrop-blur-xs overflow-y-auto">
@@ -689,6 +712,57 @@ export const AiPhotoScannerModal: React.FC<AiPhotoScannerModalProps> = ({
                       <span>{t.addRowBtn}</span>
                     </button>
                   </div>
+
+                  {/* Detected Order Header Details Card */}
+                  {hasDetectedHeaderInfo && (
+                    <div className="p-3 bg-gradient-to-r from-indigo-50/90 to-purple-50/90 border border-indigo-200 rounded-xl space-y-2">
+                      <div className="flex items-center justify-between flex-wrap gap-2">
+                        <span className="text-xs font-bold text-indigo-950 flex items-center gap-1.5">
+                          <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+                          <span>{lang === 'en' ? 'Order & Shipping Details Detected from Photo:' : 'ছবি থেকে শনাক্তকৃত অর্ডার ও শিপিং তথ্য:'}</span>
+                        </span>
+                        
+                        <label className="flex items-center gap-1.5 text-xs font-bold text-indigo-900 cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={shouldUpdateHeader}
+                            onChange={(e) => setShouldUpdateHeader(e.target.checked)}
+                            className="w-3.5 h-3.5 text-indigo-600 rounded border-indigo-300 focus:ring-indigo-500 cursor-pointer"
+                          />
+                          <span>{lang === 'en' ? 'Auto-apply Order Details to Sheet & Stickers' : 'শীট ও স্টিকারে এই তথ্যগুলো সরাসরি বসান'}</span>
+                        </label>
+                      </div>
+
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                        {detectedHeader.buyer && (
+                          <div className="bg-white/80 border border-indigo-100 p-1.5 rounded-lg">
+                            <span className="text-[10px] text-slate-500 font-semibold block">BUYER:</span>
+                            <span className="font-bold text-slate-900">{detectedHeader.buyer}</span>
+                          </div>
+                        )}
+                        {(detectedHeader.ref || detectedHeader.jobNo) && (
+                          <div className="bg-white/80 border border-indigo-100 p-1.5 rounded-lg">
+                            <span className="text-[10px] text-slate-500 font-semibold block">REF / JOB NO:</span>
+                            <span className="font-bold text-indigo-700 font-mono">
+                              {detectedHeader.ref || ''}{detectedHeader.ref && detectedHeader.jobNo ? ' / ' : ''}{detectedHeader.jobNo || ''}
+                            </span>
+                          </div>
+                        )}
+                        {detectedHeader.color && (
+                          <div className="bg-white/80 border border-indigo-100 p-1.5 rounded-lg">
+                            <span className="text-[10px] text-slate-500 font-semibold block">COLOR / ITEM:</span>
+                            <span className="font-bold text-slate-900">{detectedHeader.color}</span>
+                          </div>
+                        )}
+                        {detectedHeader.defaultTare && detectedHeader.defaultTare > 0 && (
+                          <div className="bg-white/80 border border-indigo-100 p-1.5 rounded-lg">
+                            <span className="text-[10px] text-slate-500 font-semibold block">TARE WEIGHT:</span>
+                            <span className="font-bold text-emerald-700 font-mono">{detectedHeader.defaultTare.toFixed(2)} KG</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
 
                   {/* CartonRows Editable Table / Grid */}
                   <div className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-2xs">

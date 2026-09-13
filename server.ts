@@ -185,11 +185,21 @@ If certain values are blank/0.00, capture the actual populated cartons. Return s
     const defaultColor = sheetContext?.color || '';
     const defaultSize = sheetContext?.size || '';
 
-    const grossWt = typeof c.grossWt === 'number' && !isNaN(c.grossWt) ? Math.max(0, c.grossWt) : 0;
-    const tareWt = typeof c.tareWt === 'number' && !isNaN(c.tareWt) && c.tareWt > 0 ? c.tareWt : defaultTare;
-    const netWt = typeof c.netWt === 'number' && !isNaN(c.netWt) && c.netWt > 0
-      ? c.netWt
-      : (grossWt > 0 ? Number((grossWt - tareWt).toFixed(3)) : 0);
+    let grossWt = typeof c.grossWt === 'number' && !isNaN(c.grossWt) ? Math.max(0, c.grossWt) : 0;
+    let netWt = typeof c.netWt === 'number' && !isNaN(c.netWt) && c.netWt > 0 ? c.netWt : 0;
+    let tareWt = typeof c.tareWt === 'number' && !isNaN(c.tareWt) && c.tareWt > 0 ? c.tareWt : defaultTare;
+
+    // If both grossWt and netWt were detected, compute exact tare if not already explicit
+    if (grossWt > 0 && netWt > 0 && (!c.tareWt || c.tareWt <= 0)) {
+      const deducedTare = Number((grossWt - netWt).toFixed(3));
+      if (deducedTare > 0 && deducedTare < grossWt) {
+        tareWt = deducedTare;
+      }
+    } else if (grossWt > 0 && netWt <= 0) {
+      netWt = Number((grossWt - tareWt).toFixed(3));
+    } else if (netWt > 0 && grossWt <= 0) {
+      grossWt = Number((netWt + tareWt).toFixed(3));
+    }
 
     const wtPerUnit = defaultWtPerUnit;
     const netWtKg = weightUnit === 'gm' ? netWt / 1000 : netWt;
@@ -231,7 +241,7 @@ If certain values are blank/0.00, capture the actual populated cartons. Return s
         imageBase64, 
         mimeType = 'image/jpeg', 
         startCartonNo = 1, 
-        maxCartons = 20,
+        maxCartons = 30,
         sheetContext = {}
       } = req.body || {};
 
@@ -246,28 +256,34 @@ If certain values are blank/0.00, capture the actual populated cartons. Return s
       const cleanBase64 = imageBase64.replace(/^data:[^;]+;base64,/, '');
       const ai = getGeminiClient();
 
-      const systemInstruction = `You are a world-class Garment Factory Quality Control & Warehouse AI Vision Scanner.
-Your mission is to perform high-precision BATCH DETECTION of up to 20 carton labels or carton boxes from ONE SINGLE PHOTO.
+      const systemInstruction = `You are a world-class Garment Factory Quality Control, Packaging & Warehouse AI Vision Scanner.
+Your mission is to perform high-precision BATCH DETECTION of carton shipping labels, carton boxes on pallets or warehouse floors, and weight markings from ONE SINGLE PHOTO.
 
-CRITICAL BATCH INSTRUCTIONS:
-1. The provided photo shows up to 20 individual carton labels, shipping marks, or cartons stacked together (on a pallet, floor, or grid of boxes).
-2. Thoroughly examine the entire image systematically from top-to-bottom and left-to-right to detect EVERY INDIVIDUAL carton label or box (up to ${maxCartons}).
-3. For EACH detected carton label/box, extract:
-   - cartonNo (integer): Read carton number if present (e.g. 1, 2, C/1, Box #4, No. 05). If not printed, number them sequentially starting from ${startCartonNo}.
-   - grossWt (number in KG): The Gross Weight (e.g. 24.50, 21.30, 18.00). Look for 'G.W', 'GW', 'Gross Wt', 'KG', or clear numbers. If European comma used like 24,5, convert to 24.5.
-   - tareWt (number or null): Tare weight if printed (T.W, Tare).
-   - netWt (number or null): Net weight if printed (N.W, Net).
-   - color (string or null): Color specification if printed/written on the label (e.g. WHITE, BLACK, RED, NAVY, etc.).
-   - size (string or null): Size or width specification if printed on the label (e.g. 25MM, 1-1/4", S, M, L).
-   - qtyPcs (number or null): Quantity in pieces or meters if explicitly printed on the label.
-   - pkts (number or null): Packet or bundle count if specified.
-   - rawDetectedText (string): Exact quote of key text detected on this label (e.g. "C/NO: 01, G.W: 24.50 KG, COLOR: WHITE").
-   - boxLocation (string): Visual position in photo (e.g. "Row 1, Top Left", "Row 2, Box 3", "Bottom Right").
-   - confidence (string): 'high' | 'medium' | 'low'.
+INSTRUCTIONS:
+1. Extract ORDER HEADER INFORMATION if printed on the shipping marks/labels:
+   - companyName: Company/Factory name (e.g. "GOOD & FAST Pa. Co. Ltd", "Sumi", etc.)
+   - buyer: Buyer / Customer name (e.g. "Lamour", "H&M", "Target", "Zara", etc.)
+   - ref: Reference / Customer PO / REFF No (e.g. "26070347")
+   - jobNo: Job No / Order No (e.g. "4046")
+   - color: Garment or item color (e.g. "Black", "White", "Navy")
+   - size: Size / width specification (e.g. "25MM", "M", "L")
+   - defaultTare: Tare weight if printed or derived (Gross Wt - Net Wt, e.g. 8.18 - 7.68 = 0.50 kg)
+   - defaultWtPerUnit: Unit weight in grams if present
 
-4. ORDER OF DETECTED CARTONS:
-Sort the detected cartons logically by Carton Number (ascending). If carton numbers are missing, order from top-left to bottom-right.
-Return ALL detected cartons (up to ${maxCartons}) in the 'detectedCartons' array.`;
+2. Detect EVERY INDIVIDUAL CARTON BOX (up to ${maxCartons}):
+   - cartonNo: Number on box (e.g. 1, 2, 3, or markers like J-4, J-6, C/1, Box #5). If sequential, number from ${startCartonNo}.
+   - grossWt: Gross Weight in KG (e.g. 8.18, 7.85, 24.50). Look for 'Gross wt', 'G.W', 'GW', 'KG'.
+   - netWt: Net Weight in KG (e.g. 7.68, 7.35, 24.00). Look for 'Net wt', 'N.W', 'NW'.
+   - tareWt: Tare weight in KG (or Gross - Net).
+   - color: Color if specified per carton.
+   - size: Size if specified per carton.
+   - qtyPcs: Quantity in pcs/mtr if printed.
+   - pkts: Bundle / packet count.
+   - boxLocation: Position in image (e.g. "Top Left (J-4)", "Center Box (J-6)", "Bottom Right").
+   - rawDetectedText: Exact snippet of key text seen (e.g. "REFF: 26070347, Gross wt: 8.18 Kg, Net wt: 7.68 Kg").
+   - confidence: 'high' | 'medium' | 'low'.
+
+3. Order detected cartons sequentially by carton number (or top-left to bottom-right). Return complete detectedCartons array.`;
 
       const response = await ai.models.generateContent({
         model: 'gemini-3.8-flash',
@@ -280,7 +296,7 @@ Return ALL detected cartons (up to ${maxCartons}) in the 'detectedCartons' array
               },
             },
             {
-              text: `Perform batch carton label detection on this photo. Detect and isolate up to ${maxCartons} individual carton labels/boxes. Base starting carton number is ${startCartonNo}. Extract carton number, gross weight, tare weight, net weight, color, size, quantity, and position for each box.`,
+              text: `Perform batch carton label detection on this photo. Detect and isolate all carton boxes (up to ${maxCartons}). Base starting carton number is ${startCartonNo}. Extract order header info (Buyer, REFF No, Job No, Color, Company) and for each carton extract Gross Weight, Net Weight, Tare Weight, and Carton Number.`,
             },
           ],
         },
@@ -290,6 +306,19 @@ Return ALL detected cartons (up to ${maxCartons}) in the 'detectedCartons' array
           responseSchema: {
             type: Type.OBJECT,
             properties: {
+              detectedHeader: {
+                type: Type.OBJECT,
+                properties: {
+                  companyName: { type: Type.STRING },
+                  buyer: { type: Type.STRING },
+                  ref: { type: Type.STRING },
+                  jobNo: { type: Type.STRING },
+                  color: { type: Type.STRING },
+                  size: { type: Type.STRING },
+                  defaultTare: { type: Type.NUMBER },
+                  defaultWtPerUnit: { type: Type.NUMBER },
+                },
+              },
               detectedCartons: {
                 type: Type.ARRAY,
                 items: {
@@ -308,7 +337,6 @@ Return ALL detected cartons (up to ${maxCartons}) in the 'detectedCartons' array
                     confidence: { type: Type.STRING },
                     notes: { type: Type.STRING },
                   },
-                  required: ['cartonNo', 'grossWt'],
                 },
               },
             },
@@ -320,10 +348,20 @@ Return ALL detected cartons (up to ${maxCartons}) in the 'detectedCartons' array
       const resText = response.text || '{"detectedCartons":[]}';
       const parsed = JSON.parse(resText);
       const rawList = parsed.detectedCartons || [];
+      const detectedHeader = parsed.detectedHeader || {};
+
+      // Merge detected header context into sheet context
+      const mergedContext = {
+        ...sheetContext,
+        color: detectedHeader.color || sheetContext.color,
+        size: detectedHeader.size || sheetContext.size,
+        defaultTare: typeof detectedHeader.defaultTare === 'number' && detectedHeader.defaultTare > 0 ? detectedHeader.defaultTare : sheetContext.defaultTare,
+        defaultWtPerUnit: typeof detectedHeader.defaultWtPerUnit === 'number' && detectedHeader.defaultWtPerUnit > 0 ? detectedHeader.defaultWtPerUnit : sheetContext.defaultWtPerUnit,
+      };
 
       // Construct full CartonRow objects ready to populate the table
       const cartonRows = rawList.map((c: any, idx: number) => {
-        return buildServerCartonRow(c, idx, sheetContext);
+        return buildServerCartonRow(c, idx, mergedContext);
       });
 
       // Calculate batch statistics
@@ -333,6 +371,7 @@ Return ALL detected cartons (up to ${maxCartons}) in the 'detectedCartons' array
       return res.status(200).json({
         success: true,
         detectedCount: cartonRows.length,
+        detectedHeader,
         cartonRows,
         detectedCartons: rawList,
         summary: {

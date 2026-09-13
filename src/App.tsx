@@ -894,7 +894,11 @@ export default function App() {
   };
 
   // Apply extracted AI data from Carton Photos
-  const handleApplyScannedCartons = (newCartons: CartonRow[], mode: 'replace' | 'append') => {
+  const handleApplyScannedCartons = (
+    newCartons: CartonRow[], 
+    mode: 'replace' | 'append',
+    headerData?: Partial<PackingSheetData>
+  ) => {
     setSheetData(prev => {
       let mergedCartons: CartonRow[];
       if (mode === 'replace') {
@@ -908,8 +912,21 @@ export default function App() {
         mergedCartons = [...prev.cartons, ...renumbered];
       }
 
+      const nextHeader: Partial<PackingSheetData> = {};
+      if (headerData) {
+        if (headerData.buyer && headerData.buyer.trim()) nextHeader.buyer = headerData.buyer.trim();
+        if (headerData.customer && headerData.customer.trim()) nextHeader.customer = headerData.customer.trim();
+        if (headerData.ref && headerData.ref.trim()) nextHeader.ref = headerData.ref.trim();
+        if (headerData.color && headerData.color.trim()) nextHeader.color = headerData.color.trim();
+        if (headerData.size && headerData.size.trim()) nextHeader.size = headerData.size.trim();
+        if (headerData.companyName && headerData.companyName.trim()) nextHeader.companyName = headerData.companyName.trim();
+        if (typeof headerData.defaultTare === 'number' && headerData.defaultTare > 0) nextHeader.defaultTare = headerData.defaultTare;
+        if (typeof headerData.defaultWtPerUnit === 'number' && headerData.defaultWtPerUnit > 0) nextHeader.defaultWtPerUnit = headerData.defaultWtPerUnit;
+      }
+
       return {
         ...prev,
+        ...nextHeader,
         cartons: mergedCartons,
         logs: [...(prev.logs || []), createLog('BATCH', `AI Photo Scanner: populated ${newCartons.length} cartons (${mode})`)].slice(-50),
       };
