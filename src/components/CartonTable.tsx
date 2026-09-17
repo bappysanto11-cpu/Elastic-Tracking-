@@ -1007,26 +1007,28 @@ export const CartonTable: React.FC<CartonTableProps> = ({
 
   return (
     <div>
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-6">
+      <div className="relative rounded-2xl bg-slate-900/40 backdrop-blur-2xl border border-white/[0.08] shadow-[0_8px_32px_0_rgba(0,0,0,0.4)] ring-1 ring-white/[0.05] overflow-hidden mb-6 transition-all duration-300">
       
       {/* Table Toolbar */}
-      <div className="p-4 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
+      <div className="p-3.5 sm:p-4 bg-slate-950/60 backdrop-blur-md border-b border-white/[0.06] flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2.5 flex-wrap">
-          <Layers className="w-5 h-5 text-indigo-600" />
-          <h3 className="text-sm font-bold text-slate-900">
+          <div className="w-7 h-7 rounded-lg bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shadow-[0_0_10px_rgba(99,102,241,0.2)]">
+            <Layers className="w-4 h-4" />
+          </div>
+          <h3 className="text-sm font-bold text-white tracking-tight">
             {lang === 'en' ? 'Carton Breakdown & Live Calculation' : 'কার্টন ভিত্তিক ওজন ও দৈর্ঘ্য ক্যালকুলেশন'}
           </h3>
           
-          <span className="text-xs bg-slate-200/80 text-slate-700 font-bold px-2 py-0.5 rounded-full font-mono">
+          <span className="text-xs bg-white/[0.08] text-slate-200 border border-white/[0.1] font-bold px-2.5 py-0.5 rounded-full font-mono">
             {searchQuery || filterOnlyDeviations ? `${displayedCount} / ${totalCount}` : totalCount} {lang === 'en' ? 'Rows' : 'সারি'}
           </span>
 
           {/* View Mode Switcher: Table vs Cards */}
-          <div className="flex items-center bg-slate-200/90 p-0.5 rounded-lg text-xs font-semibold">
+          <div className="flex items-center bg-slate-900/80 border border-white/[0.08] p-0.5 rounded-xl text-xs font-semibold backdrop-blur-md">
             <button
               onClick={() => setViewMode('table')}
-              className={`flex items-center gap-1 px-2.5 py-1 rounded-md transition cursor-pointer ${
-                viewMode === 'table' ? 'bg-white text-indigo-700 font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition cursor-pointer ${
+                viewMode === 'table' ? 'bg-indigo-600 text-white font-bold shadow-[0_0_10px_rgba(99,102,241,0.3)]' : 'text-slate-300 hover:text-white'
               }`}
               title={lang === 'en' ? 'Table View (Virtual Scroll)' : 'টেবিল ভিউ'}
             >
@@ -1035,8 +1037,8 @@ export const CartonTable: React.FC<CartonTableProps> = ({
             </button>
             <button
               onClick={() => setViewMode('cards')}
-              className={`flex items-center gap-1 px-2.5 py-1 rounded-md transition cursor-pointer ${
-                viewMode === 'cards' ? 'bg-white text-indigo-700 font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition cursor-pointer ${
+                viewMode === 'cards' ? 'bg-indigo-600 text-white font-bold shadow-[0_0_10px_rgba(99,102,241,0.3)]' : 'text-slate-300 hover:text-white'
               }`}
               title={lang === 'en' ? 'Card View (Mobile Optimized)' : 'কার্ড ভিউ (মোবাইল)'}
             >
@@ -1048,10 +1050,10 @@ export const CartonTable: React.FC<CartonTableProps> = ({
           {/* Virtual Scroll Fast Performance Badge */}
           {isVirtualActive && (
             <span 
-              className="inline-flex items-center gap-1 text-[11px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full border border-emerald-200"
+              className="inline-flex items-center gap-1 text-[11px] bg-emerald-500/15 text-emerald-300 font-bold px-2.5 py-0.5 rounded-full border border-emerald-500/30 shadow-[0_0_10px_rgba(16,185,129,0.15)]"
               title={lang === 'en' ? `Virtual Scrolling active: Visible rows ${startIndex + 1}–${endIndex} of ${displayedCount}` : `ভার্চুয়াল স্ক্রোল সক্রিয়: দৃশ্যমান ${startIndex + 1}–${endIndex}`}
             >
-              <Zap className="w-3 h-3 text-emerald-600" />
+              <Zap className="w-3 h-3 text-emerald-400" />
               <span>{lang === 'en' ? `Fast: ${startIndex + 1}–${endIndex}` : `সক্রিয়: ${startIndex + 1}–${endIndex}`}</span>
             </span>
           )}
@@ -1060,35 +1062,33 @@ export const CartonTable: React.FC<CartonTableProps> = ({
           {activeEditingCarton && (
             <button
               onClick={() => scrollToActiveRow(activeEditingCarton.id)}
-              className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200 shadow-2xs group"
+              className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold transition cursor-pointer bg-blue-500/15 hover:bg-blue-500/25 text-blue-200 border border-blue-500/30 shadow-[0_0_10px_rgba(59,130,246,0.15)] group"
               title={lang === 'en' ? `Click to jump to currently active Carton #${activeEditingCarton.cartonNo}` : `বর্তমান সক্রিয় কার্টন #${activeEditingCarton.cartonNo}-এ স্ক্রল করুন`}
             >
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
               </span>
               <span className="text-[11px] font-mono">
-                {lang === 'en' ? 'Editing:' : 'সক্রিয়:'} <strong className="text-blue-950 font-black">CTN #{activeEditingCarton.cartonNo}</strong>
+                {lang === 'en' ? 'Editing:' : 'সক্রিয়:'} <strong className="text-white font-black">CTN #{activeEditingCarton.cartonNo}</strong>
               </span>
-              <LocateFixed className="w-3.5 h-3.5 text-blue-600 group-hover:scale-110 transition-transform" />
+              <LocateFixed className="w-3.5 h-3.5 text-blue-400 group-hover:scale-110 transition-transform" />
             </button>
           )}
 
           {filterOnlyDeviations && (
-            <span className="text-xs bg-amber-500 text-slate-950 font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+            <span className="text-xs bg-amber-500 text-slate-950 font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
               <Filter className="w-3 h-3" />
               <span>{lang === 'en' ? 'Filtered: Errors Only' : 'শুধু ত্রুটি ফিল্টার'}</span>
               <button 
                 onClick={() => setFilterOnlyDeviations(false)}
-                className="hover:text-white p-0.5"
+                className="hover:text-white p-0.5 cursor-pointer"
                 title="Clear filter"
               >
                 <X className="w-3 h-3" />
               </button>
             </span>
           )}
-
-
 
           {/* Search Bar */}
           <div className="relative">
@@ -1098,12 +1098,12 @@ export const CartonTable: React.FC<CartonTableProps> = ({
               placeholder={lang === 'en' ? 'Search carton or notes...' : 'কার্টন বা নোট খুঁজুন...'}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-8 pr-7 py-1.5 bg-white border border-slate-300 rounded-lg text-xs w-48 sm:w-56 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all shadow-sm"
+              className="pl-8 pr-7 py-1.5 bg-slate-900/80 border border-white/[0.1] text-white placeholder-slate-400 rounded-xl text-xs w-48 sm:w-56 focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 transition-all shadow-inner"
             />
             {searchQuery && (
               <button 
                 onClick={() => setSearchQuery('')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 rounded-md"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-0.5 rounded-md cursor-pointer"
               >
                 <X className="w-3 h-3" />
               </button>
@@ -1112,8 +1112,8 @@ export const CartonTable: React.FC<CartonTableProps> = ({
 
           {/* Virtual Scroll Threshold */}
           <div className="flex items-center gap-2">
-            <label className="text-[11px] font-bold text-slate-500 flex items-center gap-1">
-              <Zap className="w-3.5 h-3.5 text-amber-500" />
+            <label className="text-[11px] font-bold text-slate-400 flex items-center gap-1">
+              <Zap className="w-3.5 h-3.5 text-amber-400" />
               <span>Virtual Scroll:</span>
             </label>
             <select
@@ -1123,7 +1123,7 @@ export const CartonTable: React.FC<CartonTableProps> = ({
                 setVirtualThreshold(val);
                 localStorage.setItem('garment_virtual_threshold', String(val));
               }}
-              className="bg-white border border-slate-300 text-xs font-bold px-2 py-1 rounded-lg"
+              className="bg-slate-900/80 border border-white/[0.1] text-slate-200 text-xs font-bold px-2 py-1 rounded-xl focus:outline-none focus:border-indigo-400"
             >
               <option value="10">10 (Light)</option>
               <option value="25">25 (Default)</option>
@@ -1140,10 +1140,10 @@ export const CartonTable: React.FC<CartonTableProps> = ({
                 // Keep selections or allow user to toggle toolbar
               }
             }}
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer border ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer border ${
               isBatchMode || selectedCount > 0
-                ? 'bg-indigo-600 text-white border-indigo-700 shadow-xs ring-2 ring-indigo-200'
-                : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100 hover:text-indigo-600'
+                ? 'bg-indigo-600 text-white border-indigo-400/50 shadow-[0_0_15px_rgba(99,102,241,0.35)]'
+                : 'bg-white/[0.05] text-slate-300 border-white/[0.1] hover:bg-white/[0.08] hover:text-white'
             }`}
             title="Toggle Batch Multi-Row Selection & Global Attribute Editor"
           >

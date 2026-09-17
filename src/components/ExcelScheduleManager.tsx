@@ -38,6 +38,7 @@ import {
   Ruler,
   Users,
   Check,
+  Calendar,
 } from 'lucide-react';
 import { ScheduleItem, TrackedExcelFile } from '../types/schedule';
 import {
@@ -57,10 +58,10 @@ import {
 interface ExcelScheduleManagerProps {
   lang: 'en' | 'bn';
   onLoadRowToPackingSheet?: (item: ScheduleItem) => void;
-  onNavigateToTab?: (tab: 'table' | 'sheet' | 'stickers' | 'analytics' | 'tracker' | 'challan' | 'upload' | 'demands') => void;
+  onNavigateToTab?: (tab: 'table' | 'sheet' | 'stickers' | 'analytics' | 'tracker' | 'challan' | 'upload' | 'demands' | 'schedule_packing') => void;
   onDirectOutput?: (target: 'table' | 'sheet' | 'stickers' | 'print_stickers' | 'print_sheet' | 'challan', item: ScheduleItem) => void;
   activeTab?: string;
-  onTabChange?: (tab: 'table' | 'sheet' | 'stickers' | 'analytics' | 'tracker' | 'challan' | 'upload' | 'demands') => void;
+  onTabChange?: (tab: 'table' | 'sheet' | 'stickers' | 'analytics' | 'tracker' | 'challan' | 'upload' | 'demands' | 'schedule_packing') => void;
   cartonCount?: number;
 }
 
@@ -1065,6 +1066,27 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
               <BarChart3 className="w-4 h-4 text-rose-400" />
               <span>{lang === 'en' ? 'Analytics' : 'অ্যানালিটিক্স'}</span>
             </button>
+
+            {/* Schedule-wise Daily Packing & Balance Button */}
+            <button
+              type="button"
+              onClick={() => {
+                if (onTabChange) onTabChange('schedule_packing');
+                else if (onNavigateToTab) onNavigateToTab('schedule_packing');
+              }}
+              className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer shadow-xs ${
+                activeTab === 'schedule_packing'
+                  ? 'bg-emerald-600 text-white border border-emerald-400/50 shadow-md'
+                  : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700'
+              }`}
+              title={lang === 'en' ? 'Open Schedule-wise Daily Packing & Balance Tracking' : 'শিডিউল অনুযায়ী দৈনিক প্যাকিং ও ব্যালেন্স ট্র্যাকিং'}
+            >
+              <Calendar className="w-4 h-4 text-emerald-400" />
+              <span>{lang === 'en' ? 'Daily Packing & Balance' : 'দৈনিক প্যাকিং ও ব্যালেন্স'}</span>
+              <span className="text-[10px] bg-emerald-950 text-emerald-300 px-1.5 py-0.2 rounded font-mono font-bold border border-emerald-500/30">
+                New
+              </span>
+            </button>
           </div>
 
           {/* Right: Quick sync / file status indicator */}
@@ -1505,6 +1527,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                     <th className="px-3 py-2.5 min-w-[60px]">{lang === 'en' ? 'Size' : 'সাইজ'}</th>
                     <th className="px-3 py-2.5 min-w-[80px] text-right">{lang === 'en' ? 'Demand' : 'চাহিদা'}</th>
                     <th className="px-3 py-2.5 min-w-[70px] text-right">{lang === 'en' ? 'Done' : 'সম্পন্ন'}</th>
+                    <th className="px-3 py-2.5 min-w-[75px] text-right">{lang === 'en' ? 'Balance' : 'ব্যালেন্স'}</th>
                     <th className="px-3 py-2.5 min-w-[95px]">{lang === 'en' ? 'Challan Ref' : 'চালান নং'}</th>
                     {/* Status column */}
                     <th className="px-3 py-2.5 min-w-[220px] text-center bg-slate-100 text-slate-800 border-l border-slate-200">
@@ -1518,7 +1541,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                 <tbody className="divide-y divide-slate-200">
                   {paginatedRows.length === 0 ? (
                     <tr>
-                      <td colSpan={12} className="px-4 py-8 text-center text-slate-500">
+                      <td colSpan={13} className="px-4 py-8 text-center text-slate-500">
                         {lang === 'en' ? 'No orders match your filter.' : 'কোনো অর্ডার খুঁজে পাওয়া যায়নি।'}
                       </td>
                     </tr>
@@ -1590,6 +1613,19 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                               >
                                 <FileText className="w-3 h-3 text-emerald-400" />
                                 <span>{lang === 'en' ? 'Sheet' : 'শিট'}</span>
+                              </button>
+
+                              {/* 4. Daily Packing & Balance */}
+                              <button
+                                onClick={() => {
+                                  if (onLoadRowToPackingSheet) onLoadRowToPackingSheet(item);
+                                  if (onNavigateToTab) onNavigateToTab('schedule_packing');
+                                }}
+                                className="px-2 py-1 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs flex items-center gap-1 shadow-2xs transition cursor-pointer"
+                                title={lang === 'en' ? 'Open Daily Packing & Balance for this order' : 'এই অর্ডারের দৈনিক প্যাকিং ও ব্যালেন্স ওপেন করুন'}
+                              >
+                                <Calendar className="w-3 h-3 text-emerald-200" />
+                                <span>{lang === 'en' ? 'Daily' : 'দৈনিক'}</span>
                               </button>
 
                               {/* Edit Modal Button */}
@@ -1673,6 +1709,22 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                             <span className="font-semibold text-emerald-700 font-mono text-xs">
                               {Number(item.completedQty || 0).toLocaleString()}
                             </span>
+                          </td>
+
+                          {/* Balance Qty */}
+                          <td className="px-3 py-2 text-right">
+                            {(() => {
+                              const bal = Math.max(0, Number(item.demandQty || 0) - Number(item.completedQty || 0));
+                              return (
+                                <span className={`font-mono text-xs font-bold px-1.5 py-0.5 rounded ${
+                                  bal === 0
+                                    ? 'text-emerald-700 bg-emerald-50 border border-emerald-200'
+                                    : 'text-amber-800 bg-amber-50 border border-amber-200'
+                                }`}>
+                                  {bal.toLocaleString()}
+                                </span>
+                              );
+                            })()}
                           </td>
 
                           {/* Challan Ref */}
@@ -1830,6 +1882,19 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                               <FileText className="w-3 h-3 text-emerald-400" />
                               <span>{lang === 'en' ? 'Sheet' : 'শিট'}</span>
                             </button>
+
+                            {/* Daily Packing & Balance */}
+                            <button
+                              onClick={() => {
+                                if (onLoadRowToPackingSheet) onLoadRowToPackingSheet(item);
+                                if (onNavigateToTab) onNavigateToTab('schedule_packing');
+                              }}
+                              className="px-2 py-1 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs flex items-center gap-1 shadow-2xs transition cursor-pointer"
+                              title={lang === 'en' ? 'Open Daily Packing & Balance' : 'দৈনিক প্যাকিং ও ব্যালেন্স ট্র্যাকিং'}
+                            >
+                              <Calendar className="w-3 h-3 text-emerald-200" />
+                              <span>{lang === 'en' ? 'Daily' : 'দৈনিক'}</span>
+                            </button>
                           </div>
 
                           <div className="flex items-center gap-0.5">
@@ -1881,6 +1946,16 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                               <span className="text-emerald-600 font-normal">
                                 ({Number(item.completedQty || 0).toLocaleString()} done)
                               </span>
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between text-slate-600">
+                            <span className="font-semibold text-slate-700">{lang === 'en' ? 'Balance Remaining:' : 'অবশিষ্ট ব্যালেন্স:'}</span>
+                            <span className={`font-mono font-bold text-xs px-1.5 py-0.5 rounded ${
+                              Math.max(0, Number(item.demandQty || 0) - Number(item.completedQty || 0)) === 0
+                                ? 'text-emerald-700 bg-emerald-50 border border-emerald-200'
+                                : 'text-amber-800 bg-amber-50 border border-amber-200'
+                            }`}>
+                              {Math.max(0, Number(item.demandQty || 0) - Number(item.completedQty || 0)).toLocaleString()} {item.unit || 'Mtr'}
                             </span>
                           </div>
                           {item.challanRef && (

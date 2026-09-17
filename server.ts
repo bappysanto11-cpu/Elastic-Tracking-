@@ -42,13 +42,21 @@ async function startServer() {
         if (parsed.error.code === 429 || parsed.error.status === 'RESOURCE_EXHAUSTED') {
           return 'AI service is temporarily busy (rate limit). Please retry in a few seconds.';
         }
-        if (parsed.error.code === 503) {
-          return 'AI vision model is temporarily unavailable. Please retry shortly.';
+        if (parsed.error.code === 503 || parsed.error.status === 'UNAVAILABLE' || parsed.error.message.includes('high demand')) {
+          return 'AI vision service is experiencing high demand. Please retry in a few moments.';
         }
         return parsed.error.message;
       }
     } catch {
       // raw string is not JSON
+    }
+    if (typeof rawMsg === 'string') {
+      if (rawMsg.includes('503') || rawMsg.includes('UNAVAILABLE') || rawMsg.includes('high demand')) {
+        return 'AI vision service is experiencing high demand. Automatic retry was attempted, please retry in a moment.';
+      }
+      if (rawMsg.includes('429') || rawMsg.includes('RESOURCE_EXHAUSTED')) {
+        return 'AI service is temporarily busy (rate limit). Please retry in a few seconds.';
+      }
     }
     return rawMsg;
   }
@@ -71,25 +79,53 @@ async function startServer() {
     next();
   });
 
-  // Helper for resilient Gemini model calling with automatic fallback
+  // Helper for resilient Gemini model calling with automatic fallback and retry
   async function generateContentWithFallback(ai: any, payload: any) {
-    const candidateModels = ['gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-3.1-flash-lite'];
+    // List of candidate vision-capable models in priority order
+    const candidateModels = [
+      'gemini-3.8-flash',
+      'gemini-flash-latest',
+      'gemini-3.1-flash-lite',
+      'gemini-3.6-flash',
+    ];
     let lastError: any = null;
 
     for (const modelName of candidateModels) {
-      try {
-        const result = await ai.models.generateContent({
-          ...payload,
-          model: modelName,
-        });
-        return result;
-      } catch (err: any) {
-        lastError = err;
-        console.warn(`Model ${modelName} failed or unavailable: ${err?.message || err}. Trying next fallback...`);
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          const result = await ai.models.generateContent({
+            ...payload,
+            model: modelName,
+          });
+          return result;
+        } catch (err: any) {
+          lastError = err;
+          const errMsg = err?.message || String(err);
+          const isTransient =
+            errMsg.includes('503') ||
+            errMsg.includes('UNAVAILABLE') ||
+            errMsg.includes('high demand') ||
+            errMsg.includes('429') ||
+            errMsg.includes('RESOURCE_EXHAUSTED');
+
+          console.log(
+            `[AI Service] Model ${modelName} (attempt ${attempt + 1}) encountered ${
+              isTransient ? 'temporary high demand (503/429)' : 'an error'
+            }. Moving to next fallback.`
+          );
+
+          if (isTransient && attempt === 0) {
+            // Quick 600ms backoff before second attempt on same model
+            await new Promise((resolve) => setTimeout(resolve, 600));
+            continue;
+          }
+          // Proceed to the next candidate model
+          break;
+        }
       }
     }
 
-    throw lastError || new Error('All vision AI models are currently unavailable. Please try again.');
+    throw lastError || new Error('All vision AI models are currently unavailable. Please try again in a moment.');
   }
 
   // Simple in-memory rate limiter for AI scan operations (prevents abuse and quota exhaustion)
@@ -217,7 +253,7 @@ If certain values are blank/0.00, capture the actual populated cartons. Return s
 
       return res.status(200).json({ success: true, data });
     } catch (err: any) {
-      console.error('Error in scan-sheet API:', err);
+      console.log('[API Error] scan-sheet:', formatAiError(err));
       return res.status(500).json({ error: formatAiError(err) });
     }
   });
@@ -431,7 +467,7 @@ INSTRUCTIONS:
         },
       });
     } catch (err: any) {
-      console.error('Error in scan-carton-labels-batch API:', err);
+      console.log('[API Error] scan-carton-labels-batch:', formatAiError(err));
       return res.status(500).json({ error: formatAiError(err) });
     }
   });
@@ -569,7 +605,7 @@ CRITICAL INSTRUCTION FOR MULTI-CARTON PHOTOS:
             });
           }
         } catch (itemErr: any) {
-          console.error(`Error scanning image ${item.id}:`, itemErr);
+          console.log(`[API Warning] Error scanning image ${item.id}:`, formatAiError(itemErr));
           scannedResults.push({
             imageId: item.id,
             cartonNo: item.expectedNo,
@@ -578,7 +614,7 @@ CRITICAL INSTRUCTION FOR MULTI-CARTON PHOTOS:
             netWt: null,
             rawDetectedText: 'Scan error',
             confidence: 'low',
-            notes: itemErr?.message || 'Failed to scan image',
+            notes: formatAiError(itemErr) || 'Failed to scan image',
             subIndex: 0,
           });
         }
@@ -590,7 +626,7 @@ CRITICAL INSTRUCTION FOR MULTI-CARTON PHOTOS:
         results: scannedResults,
       });
     } catch (err: any) {
-      console.error('Error in scan-carton-weights API:', err);
+      console.log('[API Error] scan-carton-weights:', formatAiError(err));
       return res.status(500).json({ error: formatAiError(err) });
     }
   });

@@ -157,6 +157,11 @@ service cloud.firestore {
       allow create, update, delete: if isValidId(itemId);
     }
 
+    match /dailyPackingLogs/{logId} {
+      allow get, list: if true;
+      allow create, update, delete: if isValidId(logId);
+    }
+
     match /progressLogs/{logId} {
       allow get, list: if true;
       allow create, update, delete: if isValidId(logId);

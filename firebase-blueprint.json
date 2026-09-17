@@ -123,6 +123,31 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["data"]
+    },
+    "DailyPackingLog": {
+      "title": "DailyPackingLog",
+      "description": "Daily schedule packing log entry with carton count and balance updates",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "scheduleId": { "type": "string", "maxLength": 128 },
+        "orderRef": { "type": "string", "maxLength": 100 },
+        "buyer": { "type": "string", "maxLength": 100 },
+        "packingDate": { "type": "string", "maxLength": 20 },
+        "cartonsCount": { "type": "number" },
+        "startCartonNo": { "type": "number" },
+        "endCartonNo": { "type": "number" },
+        "packedQty": { "type": "number" },
+        "unit": { "type": "string", "maxLength": 20 },
+        "grossWeightKg": { "type": "number" },
+        "netWeightKg": { "type": "number" },
+        "operator": { "type": "string", "maxLength": 100 },
+        "shift": { "type": "string", "maxLength": 30 },
+        "notes": { "type": "string", "maxLength": 500 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["scheduleId", "packingDate", "cartonsCount", "packedQty"]
     }
   },
   "firestore": {
@@ -137,6 +162,10 @@
     "/scheduleItems/{itemId}": {
       "schema": "ScheduleItem",
       "description": "Daily factory production schedule items"
+    },
+    "/dailyPackingLogs/{logId}": {
+      "schema": "DailyPackingLog",
+      "description": "Daily schedule packing logs and carton balance history"
     },
     "/progressLogs/{logId}": {
       "schema": "ProgressLog",
