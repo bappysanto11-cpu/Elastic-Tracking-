@@ -25,17 +25,15 @@ googleProvider.setCustomParameters({ prompt: 'select_account' });
 
 export const githubProvider = new GithubAuthProvider();
 
-// Initialize Firestore with configured databaseId and long-polling for iframe/proxy stability
+// Initialize Firestore with configured databaseId per Firebase Integration Skill standard
 const databaseId = firebaseConfigJson.firestoreDatabaseId || '(default)';
 
 let firestoreInstance: Firestore;
 try {
-  firestoreInstance = initializeFirestore(app, {
-    experimentalForceLongPolling: true,
-  }, databaseId);
-} catch {
-  // In case of hot-reload where firestore instance is already initialized
   firestoreInstance = getFirestore(app, databaseId);
+} catch {
+  // In case of hot-reload or special environments
+  firestoreInstance = initializeFirestore(app, {}, databaseId);
 }
 
 export const db = firestoreInstance;
@@ -90,16 +88,24 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
   throw new Error(JSON.stringify(errInfo));
 }
 
-// Connection test on client load
-if (typeof window !== 'undefined') {
-  (async () => {
-    try {
-      await getDocFromServer(doc(db, 'test', 'connection'));
-    } catch (error) {
-      if (error instanceof Error && error.message.includes('the client is offline')) {
-        console.warn('Firestore is running in offline cache mode. Operating smoothly with local cache.');
-      }
+// Validate Connection to Firestore (Per Firebase Integration Skill)
+async function testConnection() {
+  try {
+    await getDocFromServer(doc(db, 'test', 'connection'));
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.message.includes('the client is offline') ||
+        error.message.includes('Could not reach') ||
+        error.message.includes('unavailable') ||
+        error.message.includes('deadline'))
+    ) {
+      console.warn('Firestore is operating in offline cache mode. Local operations will persist seamlessly.');
     }
-  })();
+  }
+}
+
+if (typeof window !== 'undefined') {
+  testConnection();
 }
 

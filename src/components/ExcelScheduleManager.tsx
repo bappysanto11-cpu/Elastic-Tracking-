@@ -54,6 +54,8 @@ import {
   setActiveTrackedFileId,
   SAMPLE_EXCEL_SCHEDULE,
 } from '../utils/excelFileTrackerService';
+import { OrderPackingBalanceModal } from './OrderPackingBalanceModal';
+import { PackingSheetData } from '../types/calculator';
 
 interface ExcelScheduleManagerProps {
   lang: 'en' | 'bn';
@@ -63,6 +65,7 @@ interface ExcelScheduleManagerProps {
   activeTab?: string;
   onTabChange?: (tab: 'table' | 'sheet' | 'stickers' | 'analytics' | 'tracker' | 'challan' | 'upload' | 'demands' | 'schedule_packing') => void;
   cartonCount?: number;
+  currentSheetData?: PackingSheetData;
 }
 
 export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
@@ -73,6 +76,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
   activeTab = 'upload',
   onTabChange,
   cartonCount = 0,
+  currentSheetData,
 }) => {
   // Tracked Files State - Initialize synchronously from local cache so screen opens instantly
   const [trackedFiles, setTrackedFiles] = useState<TrackedExcelFile[]>(() => getLocalTrackedFiles());
@@ -141,6 +145,9 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
 
   // Single Row Edit Modal State (Zero DOM Thrashing!)
   const [editingItem, setEditingItem] = useState<ScheduleItem | null>(null);
+
+  // Single Order Packing Balance & Daily Logs Modal State
+  const [selectedDailyPackingItem, setSelectedDailyPackingItem] = useState<ScheduleItem | null>(null);
 
   // New Row Modal State
   const [isAddRowModalOpen, setIsAddRowModalOpen] = useState<boolean>(false);
@@ -1066,27 +1073,6 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
               <BarChart3 className="w-4 h-4 text-rose-400" />
               <span>{lang === 'en' ? 'Analytics' : 'অ্যানালিটিক্স'}</span>
             </button>
-
-            {/* Schedule-wise Daily Packing & Balance Button */}
-            <button
-              type="button"
-              onClick={() => {
-                if (onTabChange) onTabChange('schedule_packing');
-                else if (onNavigateToTab) onNavigateToTab('schedule_packing');
-              }}
-              className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer shadow-xs ${
-                activeTab === 'schedule_packing'
-                  ? 'bg-emerald-600 text-white border border-emerald-400/50 shadow-md'
-                  : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700'
-              }`}
-              title={lang === 'en' ? 'Open Schedule-wise Daily Packing & Balance Tracking' : 'শিডিউল অনুযায়ী দৈনিক প্যাকিং ও ব্যালেন্স ট্র্যাকিং'}
-            >
-              <Calendar className="w-4 h-4 text-emerald-400" />
-              <span>{lang === 'en' ? 'Daily Packing & Balance' : 'দৈনিক প্যাকিং ও ব্যালেন্স'}</span>
-              <span className="text-[10px] bg-emerald-950 text-emerald-300 px-1.5 py-0.2 rounded font-mono font-bold border border-emerald-500/30">
-                New
-              </span>
-            </button>
           </div>
 
           {/* Right: Quick sync / file status indicator */}
@@ -1617,10 +1603,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
 
                               {/* 4. Daily Packing & Balance */}
                               <button
-                                onClick={() => {
-                                  if (onLoadRowToPackingSheet) onLoadRowToPackingSheet(item);
-                                  if (onNavigateToTab) onNavigateToTab('schedule_packing');
-                                }}
+                                onClick={() => setSelectedDailyPackingItem(item)}
                                 className="px-2 py-1 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs flex items-center gap-1 shadow-2xs transition cursor-pointer"
                                 title={lang === 'en' ? 'Open Daily Packing & Balance for this order' : 'এই অর্ডারের দৈনিক প্যাকিং ও ব্যালেন্স ওপেন করুন'}
                               >
@@ -1716,13 +1699,18 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                             {(() => {
                               const bal = Math.max(0, Number(item.demandQty || 0) - Number(item.completedQty || 0));
                               return (
-                                <span className={`font-mono text-xs font-bold px-1.5 py-0.5 rounded ${
-                                  bal === 0
-                                    ? 'text-emerald-700 bg-emerald-50 border border-emerald-200'
-                                    : 'text-amber-800 bg-amber-50 border border-amber-200'
-                                }`}>
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedDailyPackingItem(item)}
+                                  className={`font-mono text-xs font-bold px-1.5 py-0.5 rounded cursor-pointer transition shadow-2xs hover:scale-105 ${
+                                    bal === 0
+                                      ? 'text-emerald-700 bg-emerald-50 border border-emerald-300 hover:bg-emerald-100'
+                                      : 'text-amber-800 bg-amber-50 border border-amber-300 hover:bg-amber-100'
+                                  }`}
+                                  title={lang === 'en' ? 'Click to view / manage packing balance and daily logs' : 'প্যাকিং ব্যালেন্স ও দৈনিক লগ দেখতে ক্লিক করুন'}
+                                >
                                   {bal.toLocaleString()}
-                                </span>
+                                </button>
                               );
                             })()}
                           </td>
@@ -1885,12 +1873,9 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
 
                             {/* Daily Packing & Balance */}
                             <button
-                              onClick={() => {
-                                if (onLoadRowToPackingSheet) onLoadRowToPackingSheet(item);
-                                if (onNavigateToTab) onNavigateToTab('schedule_packing');
-                              }}
+                              onClick={() => setSelectedDailyPackingItem(item)}
                               className="px-2 py-1 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs flex items-center gap-1 shadow-2xs transition cursor-pointer"
-                              title={lang === 'en' ? 'Open Daily Packing & Balance' : 'দৈনিক প্যাকিং ও ব্যালেন্স ট্র্যাকিং'}
+                              title={lang === 'en' ? 'Open Packing Balance & Daily Logs' : 'প্যাকিং ব্যালেন্স ও দৈনিক লগ'}
                             >
                               <Calendar className="w-3 h-3 text-emerald-200" />
                               <span>{lang === 'en' ? 'Daily' : 'দৈনিক'}</span>
@@ -1948,16 +1933,41 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                               </span>
                             </span>
                           </div>
-                          <div className="flex items-center justify-between text-slate-600">
-                            <span className="font-semibold text-slate-700">{lang === 'en' ? 'Balance Remaining:' : 'অবশিষ্ট ব্যালেন্স:'}</span>
-                            <span className={`font-mono font-bold text-xs px-1.5 py-0.5 rounded ${
+                          <div
+                            onClick={() => setSelectedDailyPackingItem(item)}
+                            className="flex items-center justify-between text-slate-600 cursor-pointer hover:bg-slate-100/80 -mx-1 px-1 py-0.5 rounded transition"
+                            title={lang === 'en' ? 'Click to view / manage packing balance and daily logs' : 'প্যাকিং ব্যালেন্স ও দৈনিক লগ দেখতে ক্লিক করুন'}
+                          >
+                            <span className="font-semibold text-slate-700 flex items-center gap-1">
+                              <span>{lang === 'en' ? 'Balance Remaining:' : 'অবশিষ্ট ব্যালেন্স:'}</span>
+                              <Calendar className="w-3 h-3 text-emerald-600" />
+                            </span>
+                            <span className={`font-mono font-bold text-xs px-1.5 py-0.5 rounded transition shadow-2xs ${
                               Math.max(0, Number(item.demandQty || 0) - Number(item.completedQty || 0)) === 0
-                                ? 'text-emerald-700 bg-emerald-50 border border-emerald-200'
-                                : 'text-amber-800 bg-amber-50 border border-amber-200'
+                                ? 'text-emerald-700 bg-emerald-50 border border-emerald-300 hover:bg-emerald-100'
+                                : 'text-amber-800 bg-amber-50 border border-amber-300 hover:bg-amber-100'
                             }`}>
                               {Math.max(0, Number(item.demandQty || 0) - Number(item.completedQty || 0)).toLocaleString()} {item.unit || 'Mtr'}
                             </span>
                           </div>
+
+                          {/* Quick Packing & Balance button directly on card */}
+                          <button
+                            type="button"
+                            onClick={() => setSelectedDailyPackingItem(item)}
+                            className="w-full mt-1.5 py-1 px-2.5 rounded-lg bg-emerald-50/90 hover:bg-emerald-100 text-emerald-800 border border-emerald-200/80 text-[11px] font-medium flex items-center justify-between transition cursor-pointer shadow-2xs"
+                          >
+                            <span className="flex items-center gap-1.5">
+                              <Calendar className="w-3.5 h-3.5 text-emerald-600" />
+                              <span>{lang === 'en' ? 'Packing Balance & Logs' : 'প্যাকিং ব্যালেন্স ও দৈনিক হিস্ট্রি'}</span>
+                            </span>
+                            <span className="font-bold text-emerald-700 font-mono text-[10px]">
+                              {Number(item.completedQty || 0) > 0
+                                ? `${Number(item.completedQty).toLocaleString()} ${item.unit || 'Mtr'} done`
+                                : (lang === 'en' ? 'Log Packing →' : '+ লগ এন্ট্রি →')}
+                            </span>
+                          </button>
+
                           {item.challanRef && (
                             <div className="flex items-center justify-between text-slate-600">
                               <span>Challan Ref:</span>
@@ -2456,6 +2466,30 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
             </form>
           </div>
         </div>
+      )}
+      {/* ORDER DAILY PACKING & BALANCE MODAL */}
+      {selectedDailyPackingItem && (
+        <OrderPackingBalanceModal
+          isOpen={!!selectedDailyPackingItem}
+          onClose={() => setSelectedDailyPackingItem(null)}
+          item={selectedDailyPackingItem}
+          fileId={activeFile?.id || ''}
+          lang={lang}
+          currentSheetData={currentSheetData}
+          onLoadRowToPackingSheet={onLoadRowToPackingSheet}
+          onNavigateToTab={onNavigateToTab as any}
+          onItemUpdated={(updatedItem) => {
+            setSelectedDailyPackingItem(updatedItem);
+            if (!activeFile) return;
+            const updatedItems = activeFile.items.map((it) => (it.id === updatedItem.id ? updatedItem : it));
+            const updatedFile: TrackedExcelFile = {
+              ...activeFile,
+              items: updatedItems,
+              updatedAt: new Date().toISOString(),
+            };
+            setTrackedFiles((prev) => prev.map((f) => (f.id === updatedFile.id ? updatedFile : f)));
+          }}
+        />
       )}
     </div>
   );

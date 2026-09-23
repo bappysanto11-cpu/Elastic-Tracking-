@@ -15,7 +15,12 @@ import {
   DailyPackingCartonSnapshot,
 } from '../types/schedulePacking';
 import { PackingSheetData } from '../types/calculator';
-import { getLocalTrackedFiles } from './excelFileTrackerService';
+import { ScheduleItem } from '../types/schedule';
+import {
+  getLocalTrackedFiles,
+  saveLocalTrackedFiles,
+  updateTrackedExcelFile,
+} from './excelFileTrackerService';
 
 // Storage Keys
 const SCHEDULES_STORAGE_KEY = 'garment_packing_schedules_v1';
@@ -870,4 +875,214 @@ export function downloadCsvFile(content: string, filename: string): void {
   link.click();
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
+}
+
+// ==========================================
+// ORDER-SPECIFIC INTEGRATED PACKING HELPERS
+// ==========================================
+
+// Get or create a PackingSchedule instance for a given ScheduleItem
+export function getOrCreateScheduleForItem(
+  item: ScheduleItem,
+  fileId?: string,
+  fileName?: string
+): PackingSchedule {
+  const currentSchedules = loadPackingSchedules();
+  const orderRef = item.customerRefPO || item.jobNo || `ORD-${item.id}`;
+
+  const existing = currentSchedules.find(
+    (s) =>
+      s.sourceItemId === item.id ||
+      s.id === item.id ||
+      s.id === `sch-imp-${fileId}-${item.id}` ||
+      (orderRef && s.orderRef && s.orderRef.trim().toLowerCase() === orderRef.trim().toLowerCase())
+  );
+  if (existing) {
+    return existing;
+  }
+
+  const targetQty = Number(item.demandQty) || Number(item.orderQty) || 0;
+  const newSchedule: PackingSchedule = {
+    id: `sch-imp-${fileId || 'active'}-${item.id}`,
+    scheduleNo: item.jobNo || `SCH-${String(currentSchedules.length + 1).padStart(3, '0')}`,
+    buyer: item.buyer || fileName || 'General',
+    customer: item.customer || 'Factory Client',
+    orderRef,
+    itemDescription: item.itemDescription || 'Elastic Item',
+    color: item.color || 'Standard',
+    size: item.size || 'Standard',
+    targetQty,
+    unit: item.unit?.toLowerCase() === 'pcs' ? 'pcs' : 'mtr',
+    unitWeightGm: 8.0,
+    defaultTare: 0.5,
+    scheduleDate: item.date ? item.date.slice(0, 10) : getTodayDateStr(),
+    status: item.status === 'completed' ? 'completed' : 'pending',
+    completedQty: Number(item.completedQty) || 0,
+    balanceQty: Math.max(0, targetQty - (Number(item.completedQty) || 0)),
+    progress:
+      targetQty > 0
+        ? Math.min(100, Math.round(((Number(item.completedQty) || 0) / targetQty) * 100))
+        : 0,
+    totalCartons: Math.ceil((Number(item.completedQty) || 0) / 400) || 0,
+    sourceFileId: fileId,
+    sourceItemId: item.id,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  currentSchedules.push(newSchedule);
+  savePackingSchedules(currentSchedules);
+  return newSchedule;
+}
+
+// Get all daily packing logs for a specific schedule order item
+export function getDailyLogsForOrderItem(item: ScheduleItem, scheduleId?: string): DailyPackingLog[] {
+  const allLogs = loadDailyPackingLogs();
+  const orderRef = (item.customerRefPO || item.jobNo || '').trim().toLowerCase();
+
+  return allLogs
+    .filter((l) => {
+      if (scheduleId && l.scheduleId === scheduleId) return true;
+      if (l.scheduleId === item.id || l.scheduleId.endsWith(item.id)) return true;
+      if (orderRef && l.orderRef && l.orderRef.trim().toLowerCase() === orderRef) return true;
+      if (item.jobNo && l.scheduleNo && l.scheduleNo.trim().toLowerCase() === item.jobNo.trim().toLowerCase()) return true;
+      return false;
+    })
+    .sort((a, b) => new Date(b.packingDate || b.createdAt).getTime() - new Date(a.packingDate || a.createdAt).getTime());
+}
+
+// Record daily packing for an order and auto-sync item balance in Excel Tracker
+export async function recordDailyPackingForOrderItem(
+  item: ScheduleItem,
+  fileId: string,
+  logInput: {
+    packingDate: string;
+    packedQty: number;
+    cartonsCount: number;
+    startCartonNo?: number;
+    endCartonNo?: number;
+    grossWeightKg?: number;
+    netWeightKg?: number;
+    operator?: string;
+    shift?: 'Morning' | 'Day' | 'Night' | 'General';
+    notes?: string;
+    cartonsDetail?: DailyPackingCartonSnapshot[];
+  }
+): Promise<{ log: DailyPackingLog; updatedSchedule: PackingSchedule; updatedItem: ScheduleItem }> {
+  // 1. Get or create PackingSchedule for this item
+  const schedule = getOrCreateScheduleForItem(item, fileId);
+
+  // 2. Add daily packing log
+  const { log, schedule: updatedSchedule } = await addDailyPackingLog({
+    scheduleId: schedule.id,
+    scheduleNo: schedule.scheduleNo,
+    orderRef: schedule.orderRef,
+    buyer: schedule.buyer,
+    packingDate: logInput.packingDate,
+    cartonsCount: logInput.cartonsCount,
+    startCartonNo: logInput.startCartonNo,
+    endCartonNo: logInput.endCartonNo,
+    packedQty: logInput.packedQty,
+    unit: schedule.unit,
+    grossWeightKg: logInput.grossWeightKg,
+    netWeightKg: logInput.netWeightKg,
+    operator: logInput.operator,
+    shift: logInput.shift || 'Day',
+    cartonsDetail: logInput.cartonsDetail,
+    notes: logInput.notes,
+  });
+
+  // 3. Compute total completed quantity for this item
+  const allItemLogs = getDailyLogsForOrderItem(item, schedule.id);
+  const totalCompleted = allItemLogs.reduce((sum, l) => sum + (Number(l.packedQty) || 0), 0);
+  const targetQty = Number(item.demandQty) || Number(item.orderQty) || 0;
+  const balanceQty = Math.max(0, targetQty - totalCompleted);
+  const progress =
+    targetQty > 0
+      ? Math.min(100, Math.round((totalCompleted / targetQty) * 100))
+      : totalCompleted > 0
+      ? 100
+      : 0;
+
+  let newStatus: ScheduleItem['status'] = item.status;
+  if (totalCompleted >= targetQty && targetQty > 0) {
+    newStatus = 'completed';
+  } else if (totalCompleted > 0) {
+    newStatus = 'in-progress';
+  }
+
+  const updatedItem: ScheduleItem = {
+    ...item,
+    completedQty: totalCompleted,
+    balanceQty: balanceQty,
+    progress: progress,
+    status: newStatus,
+    updatedAt: new Date(),
+  };
+
+  // 4. Update the active file in excelFileTracker
+  try {
+    const files = getLocalTrackedFiles();
+    const currentFile = files.find((f) => f.id === fileId);
+    if (currentFile) {
+      const updatedItems = currentFile.items.map((it) => (it.id === item.id ? updatedItem : it));
+      await updateTrackedExcelFile(fileId, { items: updatedItems });
+    }
+  } catch (err) {
+    console.warn('Could not update Excel file for order packing:', err);
+  }
+
+  return { log, updatedSchedule, updatedItem };
+}
+
+// Delete daily packing log for an order and auto-restore item balance in Excel Tracker
+export async function deleteDailyPackingLogForOrderItem(
+  logId: string,
+  item: ScheduleItem,
+  fileId: string
+): Promise<{ updatedSchedule: PackingSchedule; updatedItem: ScheduleItem }> {
+  const updatedSchedule = await deleteDailyPackingLog(logId);
+
+  // Recalculate total completed qty for this item
+  const allItemLogs = getDailyLogsForOrderItem(item, updatedSchedule.id);
+  const totalCompleted = allItemLogs.reduce((sum, l) => sum + (Number(l.packedQty) || 0), 0);
+  const targetQty = Number(item.demandQty) || Number(item.orderQty) || 0;
+  const balanceQty = Math.max(0, targetQty - totalCompleted);
+  const progress =
+    targetQty > 0
+      ? Math.min(100, Math.round((totalCompleted / targetQty) * 100))
+      : totalCompleted > 0
+      ? 100
+      : 0;
+
+  let newStatus: ScheduleItem['status'] = item.status;
+  if (totalCompleted >= targetQty && targetQty > 0) {
+    newStatus = 'completed';
+  } else if (totalCompleted > 0) {
+    newStatus = 'in-progress';
+  } else {
+    newStatus = 'pending';
+  }
+
+  const updatedItem: ScheduleItem = {
+    ...item,
+    completedQty: totalCompleted,
+    balanceQty: balanceQty,
+    progress: progress,
+    status: newStatus,
+    updatedAt: new Date(),
+  };
+
+  try {
+    const files = getLocalTrackedFiles();
+    const currentFile = files.find((f) => f.id === fileId);
+    if (currentFile) {
+      const updatedItems = currentFile.items.map((it) => (it.id === item.id ? updatedItem : it));
+      await updateTrackedExcelFile(fileId, { items: updatedItems });
+    }
+  } catch (err) {
+    console.warn('Could not update Excel file after log deletion:', err);
+  }
+
+  return { updatedSchedule, updatedItem };
 }

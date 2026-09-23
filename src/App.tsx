@@ -1307,23 +1307,6 @@ export default function App() {
             <BarChart3 className="w-3.5 h-3.5 text-rose-400" />
             <span>{t.analyticsTab || 'Analytics'}</span>
           </button>
-
-          {/* Schedule Daily Packing & Balance System */}
-          <button
-            onClick={() => setActiveTab('schedule_packing')}
-            className={`flex items-center gap-2 px-3.5 py-2 text-xs rounded-xl transition-all duration-200 cursor-pointer shrink-0 ${
-              activeTab === 'schedule_packing'
-                ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-[0_0_20px_rgba(16,185,129,0.4)] border border-emerald-400/40 font-bold'
-                : 'text-slate-300 hover:text-white hover:bg-white/[0.06] font-medium border border-transparent'
-            }`}
-            title={lang === 'en' ? 'Schedule-wise Daily Packing & Balance Tracking' : 'শিডিউল ভিত্তিক দৈনিক প্যাকিং ও ব্যালেন্স ট্র্যাকিং'}
-          >
-            <Calendar className="w-3.5 h-3.5 text-amber-300" />
-            <span>{lang === 'en' ? 'Daily Packing & Balance' : 'দৈনিক প্যাকিং ও ব্যালেন্স'}</span>
-            <span className="text-[10px] bg-emerald-950/80 text-emerald-300 px-1.5 py-0.5 rounded font-mono font-bold border border-emerald-500/30">
-              New
-            </span>
-          </button>
         </div>
         )}
 
@@ -1440,6 +1423,7 @@ export default function App() {
                 activeTab={activeTab}
                 onTabChange={tab => setActiveTab(tab)}
                 cartonCount={filteredCartons.length}
+                currentSheetData={sheetData}
                 onLoadRowToPackingSheet={handleLoadScheduleItemIntoSheet}
                 onNavigateToTab={tab => setActiveTab(tab)}
                 onDirectOutput={(target, item) => {
