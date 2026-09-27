@@ -55,27 +55,39 @@ export function WorkspaceModal({ isOpen, onClose, activeWorkspaceId, onSelectWor
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col">
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-          <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-            <Folder className="w-5 h-5 text-indigo-500" />
-            {lang === 'en' ? 'Target Sheets / Workspaces' : 'টার্গেট শিট / ওয়ার্কস্পেস'}
-          </h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition p-1">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+      <div className="bg-white border border-neutral-200 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col">
+        <div className="px-5 py-4 border-b border-neutral-200 flex items-center justify-between bg-neutral-900 text-white">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-neutral-800 border border-neutral-700 flex items-center justify-center text-white">
+              <Folder className="w-4 h-4 text-white" />
+            </div>
+            <div>
+              <h2 className="text-sm font-bold text-white">
+                {lang === 'en' ? 'Target Sheets / Workspaces' : 'টার্গেট শিট / ওয়ার্কস্পেস'}
+              </h2>
+              <p className="text-[11px] text-neutral-400">
+                {lang === 'en' ? 'Manage your production datasets' : 'প্রোডাকশন ডেটাসেট পরিচালনা করুন'}
+              </p>
+            </div>
+          </div>
+          <button 
+            onClick={onClose} 
+            className="text-neutral-400 hover:text-white p-1 rounded-lg hover:bg-neutral-800 transition cursor-pointer"
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="p-4 flex-1 overflow-y-auto max-h-[60vh]">
+        <div className="p-4 flex-1 overflow-y-auto max-h-[60vh] bg-white">
           <div className="space-y-2">
             {workspaces.map(ws => (
               <div 
                 key={ws.id} 
-                className={`flex items-center justify-between p-3 rounded-lg border transition ${
+                className={`flex items-center justify-between p-3 rounded-xl border transition ${
                   activeWorkspaceId === ws.id 
-                    ? 'border-indigo-500 bg-indigo-50 shadow-sm' 
-                    : 'border-slate-200 hover:border-indigo-200 hover:bg-slate-50'
+                    ? 'border-neutral-900 bg-neutral-100 shadow-xs ring-1 ring-neutral-900' 
+                    : 'border-neutral-200 hover:border-neutral-400 hover:bg-neutral-50/70'
                 }`}
               >
                 <div 
@@ -86,7 +98,7 @@ export function WorkspaceModal({ isOpen, onClose, activeWorkspaceId, onSelectWor
                     }
                   }}
                 >
-                  <div className={`w-2 h-2 rounded-full ${activeWorkspaceId === ws.id ? 'bg-indigo-500' : 'bg-slate-300'}`} />
+                  <div className={`w-2.5 h-2.5 rounded-full ${activeWorkspaceId === ws.id ? 'bg-neutral-900 ring-2 ring-neutral-300' : 'bg-neutral-300'}`} />
                   
                   {editingId === ws.id ? (
                     <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
@@ -95,18 +107,18 @@ export function WorkspaceModal({ isOpen, onClose, activeWorkspaceId, onSelectWor
                         value={editName}
                         onChange={e => setEditName(e.target.value)}
                         onKeyDown={e => e.key === 'Enter' && saveEdit()}
-                        className="px-2 py-1 border border-indigo-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="px-2 py-1 border border-neutral-400 rounded-lg text-xs font-semibold text-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
                         autoFocus
                       />
-                      <button onClick={saveEdit} className="p-1 text-emerald-600 hover:bg-emerald-100 rounded">
-                        <Check className="w-4 h-4" />
+                      <button onClick={saveEdit} className="p-1 bg-neutral-900 text-white hover:bg-black rounded-md transition cursor-pointer">
+                        <Check className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   ) : (
                     <div>
-                      <div className="font-semibold text-slate-800 text-sm">{ws.name}</div>
-                      <div className="text-[10px] text-slate-500">
-                        {new Date(ws.updatedAt).toLocaleString()}
+                      <div className="font-bold text-neutral-900 text-xs sm:text-sm">{ws.name}</div>
+                      <div className="text-[10px] text-neutral-500 font-mono">
+                        {new Date(ws.updatedAt).toLocaleDateString()}
                       </div>
                     </div>
                   )}
@@ -116,7 +128,7 @@ export function WorkspaceModal({ isOpen, onClose, activeWorkspaceId, onSelectWor
                   <div className="flex items-center gap-1">
                     <button 
                       onClick={(e) => { e.stopPropagation(); startEdit(ws); }}
-                      className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition"
+                      className="p-1.5 text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg transition cursor-pointer"
                       title="Rename"
                     >
                       <Edit2 className="w-3.5 h-3.5" />
@@ -124,7 +136,7 @@ export function WorkspaceModal({ isOpen, onClose, activeWorkspaceId, onSelectWor
                     {ws.id !== DEFAULT_WORKSPACE_ID && (
                       <button 
                         onClick={(e) => { e.stopPropagation(); handleDelete(ws.id); }}
-                        className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition"
+                        className="p-1.5 text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg transition cursor-pointer"
                         title="Delete"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -137,30 +149,30 @@ export function WorkspaceModal({ isOpen, onClose, activeWorkspaceId, onSelectWor
           </div>
 
           {isCreating ? (
-            <div className="mt-4 p-3 border border-indigo-200 bg-indigo-50/50 rounded-lg flex items-center gap-2">
+            <div className="mt-4 p-3 border border-neutral-300 bg-neutral-50 rounded-xl flex items-center gap-2">
               <input 
                 type="text"
                 placeholder={lang === 'en' ? 'Sheet name (e.g. Buyer B)' : 'শিটের নাম (যেমন: বায়ার বি)'}
                 value={newName}
                 onChange={e => setNewName(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleCreate()}
-                className="flex-1 px-3 py-1.5 border border-indigo-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="flex-1 px-3 py-1.5 bg-white border border-neutral-300 rounded-lg text-xs font-semibold text-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
                 autoFocus
               />
-              <button onClick={handleCreate} className="px-3 py-1.5 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700">
+              <button onClick={handleCreate} className="px-3 py-1.5 bg-neutral-900 text-white rounded-lg text-xs font-bold hover:bg-black transition cursor-pointer">
                 {lang === 'en' ? 'Add' : 'যোগ'}
               </button>
-              <button onClick={() => setIsCreating(false)} className="px-3 py-1.5 bg-white border border-slate-300 text-slate-700 rounded-md text-sm font-medium hover:bg-slate-50">
+              <button onClick={() => setIsCreating(false)} className="p-1.5 bg-white border border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-100 transition cursor-pointer">
                 <X className="w-4 h-4" />
               </button>
             </div>
           ) : (
             <button 
               onClick={() => setIsCreating(true)}
-              className="mt-4 w-full py-2.5 border-2 border-dashed border-slate-200 rounded-lg flex items-center justify-center gap-2 text-sm font-semibold text-slate-500 hover:text-indigo-600 hover:border-indigo-300 hover:bg-indigo-50 transition"
+              className="mt-4 w-full py-2.5 border-2 border-dashed border-neutral-300 rounded-xl flex items-center justify-center gap-2 text-xs font-bold text-neutral-700 hover:text-neutral-900 hover:border-neutral-900 hover:bg-neutral-50 transition cursor-pointer"
             >
               <Plus className="w-4 h-4" />
-              {lang === 'en' ? 'Create New Target Sheet' : 'নতুন টার্গেট শিট তৈরি করুন'}
+              <span>{lang === 'en' ? 'Create New Target Sheet' : 'নতুন টার্গেট শিট তৈরি করুন'}</span>
             </button>
           )}
         </div>

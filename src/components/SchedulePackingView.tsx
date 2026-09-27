@@ -444,7 +444,7 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
       {/* ========================================================================= */}
       <div className="p-4 rounded-2xl bg-slate-900/60 backdrop-blur-2xl border border-slate-700/60 shadow-xl flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center text-blue-400 shadow-inner">
+          <div className="w-10 h-10 rounded-xl bg-neutral-800/20 border border-neutral-300/30 flex items-center justify-center text-neutral-400 shadow-inner">
             <Boxes className="w-5 h-5" />
           </div>
           <div>
@@ -452,7 +452,7 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
               <h2 className="text-lg font-bold text-white tracking-wide">
                 {lang === 'en' ? 'Schedule-wise Packing & Balance Hub' : 'শিডিউলভিত্তিক প্যাকিং ও ব্যালেন্স হাব'}
               </h2>
-              <span className="px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 text-[11px] font-mono border border-blue-400/20">
+              <span className="px-2 py-0.5 rounded-full bg-neutral-800/20 text-neutral-300 text-[11px] font-mono border border-neutral-300/20">
                 ERP Sync
               </span>
             </div>
@@ -468,16 +468,16 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
         <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={handleSyncFromExcelTracker}
-            className="px-3 py-1.5 rounded-xl bg-indigo-600/80 hover:bg-indigo-500 text-white border border-indigo-500/40 font-medium text-xs flex items-center gap-1.5 shadow-sm transition cursor-pointer"
+            className="px-3 py-1.5 rounded-xl bg-neutral-900/80 hover:bg-neutral-800 text-white border border-neutral-400/40 font-medium text-xs flex items-center gap-1.5 shadow-sm transition cursor-pointer"
             title={lang === 'en' ? 'Sync and import orders from uploaded Excel schedules' : 'আপলোডকৃত এক্সেল ফাইল থেকে শিডিউল সিঙ্ক করুন'}
           >
-            <FileSpreadsheet className="w-3.5 h-3.5 text-indigo-300" />
+            <FileSpreadsheet className="w-3.5 h-3.5 text-neutral-300" />
             <span>{lang === 'en' ? 'Sync Excel' : 'এক্সেল সিঙ্ক'}</span>
           </button>
 
           <button
             onClick={() => setIsAddScheduleOpen(true)}
-            className="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs flex items-center gap-1.5 shadow-md shadow-blue-500/20 transition cursor-pointer"
+            className="px-3.5 py-1.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white font-medium text-xs flex items-center gap-1.5 shadow-md shadow-blue-500/20 transition cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>{lang === 'en' ? 'New Schedule' : 'নতুন শিডিউল'}</span>
@@ -507,15 +507,15 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
         <div
           className={`p-3 rounded-xl text-xs flex items-center justify-between gap-2 border transition-all ${
             statusMessage.type === 'success'
-              ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-200'
-              : 'bg-rose-950/40 border-rose-500/40 text-rose-200'
+              ? 'bg-neutral-950/40 border-neutral-400/40 text-neutral-200'
+              : 'bg-neutral-950/40 border-neutral-400/40 text-neutral-200'
           }`}
         >
           <div className="flex items-center gap-2">
             {statusMessage.type === 'success' ? (
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+              <CheckCircle2 className="w-4 h-4 text-neutral-400 shrink-0" />
             ) : (
-              <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+              <AlertCircle className="w-4 h-4 text-neutral-400 shrink-0" />
             )}
             <span>{statusMessage.text}</span>
           </div>
@@ -536,13 +536,13 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
         <div className="p-3.5 rounded-2xl bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 shadow-lg">
           <div className="flex items-center justify-between text-slate-400 text-xs mb-1">
             <span>{lang === 'en' ? 'Schedules' : 'মোট শিডিউল'}</span>
-            <Layers className="w-3.5 h-3.5 text-blue-400" />
+            <Layers className="w-3.5 h-3.5 text-neutral-400" />
           </div>
           <div className="text-xl font-bold text-white font-mono">{stats.totalSchedules}</div>
           <div className="flex items-center gap-1.5 text-[10px] text-slate-400 mt-1">
-            <span className="text-emerald-400">{stats.completedSchedules} done</span>
+            <span className="text-neutral-400">{stats.completedSchedules} done</span>
             <span>•</span>
-            <span className="text-amber-400">{stats.inProgressSchedules} active</span>
+            <span className="text-neutral-400">{stats.inProgressSchedules} active</span>
           </div>
         </div>
 
@@ -550,7 +550,7 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
         <div className="p-3.5 rounded-2xl bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 shadow-lg">
           <div className="flex items-center justify-between text-slate-400 text-xs mb-1">
             <span>{lang === 'en' ? 'Target Demand' : 'টার্গেট চাহিদা'}</span>
-            <TrendingUp className="w-3.5 h-3.5 text-indigo-400" />
+            <TrendingUp className="w-3.5 h-3.5 text-neutral-400" />
           </div>
           <div className="text-xl font-bold text-white font-mono">
             {stats.totalTargetQty.toLocaleString()}
@@ -564,40 +564,40 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
         <div className="p-3.5 rounded-2xl bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 shadow-lg">
           <div className="flex items-center justify-between text-slate-400 text-xs mb-1">
             <span>{lang === 'en' ? 'Total Packed' : 'মোট প্যাকড'}</span>
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+            <CheckCircle2 className="w-3.5 h-3.5 text-neutral-400" />
           </div>
-          <div className="text-xl font-bold text-emerald-400 font-mono">
+          <div className="text-xl font-bold text-neutral-400 font-mono">
             {stats.totalPackedQty.toLocaleString()}
           </div>
-          <div className="text-[10px] text-emerald-400/80 mt-1 font-medium">
+          <div className="text-[10px] text-neutral-400/80 mt-1 font-medium">
             {stats.overallFulfillment}% {lang === 'en' ? 'fulfilled' : 'সম্পন্ন'}
           </div>
         </div>
 
         {/* Remaining Balance */}
-        <div className="p-3.5 rounded-2xl bg-slate-900/60 backdrop-blur-xl border border-amber-500/20 bg-amber-950/10 shadow-lg">
-          <div className="flex items-center justify-between text-amber-300 text-xs mb-1">
+        <div className="p-3.5 rounded-2xl bg-slate-900/60 backdrop-blur-xl border border-neutral-400/20 bg-neutral-950/10 shadow-lg">
+          <div className="flex items-center justify-between text-neutral-300 text-xs mb-1">
             <span>{lang === 'en' ? 'Balance Remaining' : 'অবশিষ্ট ব্যালেন্স'}</span>
-            <Clock className="w-3.5 h-3.5 text-amber-400" />
+            <Clock className="w-3.5 h-3.5 text-neutral-400" />
           </div>
-          <div className="text-xl font-bold text-amber-400 font-mono">
+          <div className="text-xl font-bold text-neutral-400 font-mono">
             {stats.totalBalanceQty.toLocaleString()}
           </div>
-          <div className="text-[10px] text-amber-300/70 mt-1">
+          <div className="text-[10px] text-neutral-300/70 mt-1">
             {lang === 'en' ? 'To be packed' : 'প্যাকিং বাকি আছে'}
           </div>
         </div>
 
         {/* Today's Packed Output */}
-        <div className="p-3.5 rounded-2xl bg-slate-900/60 backdrop-blur-xl border border-blue-500/20 bg-blue-950/10 shadow-lg">
-          <div className="flex items-center justify-between text-blue-300 text-xs mb-1">
+        <div className="p-3.5 rounded-2xl bg-slate-900/60 backdrop-blur-xl border border-neutral-400/20 bg-neutral-950/10 shadow-lg">
+          <div className="flex items-center justify-between text-neutral-300 text-xs mb-1">
             <span>{lang === 'en' ? "Today's Packed" : 'আজকের প্যাকিং'}</span>
-            <Zap className="w-3.5 h-3.5 text-blue-400" />
+            <Zap className="w-3.5 h-3.5 text-neutral-400" />
           </div>
-          <div className="text-xl font-bold text-blue-400 font-mono">
+          <div className="text-xl font-bold text-neutral-400 font-mono">
             {stats.todayPackedQty.toLocaleString()}
           </div>
-          <div className="text-[10px] text-blue-300/80 mt-1 font-medium">
+          <div className="text-[10px] text-neutral-300/80 mt-1 font-medium">
             {stats.todayCartons} {lang === 'en' ? 'cartons today' : 'কার্টন আজ'}
           </div>
         </div>
@@ -606,9 +606,9 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
         <div className="p-3.5 rounded-2xl bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 shadow-lg">
           <div className="flex items-center justify-between text-slate-400 text-xs mb-1">
             <span>{lang === 'en' ? 'Total Cartons' : 'মোট কার্টন'}</span>
-            <Package className="w-3.5 h-3.5 text-purple-400" />
+            <Package className="w-3.5 h-3.5 text-neutral-400" />
           </div>
-          <div className="text-xl font-bold text-purple-300 font-mono">
+          <div className="text-xl font-bold text-neutral-300 font-mono">
             {stats.totalCartons.toLocaleString()}
           </div>
           <div className="text-[10px] text-slate-400 mt-1">
@@ -628,7 +628,7 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
               onClick={() => setActiveSubTab('schedules')}
               className={`px-3 py-1 rounded-lg text-xs font-medium transition cursor-pointer flex items-center gap-1.5 ${
                 activeSubTab === 'schedules'
-                  ? 'bg-blue-600 text-white shadow-sm'
+                  ? 'bg-neutral-900 text-white shadow-sm'
                   : 'text-slate-400 hover:text-white'
               }`}
             >
@@ -643,7 +643,7 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
               onClick={() => setActiveSubTab('history')}
               className={`px-3 py-1 rounded-lg text-xs font-medium transition cursor-pointer flex items-center gap-1.5 ${
                 activeSubTab === 'history'
-                  ? 'bg-blue-600 text-white shadow-sm'
+                  ? 'bg-neutral-900 text-white shadow-sm'
                   : 'text-slate-400 hover:text-white'
               }`}
             >
@@ -667,7 +667,7 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
               }
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-8 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700 text-xs text-slate-100 placeholder:text-slate-500 focus:outline-hidden focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+              className="w-full pl-9 pr-8 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700 text-xs text-slate-100 placeholder:text-slate-500 focus:outline-hidden focus:border-neutral-400 focus:ring-1 focus:ring-neutral-400"
             />
             {searchQuery && (
               <button
@@ -707,7 +707,7 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
         {/* Date Filter Quick Chips & Status Selectors */}
         <div className="flex items-center gap-2 flex-wrap pt-2 border-t border-slate-800/80 text-xs">
           <div className="flex items-center gap-1 text-slate-400">
-            <Calendar className="w-3.5 h-3.5 text-blue-400" />
+            <Calendar className="w-3.5 h-3.5 text-neutral-400" />
             <span>{lang === 'en' ? 'Date:' : 'তারিখ:'}</span>
           </div>
 
@@ -729,7 +729,7 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
                   onClick={() => setDateFilter({ type })}
                   className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition cursor-pointer ${
                     isActive
-                      ? 'bg-blue-600 text-white shadow-xs'
+                      ? 'bg-neutral-900 text-white shadow-xs'
                       : 'bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700/60'
                   }`}
                 >
@@ -796,7 +796,7 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
                 </p>
                 <button
                   onClick={() => setIsAddScheduleOpen(true)}
-                  className="mt-3 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium cursor-pointer"
+                  className="mt-3 px-3 py-1.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-medium cursor-pointer"
                 >
                   {lang === 'en' ? '+ Create New Schedule' : '+ নতুন শিডিউল যোগ করুন'}
                 </button>
@@ -809,12 +809,12 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
                 return (
                   <div
                     key={schedule.id}
-                    className="p-4 rounded-2xl bg-slate-900/60 backdrop-blur-xl border border-slate-700/60 hover:border-blue-500/50 transition-all flex flex-col justify-between shadow-lg group relative overflow-hidden"
+                    className="p-4 rounded-2xl bg-slate-900/60 backdrop-blur-xl border border-slate-700/60 hover:border-neutral-400/50 transition-all flex flex-col justify-between shadow-lg group relative overflow-hidden"
                   >
                     {/* Glowing side accent */}
                     <div
                       className={`absolute top-0 left-0 bottom-0 w-1 ${
-                        isComplete ? 'bg-emerald-500' : progressPct > 0 ? 'bg-blue-500' : 'bg-slate-600'
+                        isComplete ? 'bg-neutral-800' : progressPct > 0 ? 'bg-neutral-800' : 'bg-slate-600'
                       }`}
                     />
 
@@ -834,15 +834,15 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
                           <span
                             className={`px-2 py-0.5 rounded-full text-[10px] font-medium flex items-center gap-1 border ${
                               isComplete
-                                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                                ? 'bg-neutral-800/20 text-neutral-300 border-neutral-400/30'
                                 : progressPct > 0
-                                ? 'bg-blue-500/20 text-blue-300 border-blue-500/30'
+                                ? 'bg-neutral-800/20 text-neutral-300 border-neutral-400/30'
                                 : 'bg-slate-800 text-slate-400 border-slate-700'
                             }`}
                           >
                             <span
                               className={`w-1.5 h-1.5 rounded-full ${
-                                isComplete ? 'bg-emerald-400' : progressPct > 0 ? 'bg-blue-400' : 'bg-slate-400'
+                                isComplete ? 'bg-neutral-400' : progressPct > 0 ? 'bg-neutral-400' : 'bg-slate-400'
                               }`}
                             />
                             <span>
@@ -856,7 +856,7 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
 
                           <button
                             onClick={(e) => handleDeleteSchedule(schedule.id, e)}
-                            className="p-1 text-slate-500 hover:text-rose-400 rounded-md transition"
+                            className="p-1 text-slate-500 hover:text-neutral-400 rounded-md transition"
                             title="Delete Schedule"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -879,7 +879,7 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
                             {schedule.itemDescription} • {schedule.size} • {schedule.color}
                           </span>
                           {schedule.deliveryDate && (
-                            <span className="text-amber-300/80 font-mono">
+                            <span className="text-neutral-300/80 font-mono">
                               Due: {schedule.deliveryDate}
                             </span>
                           )}
@@ -899,29 +899,29 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
                         </div>
 
                         <div>
-                          <div className="text-[10px] text-emerald-400 uppercase tracking-wider">
+                          <div className="text-[10px] text-neutral-400 uppercase tracking-wider">
                             {lang === 'en' ? 'Packed' : 'প্যাকড'}
                           </div>
-                          <div className="text-xs font-bold text-emerald-400 font-mono">
+                          <div className="text-xs font-bold text-neutral-400 font-mono">
                             {schedule.completedQty.toLocaleString()}
                           </div>
-                          <div className="text-[9px] text-emerald-400/80">
+                          <div className="text-[9px] text-neutral-400/80">
                             {schedule.totalCartons} ctns
                           </div>
                         </div>
 
                         <div>
-                          <div className="text-[10px] text-amber-400 uppercase tracking-wider">
+                          <div className="text-[10px] text-neutral-400 uppercase tracking-wider">
                             {lang === 'en' ? 'Balance' : 'ব্যালেন্স'}
                           </div>
                           <div
                             className={`text-xs font-bold font-mono ${
-                              isComplete ? 'text-emerald-400' : 'text-amber-400'
+                              isComplete ? 'text-neutral-400' : 'text-neutral-400'
                             }`}
                           >
                             {schedule.balanceQty.toLocaleString()}
                           </div>
-                          <div className="text-[9px] text-amber-400/80">
+                          <div className="text-[9px] text-neutral-400/80">
                             {isComplete ? '0 left' : `${schedule.unit} left`}
                           </div>
                         </div>
@@ -937,10 +937,10 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
                           <div
                             className={`h-full rounded-full transition-all duration-500 ${
                               isComplete
-                                ? 'bg-emerald-500'
+                                ? 'bg-neutral-800'
                                 : progressPct > 50
-                                ? 'bg-blue-500'
-                                : 'bg-amber-500'
+                                ? 'bg-neutral-800'
+                                : 'bg-neutral-800'
                             }`}
                             style={{ width: `${Math.min(100, progressPct)}%` }}
                           />
@@ -954,7 +954,7 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
                         {/* Daily Packing Entry Button */}
                         <button
                           onClick={() => handleOpenDailyPacking(schedule)}
-                          className="px-2.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs flex items-center gap-1 shadow-xs transition cursor-pointer"
+                          className="px-2.5 py-1.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white font-medium text-xs flex items-center gap-1 shadow-xs transition cursor-pointer"
                           title={lang === 'en' ? "Record today's packed cartons" : 'আজকের প্যাকিং এন্ট্রি করুন'}
                         >
                           <Plus className="w-3.5 h-3.5" />
@@ -976,10 +976,10 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
                       {(onLoadScheduleToTable || onLoadScheduleToSheet) && (
                         <button
                           onClick={() => handleLoadSchedule(schedule)}
-                          className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-blue-400 font-medium text-xs flex items-center gap-1 border border-slate-700 transition cursor-pointer"
+                          className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-neutral-400 font-medium text-xs flex items-center gap-1 border border-slate-700 transition cursor-pointer"
                           title={lang === 'en' ? 'Load order specs into Carton Table' : 'টেবিলে লোড করুন'}
                         >
-                          <Package className="w-3.5 h-3.5 text-blue-400" />
+                          <Package className="w-3.5 h-3.5 text-neutral-400" />
                           <span>{lang === 'en' ? 'Open Table' : 'টেবিল'}</span>
                         </button>
                       )}
@@ -1002,8 +1002,8 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
                   <th className="px-3 py-2.5">Order Ref</th>
                   <th className="px-3 py-2.5">Item Specs</th>
                   <th className="px-3 py-2.5 text-right">Target</th>
-                  <th className="px-3 py-2.5 text-right text-emerald-400">Packed</th>
-                  <th className="px-3 py-2.5 text-right text-amber-400">Balance</th>
+                  <th className="px-3 py-2.5 text-right text-neutral-400">Packed</th>
+                  <th className="px-3 py-2.5 text-right text-neutral-400">Balance</th>
                   <th className="px-3 py-2.5 text-center">Ctns</th>
                   <th className="px-3 py-2.5 text-center">Progress</th>
                   <th className="px-3 py-2.5 text-center">Status</th>
@@ -1031,10 +1031,10 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
                       <td className="px-3 py-2.5 text-right font-mono font-bold text-slate-200">
                         {s.targetQty.toLocaleString()} {s.unit}
                       </td>
-                      <td className="px-3 py-2.5 text-right font-mono font-bold text-emerald-400">
+                      <td className="px-3 py-2.5 text-right font-mono font-bold text-neutral-400">
                         {s.completedQty.toLocaleString()}
                       </td>
-                      <td className="px-3 py-2.5 text-right font-mono font-bold text-amber-400">
+                      <td className="px-3 py-2.5 text-right font-mono font-bold text-neutral-400">
                         {s.balanceQty.toLocaleString()}
                       </td>
                       <td className="px-3 py-2.5 text-center font-mono">
@@ -1047,8 +1047,8 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
                         <span
                           className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${
                             isComplete
-                              ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
-                              : 'bg-blue-500/20 text-blue-300 border-blue-500/30'
+                              ? 'bg-neutral-800/20 text-neutral-300 border-neutral-400/30'
+                              : 'bg-neutral-800/20 text-neutral-300 border-neutral-400/30'
                           }`}
                         >
                           {isComplete ? 'Complete' : 'In Progress'}
@@ -1058,14 +1058,14 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
                         <div className="flex items-center justify-center gap-1">
                           <button
                             onClick={() => handleOpenDailyPacking(s)}
-                            className="px-2 py-1 rounded bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-medium"
+                            className="px-2 py-1 rounded bg-neutral-900 hover:bg-neutral-800 text-white text-[11px] font-medium"
                           >
                             + Pack
                           </button>
                           {(onLoadScheduleToTable || onLoadScheduleToSheet) && (
                             <button
                               onClick={() => handleLoadSchedule(s)}
-                              className="p-1 rounded bg-slate-800 hover:bg-slate-700 text-blue-400"
+                              className="p-1 rounded bg-slate-800 hover:bg-slate-700 text-neutral-400"
                               title={lang === 'en' ? 'Open in Carton Table' : 'কার্টন টেবিলে খুলুন'}
                             >
                               <Package className="w-3.5 h-3.5" />
@@ -1101,7 +1101,7 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
                 <th className="px-3 py-2.5">Order Ref</th>
                 <th className="px-3 py-2.5 text-center">Cartons</th>
                 <th className="px-3 py-2.5 text-center">Range</th>
-                <th className="px-3 py-2.5 text-right text-emerald-400">Packed Qty</th>
+                <th className="px-3 py-2.5 text-right text-neutral-400">Packed Qty</th>
                 <th className="px-3 py-2.5 text-right">Net Wt (Kg)</th>
                 <th className="px-3 py-2.5">Operator & Shift</th>
                 <th className="px-3 py-2.5">Notes</th>
@@ -1121,7 +1121,7 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
                     <td className="px-3 py-2.5 font-mono text-slate-300">
                       {log.packingDate}
                     </td>
-                    <td className="px-3 py-2.5 font-mono font-bold text-blue-400">
+                    <td className="px-3 py-2.5 font-mono font-bold text-neutral-400">
                       {log.scheduleNo}
                     </td>
                     <td className="px-3 py-2.5 font-bold text-white">
@@ -1136,7 +1136,7 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
                     <td className="px-3 py-2.5 text-center font-mono text-slate-400">
                       #{log.startCartonNo || 1} - #{log.endCartonNo || log.cartonsCount}
                     </td>
-                    <td className="px-3 py-2.5 text-right font-mono font-bold text-emerald-400">
+                    <td className="px-3 py-2.5 text-right font-mono font-bold text-neutral-400">
                       {log.packedQty.toLocaleString()} {log.unit}
                     </td>
                     <td className="px-3 py-2.5 text-right font-mono text-slate-300">
@@ -1152,7 +1152,7 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
                     <td className="px-3 py-2.5 text-center">
                       <button
                         onClick={() => handleDeleteLog(log.id)}
-                        className="p-1 rounded text-slate-500 hover:text-rose-400 transition"
+                        className="p-1 rounded text-slate-500 hover:text-neutral-400 transition"
                         title="Delete log"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -1174,7 +1174,7 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
           <div className="w-full max-w-lg rounded-2xl bg-slate-900 border border-slate-700 shadow-2xl p-5 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-lg bg-neutral-800/20 text-neutral-400 flex items-center justify-center">
                   <Package className="w-4 h-4" />
                 </div>
                 <div>
@@ -1203,14 +1203,14 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
                 </span>
               </div>
               <div>
-                <span className="text-emerald-400 block text-[10px]">Packed So Far</span>
-                <span className="font-mono font-bold text-emerald-400">
+                <span className="text-neutral-400 block text-[10px]">Packed So Far</span>
+                <span className="font-mono font-bold text-neutral-400">
                   {selectedScheduleForPacking.completedQty.toLocaleString()} ({selectedScheduleForPacking.totalCartons} ctns)
                 </span>
               </div>
               <div>
-                <span className="text-amber-400 block text-[10px]">Current Balance</span>
-                <span className="font-mono font-bold text-amber-400">
+                <span className="text-neutral-400 block text-[10px]">Current Balance</span>
+                <span className="font-mono font-bold text-neutral-400">
                   {selectedScheduleForPacking.balanceQty.toLocaleString()}
                 </span>
               </div>
@@ -1220,9 +1220,9 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
             <button
               type="button"
               onClick={handleImportCurrentCartons}
-              className="w-full py-2 px-3 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/40 text-xs font-medium flex items-center justify-center gap-1.5 transition cursor-pointer"
+              className="w-full py-2 px-3 rounded-xl bg-neutral-900/20 hover:bg-neutral-800/30 text-neutral-300 border border-neutral-400/40 text-xs font-medium flex items-center justify-center gap-1.5 transition cursor-pointer"
             >
-              <Zap className="w-3.5 h-3.5 text-blue-400" />
+              <Zap className="w-3.5 h-3.5 text-neutral-400" />
               <span>{lang === 'en' ? '⚡ Auto-Fill From Current Packing Sheet' : '⚡ বর্তমান শিট থেকে অটো-ফিল করুন'}</span>
             </button>
 
@@ -1237,7 +1237,7 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
                     required
                     value={packingDate}
                     onChange={(e) => setPackingDate(e.target.value)}
-                    className="w-full bg-slate-800 text-slate-100 border border-slate-700 rounded-xl px-3 py-1.5 font-mono focus:outline-hidden focus:border-blue-500"
+                    className="w-full bg-slate-800 text-slate-100 border border-slate-700 rounded-xl px-3 py-1.5 font-mono focus:outline-hidden focus:border-neutral-400"
                   />
                 </div>
 
@@ -1252,7 +1252,7 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
                     placeholder="e.g. 1500"
                     value={packedQty}
                     onChange={(e) => setPackedQty(e.target.value)}
-                    className="w-full bg-slate-800 text-emerald-300 border border-slate-700 rounded-xl px-3 py-1.5 font-mono font-bold focus:outline-hidden focus:border-blue-500"
+                    className="w-full bg-slate-800 text-neutral-300 border border-slate-700 rounded-xl px-3 py-1.5 font-mono font-bold focus:outline-hidden focus:border-neutral-400"
                   />
                 </div>
               </div>
@@ -1269,7 +1269,7 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
                     required
                     value={cartonsCount}
                     onChange={(e) => setCartonsCount(e.target.value)}
-                    className="w-full bg-slate-800 text-slate-100 border border-slate-700 rounded-xl px-3 py-1.5 font-mono focus:outline-hidden focus:border-blue-500"
+                    className="w-full bg-slate-800 text-slate-100 border border-slate-700 rounded-xl px-3 py-1.5 font-mono focus:outline-hidden focus:border-neutral-400"
                   />
                 </div>
 
@@ -1282,7 +1282,7 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
                     min="1"
                     value={startCartonNo}
                     onChange={(e) => setStartCartonNo(e.target.value)}
-                    className="w-full bg-slate-800 text-slate-100 border border-slate-700 rounded-xl px-3 py-1.5 font-mono focus:outline-hidden focus:border-blue-500"
+                    className="w-full bg-slate-800 text-slate-100 border border-slate-700 rounded-xl px-3 py-1.5 font-mono focus:outline-hidden focus:border-neutral-400"
                   />
                 </div>
 
@@ -1295,7 +1295,7 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
                     min="1"
                     value={endCartonNo}
                     onChange={(e) => setEndCartonNo(e.target.value)}
-                    className="w-full bg-slate-800 text-slate-100 border border-slate-700 rounded-xl px-3 py-1.5 font-mono focus:outline-hidden focus:border-blue-500"
+                    className="w-full bg-slate-800 text-slate-100 border border-slate-700 rounded-xl px-3 py-1.5 font-mono focus:outline-hidden focus:border-neutral-400"
                   />
                 </div>
               </div>
@@ -1312,7 +1312,7 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
                     placeholder="e.g. 12.50"
                     value={netWeightKg}
                     onChange={(e) => setNetWeightKg(e.target.value)}
-                    className="w-full bg-slate-800 text-slate-100 border border-slate-700 rounded-xl px-3 py-1.5 font-mono focus:outline-hidden focus:border-blue-500"
+                    className="w-full bg-slate-800 text-slate-100 border border-slate-700 rounded-xl px-3 py-1.5 font-mono focus:outline-hidden focus:border-neutral-400"
                   />
                 </div>
 
@@ -1326,7 +1326,7 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
                     placeholder="e.g. 14.00"
                     value={grossWeightKg}
                     onChange={(e) => setGrossWeightKg(e.target.value)}
-                    className="w-full bg-slate-800 text-slate-100 border border-slate-700 rounded-xl px-3 py-1.5 font-mono focus:outline-hidden focus:border-blue-500"
+                    className="w-full bg-slate-800 text-slate-100 border border-slate-700 rounded-xl px-3 py-1.5 font-mono focus:outline-hidden focus:border-neutral-400"
                   />
                 </div>
               </div>
@@ -1342,7 +1342,7 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
                     placeholder="Operator name"
                     value={operator}
                     onChange={(e) => setOperator(e.target.value)}
-                    className="w-full bg-slate-800 text-slate-100 border border-slate-700 rounded-xl px-3 py-1.5 focus:outline-hidden focus:border-blue-500"
+                    className="w-full bg-slate-800 text-slate-100 border border-slate-700 rounded-xl px-3 py-1.5 focus:outline-hidden focus:border-neutral-400"
                   />
                 </div>
 
@@ -1353,7 +1353,7 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
                   <select
                     value={shift}
                     onChange={(e) => setShift(e.target.value as any)}
-                    className="w-full bg-slate-800 text-slate-100 border border-slate-700 rounded-xl px-3 py-1.5 focus:outline-hidden focus:border-blue-500"
+                    className="w-full bg-slate-800 text-slate-100 border border-slate-700 rounded-xl px-3 py-1.5 focus:outline-hidden focus:border-neutral-400"
                   >
                     <option value="Morning">Morning Shift</option>
                     <option value="Day">Day Shift</option>
@@ -1373,7 +1373,7 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
                   placeholder="Optional packing remarks..."
                   value={packingNotes}
                   onChange={(e) => setPackingNotes(e.target.value)}
-                  className="w-full bg-slate-800 text-slate-100 border border-slate-700 rounded-xl px-3 py-1.5 focus:outline-hidden focus:border-blue-500"
+                  className="w-full bg-slate-800 text-slate-100 border border-slate-700 rounded-xl px-3 py-1.5 focus:outline-hidden focus:border-neutral-400"
                 />
               </div>
 
@@ -1381,7 +1381,7 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
               {packedQty && Number(packedQty) > 0 && (
                 <div className="p-2.5 rounded-xl bg-slate-800/90 border border-slate-700 text-slate-300 text-xs flex items-center justify-between">
                   <span>{lang === 'en' ? 'New Balance After Entry:' : 'এন্ট্রির পর নতুন ব্যালেন্স:'}</span>
-                  <span className="font-mono font-bold text-emerald-400">
+                  <span className="font-mono font-bold text-neutral-400">
                     {Math.max(0, selectedScheduleForPacking.balanceQty - Number(packedQty)).toLocaleString()} {selectedScheduleForPacking.unit}
                   </span>
                 </div>
@@ -1399,7 +1399,7 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
                 <button
                   type="submit"
                   disabled={isSubmittingLog}
-                  className="px-4 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs shadow-md shadow-blue-500/20 transition cursor-pointer flex items-center gap-1.5"
+                  className="px-4 py-1.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white font-medium text-xs shadow-md shadow-blue-500/20 transition cursor-pointer flex items-center gap-1.5"
                 >
                   <Check className="w-3.5 h-3.5" />
                   <span>{isSubmittingLog ? 'Saving...' : lang === 'en' ? 'Commit Entry' : 'এন্ট্রি সেভ করুন'}</span>
@@ -1418,7 +1418,7 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
           <div className="w-full max-w-lg rounded-2xl bg-slate-900 border border-slate-700 shadow-2xl p-5 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-lg bg-neutral-800/20 text-neutral-400 flex items-center justify-center">
                   <Plus className="w-4 h-4" />
                 </div>
                 <h3 className="text-sm font-bold text-white">
@@ -1445,7 +1445,7 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
                     placeholder="e.g. HCF, H&M, Zara"
                     value={newBuyer}
                     onChange={(e) => setNewBuyer(e.target.value)}
-                    className="w-full bg-slate-800 text-slate-100 border border-slate-700 rounded-xl px-3 py-1.5 focus:outline-hidden focus:border-blue-500"
+                    className="w-full bg-slate-800 text-slate-100 border border-slate-700 rounded-xl px-3 py-1.5 focus:outline-hidden focus:border-neutral-400"
                   />
                 </div>
 
@@ -1458,7 +1458,7 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
                     placeholder="e.g. LIZ, Target"
                     value={newCustomer}
                     onChange={(e) => setNewCustomer(e.target.value)}
-                    className="w-full bg-slate-800 text-slate-100 border border-slate-700 rounded-xl px-3 py-1.5 focus:outline-hidden focus:border-blue-500"
+                    className="w-full bg-slate-800 text-slate-100 border border-slate-700 rounded-xl px-3 py-1.5 focus:outline-hidden focus:border-neutral-400"
                   />
                 </div>
               </div>
@@ -1473,7 +1473,7 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
                   placeholder="e.g. LIZ-LO-ELS-26080056"
                   value={newOrderRef}
                   onChange={(e) => setNewOrderRef(e.target.value)}
-                  className="w-full bg-slate-800 text-slate-100 border border-slate-700 rounded-xl px-3 py-1.5 font-mono focus:outline-hidden focus:border-blue-500"
+                  className="w-full bg-slate-800 text-slate-100 border border-slate-700 rounded-xl px-3 py-1.5 font-mono focus:outline-hidden focus:border-neutral-400"
                 />
               </div>
 
@@ -1487,7 +1487,7 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
                     placeholder="Elastic"
                     value={newItemDescription}
                     onChange={(e) => setNewItemDescription(e.target.value)}
-                    className="w-full bg-slate-800 text-slate-100 border border-slate-700 rounded-xl px-3 py-1.5 focus:outline-hidden focus:border-blue-500"
+                    className="w-full bg-slate-800 text-slate-100 border border-slate-700 rounded-xl px-3 py-1.5 focus:outline-hidden focus:border-neutral-400"
                   />
                 </div>
 
@@ -1500,7 +1500,7 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
                     placeholder="7MM"
                     value={newSize}
                     onChange={(e) => setNewSize(e.target.value)}
-                    className="w-full bg-slate-800 text-slate-100 border border-slate-700 rounded-xl px-3 py-1.5 focus:outline-hidden focus:border-blue-500"
+                    className="w-full bg-slate-800 text-slate-100 border border-slate-700 rounded-xl px-3 py-1.5 focus:outline-hidden focus:border-neutral-400"
                   />
                 </div>
 
@@ -1513,7 +1513,7 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
                     placeholder="BLACK"
                     value={newColor}
                     onChange={(e) => setNewColor(e.target.value)}
-                    className="w-full bg-slate-800 text-slate-100 border border-slate-700 rounded-xl px-3 py-1.5 focus:outline-hidden focus:border-blue-500"
+                    className="w-full bg-slate-800 text-slate-100 border border-slate-700 rounded-xl px-3 py-1.5 focus:outline-hidden focus:border-neutral-400"
                   />
                 </div>
               </div>
@@ -1531,7 +1531,7 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
                     placeholder="e.g. 5000"
                     value={newTargetQty}
                     onChange={(e) => setNewTargetQty(e.target.value)}
-                    className="w-full bg-slate-800 text-blue-300 border border-slate-700 rounded-xl px-3 py-1.5 font-mono font-bold focus:outline-hidden focus:border-blue-500"
+                    className="w-full bg-slate-800 text-neutral-300 border border-slate-700 rounded-xl px-3 py-1.5 font-mono font-bold focus:outline-hidden focus:border-neutral-400"
                   />
                 </div>
 
@@ -1542,7 +1542,7 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
                   <select
                     value={newUnit}
                     onChange={(e) => setNewUnit(e.target.value as any)}
-                    className="w-full bg-slate-800 text-slate-100 border border-slate-700 rounded-xl px-3 py-1.5 focus:outline-hidden focus:border-blue-500"
+                    className="w-full bg-slate-800 text-slate-100 border border-slate-700 rounded-xl px-3 py-1.5 focus:outline-hidden focus:border-neutral-400"
                   >
                     <option value="mtr">Meters (Mtr)</option>
                     <option value="pcs">Pieces (Pcs)</option>
@@ -1562,7 +1562,7 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
                     type="date"
                     value={newDeliveryDate}
                     onChange={(e) => setNewDeliveryDate(e.target.value)}
-                    className="w-full bg-slate-800 text-slate-100 border border-slate-700 rounded-xl px-3 py-1.5 font-mono focus:outline-hidden focus:border-blue-500"
+                    className="w-full bg-slate-800 text-slate-100 border border-slate-700 rounded-xl px-3 py-1.5 font-mono focus:outline-hidden focus:border-neutral-400"
                   />
                 </div>
 
@@ -1575,7 +1575,7 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
                     placeholder="e.g. Line-01"
                     value={newAssignedLine}
                     onChange={(e) => setNewAssignedLine(e.target.value)}
-                    className="w-full bg-slate-800 text-slate-100 border border-slate-700 rounded-xl px-3 py-1.5 focus:outline-hidden focus:border-blue-500"
+                    className="w-full bg-slate-800 text-slate-100 border border-slate-700 rounded-xl px-3 py-1.5 focus:outline-hidden focus:border-neutral-400"
                   />
                 </div>
               </div>
@@ -1590,7 +1590,7 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs shadow-md shadow-blue-500/20 transition cursor-pointer flex items-center gap-1"
+                  className="px-4 py-1.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white font-medium text-xs shadow-md shadow-blue-500/20 transition cursor-pointer flex items-center gap-1"
                 >
                   <Check className="w-3.5 h-3.5" />
                   <span>{lang === 'en' ? 'Create Schedule' : 'শিডিউল তৈরি করুন'}</span>
@@ -1609,7 +1609,7 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
           <div className="w-full max-w-2xl rounded-2xl bg-slate-900 border border-slate-700 shadow-2xl p-5 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-lg bg-neutral-800/20 text-neutral-400 flex items-center justify-center">
                   <Clock className="w-4 h-4" />
                 </div>
                 <div>
@@ -1638,20 +1638,20 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
                 </span>
               </div>
               <div>
-                <span className="text-emerald-400 text-[10px] block">Packed</span>
-                <span className="font-mono font-bold text-emerald-400">
+                <span className="text-neutral-400 text-[10px] block">Packed</span>
+                <span className="font-mono font-bold text-neutral-400">
                   {selectedScheduleForHistory.completedQty.toLocaleString()} {selectedScheduleForHistory.unit}
                 </span>
               </div>
               <div>
-                <span className="text-amber-400 text-[10px] block">Balance</span>
-                <span className="font-mono font-bold text-amber-400">
+                <span className="text-neutral-400 text-[10px] block">Balance</span>
+                <span className="font-mono font-bold text-neutral-400">
                   {selectedScheduleForHistory.balanceQty.toLocaleString()}
                 </span>
               </div>
               <div>
-                <span className="text-purple-400 text-[10px] block">Cartons</span>
-                <span className="font-mono font-bold text-purple-300">
+                <span className="text-neutral-400 text-[10px] block">Cartons</span>
+                <span className="font-mono font-bold text-neutral-300">
                   {selectedScheduleForHistory.totalCartons}
                 </span>
               </div>
@@ -1665,7 +1665,7 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
                     <th className="px-3 py-2">Date</th>
                     <th className="px-3 py-2 text-center">Cartons</th>
                     <th className="px-3 py-2 text-center">Range</th>
-                    <th className="px-3 py-2 text-right text-emerald-400">Packed Qty</th>
+                    <th className="px-3 py-2 text-right text-neutral-400">Packed Qty</th>
                     <th className="px-3 py-2 text-right">Net Wt</th>
                     <th className="px-3 py-2">Operator / Shift</th>
                     <th className="px-3 py-2 text-center">Delete</th>
@@ -1681,7 +1681,7 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
                         <td className="px-3 py-2 text-center font-mono text-slate-400">
                           #{log.startCartonNo || 1} - #{log.endCartonNo || log.cartonsCount}
                         </td>
-                        <td className="px-3 py-2 text-right font-mono font-bold text-emerald-400">
+                        <td className="px-3 py-2 text-right font-mono font-bold text-neutral-400">
                           {log.packedQty.toLocaleString()} {log.unit}
                         </td>
                         <td className="px-3 py-2 text-right font-mono text-slate-300">
@@ -1693,7 +1693,7 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
                         <td className="px-3 py-2 text-center">
                           <button
                             onClick={() => handleDeleteLog(log.id)}
-                            className="p-1 text-slate-500 hover:text-rose-400 rounded"
+                            className="p-1 text-slate-500 hover:text-neutral-400 rounded"
                             title="Delete"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -1711,7 +1711,7 @@ export const SchedulePackingView: React.FC<SchedulePackingViewProps> = ({
                   setIsHistoryModalOpen(false);
                   handleOpenDailyPacking(selectedScheduleForHistory);
                 }}
-                className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium flex items-center gap-1.5 cursor-pointer"
+                className="px-3 py-1.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-medium flex items-center gap-1.5 cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>{lang === 'en' ? 'Add Packing Log' : 'প্যাকিং লগ যোগ করুন'}</span>

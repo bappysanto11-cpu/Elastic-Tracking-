@@ -13,10 +13,10 @@ interface ActivitySidebarProps {
 export function ActivitySidebar({ isOpen, onClose, logs = [], lang }: ActivitySidebarProps) {
   const getIcon = (action: ActivityLog['action']) => {
     switch (action) {
-      case 'ADD': return <Plus className="w-3.5 h-3.5 text-emerald-500" />;
-      case 'UPDATE': return <Edit3 className="w-3.5 h-3.5 text-blue-500" />;
-      case 'DELETE': return <Trash2 className="w-3.5 h-3.5 text-rose-500" />;
-      case 'BATCH': return <CheckSquare className="w-3.5 h-3.5 text-purple-500" />;
+      case 'ADD': return <Plus className="w-3.5 h-3.5 text-neutral-700" />;
+      case 'UPDATE': return <Edit3 className="w-3.5 h-3.5 text-neutral-700" />;
+      case 'DELETE': return <Trash2 className="w-3.5 h-3.5 text-neutral-700" />;
+      case 'BATCH': return <CheckSquare className="w-3.5 h-3.5 text-neutral-700" />;
       case 'SYSTEM': return <Settings className="w-3.5 h-3.5 text-slate-500" />;
       default: return <Activity className="w-3.5 h-3.5 text-slate-500" />;
     }
@@ -43,7 +43,7 @@ export function ActivitySidebar({ isOpen, onClose, logs = [], lang }: ActivitySi
       >
         <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-slate-50">
           <div className="flex items-center gap-2">
-            <Activity className="w-5 h-5 text-indigo-600" />
+            <Activity className="w-5 h-5 text-neutral-800" />
             <h2 className="font-bold text-slate-800">
               {lang === 'en' ? 'Activity Log' : 'অ্যাক্টিভিটি লগ'}
             </h2>

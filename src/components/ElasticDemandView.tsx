@@ -201,35 +201,35 @@ export const ElasticDemandView: React.FC<ElasticDemandViewProps> = ({
     const diffDays = Math.round((dDate.getTime() - tDate.getTime()) / (1000 * 3600 * 24));
 
     if (diffDays < 0) {
-      return { label: `${Math.abs(diffDays)}d Overdue`, color: 'bg-rose-100 text-rose-800 border-rose-200' };
+      return { label: `${Math.abs(diffDays)}d Overdue`, color: 'bg-neutral-900 text-white border-neutral-900' };
     }
     if (diffDays === 0) {
-      return { label: 'Due Today', color: 'bg-amber-100 text-amber-900 border-amber-300 font-bold animate-pulse' };
+      return { label: 'Due Today', color: 'bg-neutral-200 text-neutral-950 border-neutral-400 font-extrabold' };
     }
     if (diffDays <= 3) {
-      return { label: `Due in ${diffDays}d`, color: 'bg-amber-50 text-amber-800 border-amber-200' };
+      return { label: `Due in ${diffDays}d`, color: 'bg-neutral-100 text-neutral-800 border-neutral-300' };
     }
-    return { label: `In ${diffDays} days`, color: 'bg-slate-100 text-slate-700 border-slate-200' };
+    return { label: `In ${diffDays} days`, color: 'bg-neutral-50 text-neutral-600 border-neutral-200' };
   };
 
   return (
     <div className="space-y-6">
       {/* Top Banner & Action Header */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 transition-all">
+      <div className="bg-white rounded-2xl border border-neutral-200 shadow-xs p-5 transition-all">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="p-1.5 rounded-lg bg-indigo-100 text-indigo-700">
+              <span className="p-1.5 rounded-lg bg-neutral-900 text-white">
                 <Tag className="w-5 h-5" />
               </span>
-              <h1 className="text-xl font-bold text-slate-900 tracking-tight">
+              <h1 className="text-lg sm:text-xl font-bold text-neutral-900 tracking-tight">
                 {lang === 'en' ? 'Buyer & Customer Elastic Demands' : 'বায়ার ও কাস্টমার ইলাস্টিক চাহিদা ট্র্যাকার'}
               </h1>
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-neutral-100 text-neutral-900 border border-neutral-300">
                 {demands.length} {lang === 'en' ? 'Records' : 'এন্ট্রি'}
               </span>
             </div>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-neutral-500">
               {lang === 'en'
                 ? 'Manage date-wise buyer requirements, reference specs, meter demands, and packing fulfillment'
                 : 'তারিখ অনুযায়ী বায়ারদের ইলাস্টিক রিকোয়ারমেন্ট, মিটার চাহিদা এবং প্যাকিং অগ্রগতি ট্র্যাক করুন'
@@ -241,21 +241,21 @@ export const ElasticDemandView: React.FC<ElasticDemandViewProps> = ({
           <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={handleExportCsv}
-              className="px-3.5 py-2 rounded-xl border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shadow-2xs"
+              className="px-3.5 py-2 rounded-xl border border-neutral-300 bg-white text-neutral-800 hover:bg-neutral-50 text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shadow-2xs"
             >
-              <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+              <FileSpreadsheet className="w-4 h-4 text-neutral-900" />
               <span>{lang === 'en' ? 'Export CSV' : 'এক্সপোর্ট CSV'}</span>
             </button>
             <button
               onClick={handlePrint}
-              className="px-3.5 py-2 rounded-xl border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shadow-2xs"
+              className="px-3.5 py-2 rounded-xl border border-neutral-300 bg-white text-neutral-800 hover:bg-neutral-50 text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shadow-2xs"
             >
-              <Printer className="w-4 h-4 text-slate-600" />
+              <Printer className="w-4 h-4 text-neutral-700" />
               <span>{lang === 'en' ? 'Print Schedule' : 'প্রিন্ট শিডিউল'}</span>
             </button>
             <button
               onClick={handleOpenAddModal}
-              className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-xs font-bold flex items-center gap-2 transition cursor-pointer shadow-xs"
+              className="px-4 py-2 rounded-xl bg-neutral-900 hover:bg-black active:scale-[0.98] text-white text-xs font-bold flex items-center gap-2 transition cursor-pointer shadow-xs"
             >
               <Plus className="w-4 h-4" />
               <span>{lang === 'en' ? '+ New Elastic Demand' : '+ নতুন চাহিদা এন্ট্রি'}</span>
@@ -264,128 +264,121 @@ export const ElasticDemandView: React.FC<ElasticDemandViewProps> = ({
         </div>
 
         {/* Live Metric KPI Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mt-5 pt-4 border-t border-slate-100">
-          <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mt-5 pt-4 border-t border-neutral-100">
+          <div className="bg-neutral-50 p-3 rounded-xl border border-neutral-200">
+            <span className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider block">
               {lang === 'en' ? 'Total Demand (Mtr)' : 'মোট চাহিদা (মিটার)'}
             </span>
-            <span className="text-lg font-mono font-bold text-slate-900">
-              {stats.totalRequiredMeters.toLocaleString()} <span className="text-xs font-normal text-slate-500">m</span>
+            <span className="text-lg font-mono font-extrabold text-neutral-900">
+              {stats.totalRequiredMeters.toLocaleString()} <span className="text-xs font-normal text-neutral-500">m</span>
             </span>
-            <span className="block text-[10px] text-slate-400 mt-0.5">
+            <span className="block text-[10px] text-neutral-500 mt-0.5">
               ~{stats.totalEstimatedKg.toFixed(1)} Kg Est. Net
             </span>
           </div>
 
-          <div className="bg-emerald-50/60 p-3 rounded-xl border border-emerald-200">
-            <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider block">
+          <div className="bg-neutral-50 p-3 rounded-xl border border-neutral-200">
+            <span className="text-[11px] font-bold text-neutral-700 uppercase tracking-wider block">
               {lang === 'en' ? 'Packed (Mtr)' : 'প্যাকিং সম্পন্ন (মিটার)'}
             </span>
-            <span className="text-lg font-mono font-bold text-emerald-700">
-              {stats.totalPackedMeters.toLocaleString()} <span className="text-xs font-normal text-emerald-600">m</span>
+            <span className="text-lg font-mono font-extrabold text-neutral-900">
+              {stats.totalPackedMeters.toLocaleString()} <span className="text-xs font-normal text-neutral-500">m</span>
             </span>
-            <div className="w-full bg-emerald-200 h-1.5 rounded-full mt-1.5 overflow-hidden">
+            <div className="w-full bg-neutral-200 h-1.5 rounded-full mt-1.5 overflow-hidden">
               <div 
-                className="bg-emerald-600 h-full rounded-full transition-all duration-500" 
+                className="bg-neutral-900 h-full rounded-full transition-all duration-500" 
                 style={{ width: `${stats.fulfillmentPercentage}%` }}
               />
             </div>
           </div>
 
-          <div className="bg-indigo-50/60 p-3 rounded-xl border border-indigo-200">
-            <span className="text-[11px] font-bold text-indigo-800 uppercase tracking-wider block">
+          <div className="bg-neutral-50 p-3 rounded-xl border border-neutral-200">
+            <span className="text-[11px] font-bold text-neutral-700 uppercase tracking-wider block">
               {lang === 'en' ? 'Fulfillment %' : 'অগ্রগতি হার'}
             </span>
-            <span className="text-lg font-mono font-bold text-indigo-700">
+            <span className="text-lg font-mono font-extrabold text-neutral-900">
               {stats.fulfillmentPercentage}%
             </span>
-            <span className="block text-[10px] text-indigo-600 mt-0.5">
+            <span className="block text-[10px] text-neutral-500 mt-0.5 font-medium">
               {stats.packedCount + stats.completedCount} / {stats.totalDemandsCount} {lang === 'en' ? 'Orders' : 'অর্ডার'}
             </span>
           </div>
 
-          <div className="bg-amber-50/60 p-3 rounded-xl border border-amber-200">
-            <span className="text-[11px] font-bold text-amber-800 uppercase tracking-wider block">
+          <div className="bg-neutral-50 p-3 rounded-xl border border-neutral-200">
+            <span className="text-[11px] font-bold text-neutral-700 uppercase tracking-wider block">
               {lang === 'en' ? 'Pending / Production' : 'অপেক্ষমাণ ও চলমান'}
             </span>
-            <span className="text-lg font-mono font-bold text-amber-800">
-              {stats.pendingCount + stats.inProductionCount} <span className="text-xs font-normal text-amber-600">Reqs</span>
+            <span className="text-lg font-mono font-extrabold text-neutral-900">
+              {stats.pendingCount + stats.inProductionCount}
             </span>
-            <span className="block text-[10px] text-amber-700 mt-0.5">
-              {stats.pendingCount} Pending · {stats.inProductionCount} In-Prod
+            <span className="block text-[10px] text-neutral-500 mt-0.5">
+              {stats.inProductionCount} in active run
             </span>
           </div>
 
-          <div className="bg-rose-50/60 p-3 rounded-xl border border-rose-200 col-span-2 sm:col-span-1">
-            <span className="text-[11px] font-bold text-rose-800 uppercase tracking-wider block flex items-center gap-1">
-              <AlertTriangle className="w-3 h-3 text-rose-600" />
-              {lang === 'en' ? 'Urgent Priority' : 'জরুরি রিকোয়ারমেন্ট'}
+          <div className="bg-neutral-50 p-3 rounded-xl border border-neutral-200 col-span-2 sm:col-span-1">
+            <span className="text-[11px] font-bold text-neutral-700 uppercase tracking-wider block">
+              {lang === 'en' ? 'Completed Orders' : 'সম্পন্ন অর্ডার'}
             </span>
-            <span className="text-lg font-mono font-bold text-rose-700">
-              {stats.urgentCount}
+            <span className="text-lg font-mono font-extrabold text-neutral-900">
+              {stats.completedCount + stats.packedCount}
             </span>
-            <span className="block text-[10px] text-rose-600 mt-0.5">
-              {lang === 'en' ? 'Needs immediate packing' : 'দ্রুত প্যাকিং প্রয়োজন'}
+            <span className="block text-[10px] text-neutral-500 mt-0.5">
+              {stats.completedCount} dispatched
             </span>
           </div>
         </div>
       </div>
 
-      {/* Control Filter Bar */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-4 space-y-3">
-        {/* Search & Main Controls */}
-        <div className="flex flex-col sm:flex-row items-center gap-3">
-          <div className="relative flex-1 w-full">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+      {/* Controls: Search, Filters & View Toggle */}
+      <div className="bg-white rounded-2xl border border-neutral-200 shadow-xs p-4 space-y-3">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-3">
+          {/* Search Box */}
+          <div className="relative w-full md:w-96">
+            <Search className="w-4 h-4 text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder={lang === 'en' 
-                ? 'Search buyer (HCF), REF (LIZ-LO-ELS-26080056), size (7MM), color...' 
-                : 'সার্চ করুন: বায়ার (HCF), রেফারেন্স, সাইজ (7MM), কালার...'
-              }
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-slate-50/50"
+              placeholder={lang === 'en' ? 'Search buyer, ref, size, color, po...' : 'বায়ার, রেফারেন্স, সাইজ, কালার খুঁজুন...'}
+              className="w-full pl-9 pr-4 py-2 bg-neutral-50 border border-neutral-200 rounded-xl text-xs font-semibold text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-neutral-900 focus:bg-white"
             />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-2.5 text-xs text-slate-400 hover:text-slate-600"
-              >
-                ✕
-              </button>
-            )}
           </div>
 
-          {/* View Mode Toggle & Sort */}
-          <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
-            <select
-              value={sortBy}
-              onChange={e => setSortBy(e.target.value as any)}
-              className="px-3 py-2 text-xs font-semibold border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-indigo-500"
-            >
-              <option value="delivery_asc">📅 Delivery Date (Soonest first)</option>
-              <option value="date_desc">🕒 Demand Date (Newest first)</option>
-              <option value="qty_desc">📏 Required Quantity (Highest)</option>
-              <option value="priority">🚨 Priority (Urgent first)</option>
-            </select>
+          {/* Right Controls: Sort & View Toggle */}
+          <div className="flex items-center gap-2 w-full md:w-auto justify-between md:justify-end">
+            <div className="flex items-center gap-1 text-xs">
+              <span className="text-neutral-500 font-bold hidden sm:inline">{lang === 'en' ? 'Sort:' : 'সর্ট:'}</span>
+              <select
+                value={sortBy}
+                onChange={e => setSortBy(e.target.value as any)}
+                className="px-2.5 py-1.5 bg-neutral-50 border border-neutral-200 rounded-xl text-xs font-bold text-neutral-800"
+              >
+                <option value="delivery_asc">📅 Delivery Date (Soonest)</option>
+                <option value="date_desc">🕒 Demand Date (Newest)</option>
+                <option value="date_asc">🕒 Demand Date (Oldest)</option>
+                <option value="qty_desc">📦 Quantity (High to Low)</option>
+                <option value="priority">🔥 Priority (Urgent First)</option>
+              </select>
+            </div>
 
-            <div className="flex items-center border border-slate-300 rounded-xl p-0.5 bg-slate-100">
+            {/* View Mode Switcher */}
+            <div className="flex items-center border border-neutral-200 rounded-xl p-0.5 bg-neutral-50">
               <button
                 onClick={() => setViewMode('grid')}
-                className={`p-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
-                  viewMode === 'grid' ? 'bg-white text-indigo-700 shadow-2xs' : 'text-slate-500 hover:text-slate-800'
+                className={`p-1.5 rounded-lg transition cursor-pointer ${
+                  viewMode === 'grid' ? 'bg-white shadow-2xs text-neutral-900' : 'text-neutral-500 hover:text-neutral-900'
                 }`}
-                title="Grid Card View"
+                title="Grid View"
               >
                 <LayoutGrid className="w-4 h-4" />
               </button>
               <button
                 onClick={() => setViewMode('table')}
-                className={`p-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
-                  viewMode === 'table' ? 'bg-white text-indigo-700 shadow-2xs' : 'text-slate-500 hover:text-slate-800'
+                className={`p-1.5 rounded-lg transition cursor-pointer ${
+                  viewMode === 'table' ? 'bg-white shadow-2xs text-neutral-900' : 'text-neutral-500 hover:text-neutral-900'
                 }`}
-                title="Table List View"
+                title="Table View"
               >
                 <List className="w-4 h-4" />
               </button>
@@ -393,10 +386,10 @@ export const ElasticDemandView: React.FC<ElasticDemandViewProps> = ({
           </div>
         </div>
 
-        {/* Date Filter & Buyer Pills */}
-        <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100 text-xs">
-          <span className="font-bold text-slate-500 flex items-center gap-1">
-            <Calendar className="w-3.5 h-3.5 text-indigo-600" />
+        {/* Filter Badges Bar */}
+        <div className="flex items-center gap-1.5 flex-wrap pt-2 border-t border-neutral-100 text-xs">
+          <span className="font-bold text-neutral-500 flex items-center gap-1">
+            <Calendar className="w-3.5 h-3.5 text-neutral-600" />
             {lang === 'en' ? 'Date:' : 'তারিখ:'}
           </span>
           {(['all', 'today', 'week', 'overdue'] as const).map(df => (
@@ -405,29 +398,29 @@ export const ElasticDemandView: React.FC<ElasticDemandViewProps> = ({
               onClick={() => setSelectedDateFilter(df)}
               className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer ${
                 selectedDateFilter === df
-                  ? 'bg-slate-900 text-white'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  ? 'bg-neutral-900 text-white'
+                  : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200 border border-neutral-200'
               }`}
             >
               {df === 'all' && (lang === 'en' ? 'All Dates' : 'সব তারিখ')}
               {df === 'today' && (lang === 'en' ? 'Today' : 'আজকের')}
-              {df === 'week' && (lang === 'en' ? 'Due This Week' : 'এই সপ্তাহে ডেলিভারি')}
-              {df === 'overdue' && (lang === 'en' ? 'Overdue' : 'দেরি হওয়া (Overdue)')}
+              {df === 'week' && (lang === 'en' ? 'Due This Week' : 'এই সপ্তাহে')}
+              {df === 'overdue' && (lang === 'en' ? 'Overdue' : 'দেরি হওয়া')}
             </button>
           ))}
 
-          <span className="text-slate-300 mx-1">|</span>
+          <span className="text-neutral-300 mx-1">|</span>
 
-          <span className="font-bold text-slate-500 flex items-center gap-1">
-            <User className="w-3.5 h-3.5 text-slate-500" />
+          <span className="font-bold text-neutral-500 flex items-center gap-1">
+            <User className="w-3.5 h-3.5 text-neutral-600" />
             {lang === 'en' ? 'Buyer:' : 'বায়ার:'}
           </span>
           <button
             onClick={() => setSelectedBuyer('all')}
             className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer ${
               selectedBuyer === 'all'
-                ? 'bg-indigo-600 text-white'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                ? 'bg-neutral-900 text-white'
+                : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200 border border-neutral-200'
             }`}
           >
             {lang === 'en' ? 'All Buyers' : 'সকল বায়ার'}
@@ -438,18 +431,18 @@ export const ElasticDemandView: React.FC<ElasticDemandViewProps> = ({
               onClick={() => setSelectedBuyer(b)}
               className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer ${
                 selectedBuyer.toLowerCase() === b.toLowerCase()
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  ? 'bg-neutral-900 text-white'
+                  : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200 border border-neutral-200'
               }`}
             >
               {b}
             </button>
           ))}
 
-          <span className="text-slate-300 mx-1">|</span>
+          <span className="text-neutral-300 mx-1">|</span>
 
-          <span className="font-bold text-slate-500 flex items-center gap-1">
-            <Filter className="w-3.5 h-3.5 text-slate-500" />
+          <span className="font-bold text-neutral-500 flex items-center gap-1">
+            <Filter className="w-3.5 h-3.5 text-neutral-600" />
             {lang === 'en' ? 'Status:' : 'স্ট্যাটাস:'}
           </span>
           {(['all', 'pending', 'in_production', 'packed', 'completed'] as const).map(st => (
@@ -458,8 +451,8 @@ export const ElasticDemandView: React.FC<ElasticDemandViewProps> = ({
               onClick={() => setSelectedStatus(st)}
               className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer ${
                 selectedStatus === st
-                  ? 'bg-indigo-900 text-white'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  ? 'bg-neutral-900 text-white'
+                  : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200 border border-neutral-200'
               }`}
             >
               {st === 'all' && (lang === 'en' ? 'All' : 'সকল')}
@@ -474,14 +467,14 @@ export const ElasticDemandView: React.FC<ElasticDemandViewProps> = ({
 
       {/* Demands Listing (Grid Mode or Table Mode) */}
       {filteredDemands.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-dashed border-slate-300 p-12 text-center">
-          <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-indigo-100">
+        <div className="bg-white rounded-2xl border border-dashed border-neutral-300 p-12 text-center">
+          <div className="w-16 h-16 bg-neutral-100 text-neutral-900 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-neutral-200">
             <Tag className="w-8 h-8" />
           </div>
-          <h3 className="text-base font-bold text-slate-800">
+          <h3 className="text-base font-bold text-neutral-900">
             {lang === 'en' ? 'No Elastic Demands Found' : 'কোনো ইলাস্টিক চাহিদা পাওয়া যায়নি'}
           </h3>
-          <p className="text-xs text-slate-500 max-w-md mx-auto mt-1 mb-5">
+          <p className="text-xs text-neutral-500 max-w-md mx-auto mt-1 mb-5">
             {searchQuery || selectedBuyer !== 'all' || selectedStatus !== 'all'
               ? (lang === 'en' ? 'Try adjusting your filters or search keywords.' : 'আপনার ফিল্টার বা সার্চ কীওয়ার্ড পরিবর্তন করে দেখুন।')
               : (lang === 'en' ? 'Start recording buyer elastic requirements with dates, sizes, and references.' : 'তারিখ, সাইজ ও রেফারেন্স সহ বায়ারদের ইলাস্টিক চাহিদা যুক্ত করুন।')
@@ -489,7 +482,7 @@ export const ElasticDemandView: React.FC<ElasticDemandViewProps> = ({
           </p>
           <button
             onClick={handleOpenAddModal}
-            className="px-5 py-2.5 rounded-xl bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-700 transition inline-flex items-center gap-2 shadow-xs cursor-pointer"
+            className="px-5 py-2.5 rounded-xl bg-neutral-900 text-white text-xs font-bold hover:bg-black transition inline-flex items-center gap-2 shadow-xs cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>{lang === 'en' ? '+ Input First Elastic Demand' : '+ প্রথম চাহিদা এন্ট্রি করুন'}</span>
@@ -504,65 +497,46 @@ export const ElasticDemandView: React.FC<ElasticDemandViewProps> = ({
               : 0;
             const remainingMtr = Math.max(0, demand.requiredQtyMtr - demand.packedQtyMtr);
             const deliveryInfo = getDeliveryStatus(demand.deliveryDate);
-            const isCurrentlyActiveInSheet = currentSheetData.ref && demand.ref && 
-              currentSheetData.ref.trim().toLowerCase() === demand.ref.trim().toLowerCase();
 
             return (
               <div
                 key={demand.id}
-                className={`bg-white rounded-2xl border transition-all duration-200 hover:shadow-md overflow-hidden flex flex-col justify-between ${
-                  demand.priority === 'urgent'
-                    ? 'border-rose-300 shadow-xs'
-                    : demand.status === 'completed'
-                    ? 'border-slate-200 opacity-90'
-                    : isCurrentlyActiveInSheet
-                    ? 'border-indigo-400 ring-2 ring-indigo-500/20'
-                    : 'border-slate-200'
-                }`}
+                className="bg-white rounded-2xl border border-neutral-200 shadow-xs hover:border-neutral-400 hover:shadow-md transition-all overflow-hidden flex flex-col"
               >
-                {/* Card Header Ribbon */}
-                <div className="p-4 bg-gradient-to-r from-slate-900 to-indigo-950 text-white">
+                {/* Card Header */}
+                <div className="p-4 border-b border-neutral-100 bg-neutral-50/70">
                   <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="px-2 py-0.5 rounded-md text-[11px] font-extrabold uppercase bg-amber-400 text-slate-950 tracking-wider">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="px-2 py-0.5 rounded-md font-extrabold text-xs bg-neutral-900 text-white">
                           {demand.buyer}
                         </span>
-                        {demand.size && (
-                          <span className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-white/20 text-white font-mono">
-                            {demand.size}
+                        {demand.customer && (
+                          <span className="text-[11px] font-semibold text-neutral-600 truncate">
+                            / {demand.customer}
                           </span>
                         )}
                         {demand.priority === 'urgent' && (
-                          <span className="px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-rose-500 text-white animate-pulse">
+                          <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-neutral-200 text-neutral-900 border border-neutral-400">
                             URGENT
                           </span>
                         )}
                       </div>
-                      <h4 className="font-mono font-bold text-sm sm:text-base text-white mt-1.5 truncate flex items-center gap-1.5">
-                        <span>{demand.ref}</span>
-                      </h4>
-                      {demand.customer && (
-                        <p className="text-[11px] text-indigo-200 truncate">
-                          Cust: <span className="font-medium text-white">{demand.customer}</span>
-                        </p>
-                      )}
+                      <h3 className="font-mono font-bold text-sm text-neutral-900 mt-1 truncate" title={demand.ref}>
+                        {demand.ref}
+                      </h3>
+                      <div className="flex items-center gap-2 text-xs text-neutral-600 mt-0.5 font-medium">
+                        <span>Size: <strong className="text-neutral-900">{demand.size}</strong></span>
+                        {demand.poNumber && <span>· PO: <strong className="font-mono">{demand.poNumber}</strong></span>}
+                      </div>
                     </div>
 
-                    {/* Status badge & Quick dropdown */}
+                    {/* Status dropdown */}
                     <div className="shrink-0 text-right">
                       <select
                         value={demand.status}
                         onChange={e => handleStatusChange(demand, e.target.value as DemandStatus)}
-                        className={`text-[10.5px] font-bold rounded-lg px-2 py-1 border transition cursor-pointer ${
-                          demand.status === 'completed'
-                            ? 'bg-emerald-500 text-white border-emerald-400'
-                            : demand.status === 'packed'
-                            ? 'bg-indigo-500 text-white border-indigo-400'
-                            : demand.status === 'in_production'
-                            ? 'bg-amber-500 text-slate-950 border-amber-400'
-                            : 'bg-slate-800 text-slate-200 border-slate-700'
-                        }`}
+                        className="text-[10.5px] font-bold rounded-lg px-2 py-1 border border-neutral-300 bg-white text-neutral-900 cursor-pointer"
                       >
                         <option value="pending">⏳ Pending</option>
                         <option value="in_production">⚙️ In Prod</option>
@@ -577,9 +551,9 @@ export const ElasticDemandView: React.FC<ElasticDemandViewProps> = ({
                 {/* Card Body */}
                 <div className="p-4 space-y-3 flex-1">
                   {/* Date Metadata Pills */}
-                  <div className="flex items-center justify-between gap-2 text-[11px] text-slate-600 bg-slate-50 p-2 rounded-xl border border-slate-100">
-                    <div className="flex items-center gap-1">
-                      <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                  <div className="flex items-center justify-between gap-2 text-[11px] text-neutral-700 bg-neutral-50 p-2 rounded-xl border border-neutral-200">
+                    <div className="flex items-center gap-1 font-mono">
+                      <Calendar className="w-3.5 h-3.5 text-neutral-500" />
                       <span>{demand.demandDate || 'N/A'}</span>
                     </div>
                     {deliveryInfo && (
@@ -590,33 +564,31 @@ export const ElasticDemandView: React.FC<ElasticDemandViewProps> = ({
                   </div>
 
                   {/* Meter Requirements & Progress */}
-                  <div className="bg-indigo-50/50 p-3 rounded-xl border border-indigo-100/80 space-y-2">
+                  <div className="bg-neutral-50 p-3 rounded-xl border border-neutral-200 space-y-2">
                     <div className="flex items-baseline justify-between">
-                      <span className="text-[11px] font-bold text-indigo-900 uppercase">
+                      <span className="text-[11px] font-bold text-neutral-700 uppercase">
                         {lang === 'en' ? 'Demand Quantity:' : 'চাহিদা পরিমাণ:'}
                       </span>
-                      <span className="text-base font-mono font-extrabold text-indigo-950">
-                        {demand.requiredQtyMtr.toLocaleString()} <span className="text-xs font-bold text-indigo-700">MTR</span>
+                      <span className="text-base font-mono font-extrabold text-neutral-950">
+                        {demand.requiredQtyMtr.toLocaleString()} <span className="text-xs font-bold text-neutral-600">MTR</span>
                       </span>
                     </div>
 
                     {/* Progress Bar */}
                     <div>
-                      <div className="flex justify-between text-[11px] text-slate-600 font-semibold mb-1">
-                        <span>Packed: <strong className="font-mono text-slate-900">{demand.packedQtyMtr.toLocaleString()} m</strong></span>
-                        <span className="font-mono font-bold text-indigo-700">{progress}%</span>
+                      <div className="flex justify-between text-[11px] text-neutral-700 font-semibold mb-1">
+                        <span>Packed: <strong className="font-mono text-neutral-900">{demand.packedQtyMtr.toLocaleString()} m</strong></span>
+                        <span className="font-mono font-bold text-neutral-900">{progress}%</span>
                       </div>
-                      <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                      <div className="w-full bg-neutral-200 h-2 rounded-full overflow-hidden">
                         <div
-                          className={`h-full rounded-full transition-all duration-300 ${
-                            progress >= 100 ? 'bg-emerald-600' : progress > 0 ? 'bg-indigo-600' : 'bg-slate-300'
-                          }`}
+                          className="h-full rounded-full transition-all duration-300 bg-neutral-900"
                           style={{ width: `${progress}%` }}
                         />
                       </div>
                       {remainingMtr > 0 && (
-                        <p className="text-[10px] text-slate-500 mt-1 text-right">
-                          Remaining: <strong className="font-mono text-amber-700">{remainingMtr.toLocaleString()} m</strong>
+                        <p className="text-[10px] text-neutral-600 mt-1 text-right font-medium">
+                          Remaining: <strong className="font-mono text-neutral-900">{remainingMtr.toLocaleString()} m</strong>
                         </p>
                       )}
                     </div>
@@ -624,56 +596,56 @@ export const ElasticDemandView: React.FC<ElasticDemandViewProps> = ({
 
                   {/* Secondary Specs Grid */}
                   <div className="grid grid-cols-3 gap-2 text-center text-[10.5px]">
-                    <div className="bg-slate-50 p-1.5 rounded-lg border border-slate-100">
-                      <span className="text-slate-400 block font-bold">Color</span>
-                      <span className="font-bold text-slate-800 truncate block">{demand.color || 'BLACK'}</span>
+                    <div className="bg-neutral-50 p-1.5 rounded-lg border border-neutral-200">
+                      <span className="text-neutral-500 block font-bold">Color</span>
+                      <span className="font-bold text-neutral-900 truncate block">{demand.color || 'BLACK'}</span>
                     </div>
-                    <div className="bg-slate-50 p-1.5 rounded-lg border border-slate-100">
-                      <span className="text-slate-400 block font-bold">Unit Wt</span>
-                      <span className="font-mono font-bold text-slate-800">{demand.unitWeightGm || 8} gm/m</span>
+                    <div className="bg-neutral-50 p-1.5 rounded-lg border border-neutral-200">
+                      <span className="text-neutral-500 block font-bold">Unit Wt</span>
+                      <span className="font-mono font-bold text-neutral-900">{demand.unitWeightGm || 8} gm/m</span>
                     </div>
-                    <div className="bg-slate-50 p-1.5 rounded-lg border border-slate-100">
-                      <span className="text-slate-400 block font-bold">Est. Wt</span>
-                      <span className="font-mono font-bold text-slate-800">{demand.requiredQtyKg || 0} Kg</span>
+                    <div className="bg-neutral-50 p-1.5 rounded-lg border border-neutral-200">
+                      <span className="text-neutral-500 block font-bold">Est. Wt</span>
+                      <span className="font-mono font-bold text-neutral-900">{demand.requiredQtyKg || 0} Kg</span>
                     </div>
                   </div>
 
                   {/* Notes / Customer Instructions */}
                   {demand.notes && (
-                    <div className="text-[11px] text-slate-600 bg-amber-50/50 p-2 rounded-lg border border-amber-100/60 line-clamp-2">
-                      <span className="font-bold text-amber-900">Need: </span>{demand.notes}
+                    <div className="text-[11px] text-neutral-700 bg-neutral-100 p-2 rounded-lg border border-neutral-200 line-clamp-2">
+                      <span className="font-bold text-neutral-900">Need: </span>{demand.notes}
                     </div>
                   )}
                 </div>
 
                 {/* Card Footer Actions */}
-                <div className="p-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-2">
+                <div className="p-3 bg-neutral-50 border-t border-neutral-200 flex items-center justify-between gap-2">
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => handleCopySpec(demand)}
                       title="Copy Spec text"
-                      className="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-white rounded-lg transition cursor-pointer border border-transparent hover:border-slate-200"
+                      className="p-1.5 text-neutral-500 hover:text-neutral-900 hover:bg-white rounded-lg transition cursor-pointer border border-transparent hover:border-neutral-200"
                     >
-                      {copiedId === demand.id ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                      {copiedId === demand.id ? <Check className="w-3.5 h-3.5 text-neutral-900" /> : <Copy className="w-3.5 h-3.5" />}
                     </button>
                     <button
                       onClick={() => handleSyncWithSheet(demand)}
                       title="Sync packed meters with current active sheet"
-                      className="p-1.5 text-slate-500 hover:text-emerald-600 hover:bg-white rounded-lg transition cursor-pointer border border-transparent hover:border-slate-200"
+                      className="p-1.5 text-neutral-500 hover:text-neutral-900 hover:bg-white rounded-lg transition cursor-pointer border border-transparent hover:border-neutral-200"
                     >
-                      {syncedId === demand.id ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <RefreshCw className="w-3.5 h-3.5" />}
+                      {syncedId === demand.id ? <Check className="w-3.5 h-3.5 text-neutral-900" /> : <RefreshCw className="w-3.5 h-3.5" />}
                     </button>
                     <button
                       onClick={() => handleOpenEditModal(demand)}
                       title="Edit demand details"
-                      className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-white rounded-lg transition cursor-pointer border border-transparent hover:border-slate-200"
+                      className="p-1.5 text-neutral-500 hover:text-neutral-900 hover:bg-white rounded-lg transition cursor-pointer border border-transparent hover:border-neutral-200"
                     >
                       <Edit3 className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={() => onDeleteDemand(demand.id)}
                       title="Delete demand"
-                      className="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-white rounded-lg transition cursor-pointer border border-transparent hover:border-slate-200"
+                      className="p-1.5 text-neutral-500 hover:text-neutral-800 hover:bg-white rounded-lg transition cursor-pointer border border-transparent hover:border-neutral-200"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -682,7 +654,7 @@ export const ElasticDemandView: React.FC<ElasticDemandViewProps> = ({
                   {/* Direct Load into Packing Calculator button */}
                   <button
                     onClick={() => onLoadDemandIntoSheet(demand)}
-                    className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-indigo-700 active:bg-indigo-800 text-white text-[11px] font-bold flex items-center gap-1.5 transition cursor-pointer shadow-2xs"
+                    className="px-3 py-1.5 rounded-xl bg-neutral-900 hover:bg-black active:scale-[0.98] text-white text-[11px] font-bold flex items-center gap-1.5 transition cursor-pointer shadow-2xs"
                   >
                     <span>{lang === 'en' ? 'Load to Calculator' : 'ক্যালকুলেটরে লোড'}</span>
                     <ArrowRight className="w-3.5 h-3.5" />
@@ -694,11 +666,11 @@ export const ElasticDemandView: React.FC<ElasticDemandViewProps> = ({
         </div>
       ) : (
         /* Dense Table List View */
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+        <div className="bg-white rounded-2xl border border-neutral-200 shadow-xs overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="bg-slate-900 text-white font-bold uppercase tracking-wider text-[11px]">
+                <tr className="bg-neutral-900 text-white font-bold uppercase tracking-wider text-[11px]">
                   <th className="p-3">Demand Date</th>
                   <th className="p-3">Delivery Date</th>
                   <th className="p-3">Buyer</th>
@@ -711,7 +683,7 @@ export const ElasticDemandView: React.FC<ElasticDemandViewProps> = ({
                   <th className="p-3 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200 font-medium">
+              <tbody className="divide-y divide-neutral-200 font-medium">
                 {filteredDemands.map(demand => {
                   const progress = demand.requiredQtyMtr > 0
                     ? Math.min(100, Math.round((demand.packedQtyMtr / demand.requiredQtyMtr) * 100))
@@ -719,8 +691,8 @@ export const ElasticDemandView: React.FC<ElasticDemandViewProps> = ({
                   const deliveryInfo = getDeliveryStatus(demand.deliveryDate);
 
                   return (
-                    <tr key={demand.id} className="hover:bg-slate-50 transition">
-                      <td className="p-3 font-mono text-slate-700 whitespace-nowrap">
+                    <tr key={demand.id} className="hover:bg-neutral-50 transition">
+                      <td className="p-3 font-mono text-neutral-700 whitespace-nowrap">
                         {demand.demandDate}
                       </td>
                       <td className="p-3 whitespace-nowrap">
@@ -734,45 +706,45 @@ export const ElasticDemandView: React.FC<ElasticDemandViewProps> = ({
                         </div>
                       </td>
                       <td className="p-3">
-                        <span className="px-2 py-0.5 rounded font-extrabold text-[11px] bg-amber-100 text-amber-950 border border-amber-200">
+                        <span className="px-2 py-0.5 rounded font-extrabold text-[11px] bg-neutral-900 text-white">
                           {demand.buyer}
                         </span>
                         {demand.customer && (
-                          <span className="block text-[10px] text-slate-400 truncate max-w-[120px] mt-0.5">
+                          <span className="block text-[10px] text-neutral-500 truncate max-w-[120px] mt-0.5">
                             {demand.customer}
                           </span>
                         )}
                       </td>
-                      <td className="p-3 font-mono font-bold text-indigo-950 whitespace-nowrap">
+                      <td className="p-3 font-mono font-bold text-neutral-900 whitespace-nowrap">
                         {demand.ref}
                       </td>
                       <td className="p-3 whitespace-nowrap">
-                        <span className="font-bold text-slate-800">{demand.size}</span>
-                        <span className="text-slate-400 mx-1">·</span>
-                        <span className="text-slate-600">{demand.color || 'BLACK'}</span>
+                        <span className="font-bold text-neutral-900">{demand.size}</span>
+                        <span className="text-neutral-400 mx-1">·</span>
+                        <span className="text-neutral-700">{demand.color || 'BLACK'}</span>
                       </td>
-                      <td className="p-3 text-right font-mono font-bold text-indigo-700 whitespace-nowrap">
+                      <td className="p-3 text-right font-mono font-extrabold text-neutral-900 whitespace-nowrap">
                         {demand.requiredQtyMtr.toLocaleString()} m
                       </td>
-                      <td className="p-3 text-right font-mono text-emerald-700 whitespace-nowrap">
+                      <td className="p-3 text-right font-mono text-neutral-800 whitespace-nowrap font-bold">
                         {demand.packedQtyMtr.toLocaleString()} m
                       </td>
                       <td className="p-3 text-center whitespace-nowrap">
                         <div className="inline-flex items-center gap-1.5">
-                          <div className="w-16 bg-slate-200 h-2 rounded-full overflow-hidden">
+                          <div className="w-16 bg-neutral-200 h-2 rounded-full overflow-hidden">
                             <div
-                              className="bg-indigo-600 h-full rounded-full"
+                              className="bg-neutral-900 h-full rounded-full"
                               style={{ width: `${progress}%` }}
                             />
                           </div>
-                          <span className="font-mono font-bold text-[10.5px] text-slate-700">{progress}%</span>
+                          <span className="font-mono font-bold text-[10.5px] text-neutral-800">{progress}%</span>
                         </div>
                       </td>
                       <td className="p-3 text-center whitespace-nowrap">
                         <select
                           value={demand.status}
                           onChange={e => handleStatusChange(demand, e.target.value as DemandStatus)}
-                          className="text-[10.5px] font-bold rounded-lg px-2 py-1 border border-slate-300 bg-white"
+                          className="text-[10.5px] font-bold rounded-lg px-2 py-1 border border-neutral-300 bg-white"
                         >
                           <option value="pending">⏳ Pending</option>
                           <option value="in_production">⚙️ In Prod</option>
@@ -785,20 +757,20 @@ export const ElasticDemandView: React.FC<ElasticDemandViewProps> = ({
                         <div className="flex items-center justify-end gap-1">
                           <button
                             onClick={() => onLoadDemandIntoSheet(demand)}
-                            className="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[10.5px] flex items-center gap-1 cursor-pointer"
+                            className="px-2.5 py-1 rounded-lg bg-neutral-900 hover:bg-black text-white font-bold text-[10.5px] flex items-center gap-1 cursor-pointer"
                           >
                             <span>Load</span>
                             <ArrowRight className="w-3 h-3" />
                           </button>
                           <button
                             onClick={() => handleOpenEditModal(demand)}
-                            className="p-1 text-slate-500 hover:text-blue-600 rounded hover:bg-slate-100"
+                            className="p-1 text-neutral-500 hover:text-neutral-900 rounded hover:bg-neutral-100"
                           >
                             <Edit3 className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => onDeleteDemand(demand.id)}
-                            className="p-1 text-slate-500 hover:text-rose-600 rounded hover:bg-slate-100"
+                            className="p-1 text-neutral-500 hover:text-neutral-800 rounded hover:bg-neutral-100"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>

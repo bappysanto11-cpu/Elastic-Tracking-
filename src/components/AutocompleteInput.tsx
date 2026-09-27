@@ -159,11 +159,11 @@ export const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
                 refreshSuggestions();
                 setIsOpen(!isOpen);
               }}
-              className="text-[9.5px] text-indigo-600 hover:text-indigo-800 font-medium cursor-pointer flex items-center gap-1 select-none shrink-0"
+              className="text-[9.5px] text-neutral-800 hover:text-neutral-900 font-medium cursor-pointer flex items-center gap-1 select-none shrink-0"
               title={lang === 'en' ? 'Suggestions from IndexedDB & history' : 'হিস্ট্রি ও IndexedDB সাজেশন তালিকা'}
             >
               {idbCount > 0 ? (
-                <span className="flex items-center gap-0.5 text-emerald-700 bg-emerald-50 px-1 py-0.2 rounded border border-emerald-200">
+                <span className="flex items-center gap-0.5 text-neutral-800 bg-neutral-100 px-1 py-0.2 rounded border border-neutral-200">
                   <Database className="w-2.5 h-2.5" />
                   <span>{idbCount} {lang === 'en' ? 'DB' : 'ডিবি'}</span>
                 </span>
@@ -202,7 +202,7 @@ export const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
             compact 
               ? 'px-2 py-1 pr-6 text-[11.5px] rounded-md leading-tight' 
               : 'px-2.5 py-1.5 pr-7 text-xs rounded-lg'
-          } text-slate-900 bg-slate-50/80 border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:border-indigo-400 focus:outline-none transition shadow-2xs ${
+          } text-slate-900 bg-slate-50/80 border border-slate-300 focus:ring-2 focus:ring-neutral-400 focus:bg-white focus:border-neutral-300 focus:outline-none transition shadow-2xs ${
             monoFont ? 'font-mono' : ''
           } ${bold ? 'font-bold' : 'font-medium'} ${className}`}
         />
@@ -222,7 +222,7 @@ export const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
         >
           <ChevronDown className={`transition-transform duration-200 ${
             compact ? 'w-3 h-3' : 'w-3.5 h-3.5'
-          } ${isOpen ? 'rotate-180 text-indigo-600' : ''}`} />
+          } ${isOpen ? 'rotate-180 text-neutral-800' : ''}`} />
         </button>
 
         {/* HTML5 Native Datalist Fallback */}
@@ -237,8 +237,8 @@ export const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
       {isOpen && filteredSuggestions.length > 0 && (
         <div className="absolute z-50 left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-white border border-slate-200 rounded-lg shadow-xl divide-y divide-slate-100 animate-in fade-in-50 duration-100">
           <div className="px-2.5 py-1.5 bg-slate-50 flex items-center justify-between text-[10px] font-semibold text-slate-500 border-b border-slate-100">
-            <span className="flex items-center gap-1 text-indigo-700">
-              <Sparkles className="w-3 h-3 text-indigo-500" />
+            <span className="flex items-center gap-1 text-neutral-800">
+              <Sparkles className="w-3 h-3 text-neutral-700" />
               {lang === 'en' ? 'Suggestions (IndexedDB & History)' : 'সাজেশন (IndexedDB ও হিস্ট্রি)'}
             </span>
             <span className="text-slate-400 font-mono">
@@ -258,7 +258,7 @@ export const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
                   onMouseEnter={() => setHighlightIndex(idx)}
                   className={`px-2.5 py-1.5 text-xs flex items-center justify-between cursor-pointer transition select-none ${
                     isHighlighted
-                      ? 'bg-indigo-50 text-indigo-900 font-semibold'
+                      ? 'bg-neutral-100 text-neutral-900 font-semibold'
                       : isSelected
                       ? 'bg-slate-100 text-slate-900 font-bold'
                       : 'text-slate-700 hover:bg-slate-50'
@@ -267,16 +267,16 @@ export const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
                   <div className="flex items-center gap-2 truncate pr-2">
                     {item.source === 'indexeddb' ? (
                       <span title="From IndexedDB Backups">
-                        <Database className={`w-3 h-3 shrink-0 ${isHighlighted ? 'text-emerald-600' : 'text-emerald-500'}`} />
+                        <Database className={`w-3 h-3 shrink-0 ${isHighlighted ? 'text-neutral-800' : 'text-neutral-700'}`} />
                       </span>
                     ) : (
-                      <History className={`w-3 h-3 shrink-0 ${isHighlighted ? 'text-indigo-600' : 'text-slate-400'}`} />
+                      <History className={`w-3 h-3 shrink-0 ${isHighlighted ? 'text-neutral-800' : 'text-slate-400'}`} />
                     )}
                     <span className={`truncate ${monoFont ? 'font-mono' : ''}`}>
                       {item.value}
                     </span>
                     {item.source === 'indexeddb' && (
-                      <span className="text-[9px] bg-emerald-100 text-emerald-800 font-mono px-1 rounded">
+                      <span className="text-[9px] bg-neutral-100 text-neutral-900 font-mono px-1 rounded">
                         {lang === 'en' ? 'Saved Order' : 'সেভড অর্ডার'}
                         {item.occurrences && item.occurrences > 1 ? ` (${item.occurrences}x)` : ''}
                       </span>
@@ -285,14 +285,14 @@ export const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
 
                   <div className="flex items-center gap-1 shrink-0">
                     {isSelected && (
-                      <Check className="w-3.5 h-3.5 text-emerald-600 mr-1" />
+                      <Check className="w-3.5 h-3.5 text-neutral-800 mr-1" />
                     )}
                     {item.source !== 'default' && (
                       <button
                         type="button"
                         title={lang === 'en' ? 'Delete from saved' : 'মুছে ফেলুন'}
                         onClick={(e) => handleRemove(e, item.value)}
-                        className="opacity-40 hover:opacity-100 hover:bg-red-50 hover:text-red-600 p-0.5 rounded transition text-slate-400"
+                        className="opacity-40 hover:opacity-100 hover:bg-neutral-100 hover:text-neutral-800 p-0.5 rounded transition text-slate-400"
                       >
                         <X className="w-3 h-3" />
                       </button>

@@ -102,10 +102,10 @@ export const OrderHeaderForm: React.FC<OrderHeaderFormProps> = ({
       }`}
     >
       {/* Sleek Top Smart Control Ribbon */}
-      <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 px-3 py-1.5 flex items-center justify-between gap-2 text-white">
+      <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-neutral-950 px-3 py-1.5 flex items-center justify-between gap-2 text-white">
         {/* Left: Title, Live Status & PO pill */}
         <div className="flex items-center gap-2 min-w-0">
-          <div className="w-5 h-5 rounded-md bg-indigo-500/25 border border-indigo-400/40 flex items-center justify-center text-indigo-300 shrink-0">
+          <div className="w-5 h-5 rounded-md bg-neutral-800/25 border border-neutral-300/40 flex items-center justify-center text-neutral-300 shrink-0">
             <SlidersHorizontal className="w-3 h-3" />
           </div>
           
@@ -115,20 +115,20 @@ export const OrderHeaderForm: React.FC<OrderHeaderFormProps> = ({
             </h2>
             
             {/* Active Spec Counter Pill */}
-            <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-full text-[9.5px] font-semibold bg-indigo-500/20 text-indigo-200 border border-indigo-500/30 shrink-0">
-              <span className={`w-1.5 h-1.5 rounded-full ${activeFieldsCount === 6 ? 'bg-emerald-400' : 'bg-amber-400'}`}></span>
+            <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-full text-[9.5px] font-semibold bg-neutral-800/20 text-neutral-200 border border-neutral-400/30 shrink-0">
+              <span className={`w-1.5 h-1.5 rounded-full ${activeFieldsCount === 6 ? 'bg-neutral-400' : 'bg-neutral-400'}`}></span>
               {activeFieldsCount}/6
             </span>
 
             {/* Current Item & Delivery Style Tag */}
             <span className={`inline-flex items-center gap-1 px-2 py-0.2 rounded text-[10px] font-bold border truncate max-w-[200px] ${
               currentItemKey === 'elastic' 
-                ? 'bg-indigo-500/25 text-indigo-200 border-indigo-400/40' 
+                ? 'bg-neutral-800/25 text-neutral-200 border-neutral-300/40' 
                 : currentItemKey === 'drawstring'
-                ? 'bg-amber-500/25 text-amber-200 border-amber-400/40'
+                ? 'bg-neutral-800/25 text-neutral-200 border-neutral-300/40'
                 : currentItemKey === 'bow'
-                ? 'bg-rose-500/25 text-rose-200 border-rose-400/40'
-                : 'bg-emerald-500/25 text-emerald-200 border-emerald-400/40'
+                ? 'bg-neutral-800/25 text-neutral-200 border-neutral-300/40'
+                : 'bg-neutral-800/25 text-neutral-200 border-neutral-300/40'
             }`}>
               <span>{currentItemKey === 'elastic' ? '🧵' : currentItemKey === 'drawstring' ? '🪢' : currentItemKey === 'bow' ? '🎀' : '🏷️'}</span>
               <span>{currentItemConfig.name}</span>
@@ -136,7 +136,7 @@ export const OrderHeaderForm: React.FC<OrderHeaderFormProps> = ({
             </span>
 
             {sheetData.ref && (
-              <span className="hidden sm:inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-mono font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30 truncate max-w-[140px]">
+              <span className="hidden sm:inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-mono font-bold bg-neutral-400/20 text-neutral-300 border border-neutral-300/30 truncate max-w-[140px]">
                 {sheetData.ref}
               </span>
             )}
@@ -151,12 +151,12 @@ export const OrderHeaderForm: React.FC<OrderHeaderFormProps> = ({
                 )}
                 {sheetData.size && (
                   <span className="truncate font-mono">
-                    Size: <strong className="text-emerald-300">{sheetData.size}</strong>
+                    Size: <strong className="text-neutral-300">{sheetData.size}</strong>
                   </span>
                 )}
                 {sheetData.color && (
                   <span className="truncate">
-                    Color: <strong className="text-rose-300">{sheetData.color}</strong>
+                    Color: <strong className="text-neutral-300">{sheetData.color}</strong>
                   </span>
                 )}
               </div>
@@ -174,8 +174,8 @@ export const OrderHeaderForm: React.FC<OrderHeaderFormProps> = ({
           >
             {copied ? (
               <>
-                <Check className="w-3 h-3 text-emerald-400" />
-                <span className="text-emerald-300 font-semibold">{lang === 'en' ? 'Copied' : 'কপি'}</span>
+                <Check className="w-3 h-3 text-neutral-400" />
+                <span className="text-neutral-300 font-semibold">{lang === 'en' ? 'Copied' : 'কপি'}</span>
               </>
             ) : (
               <>
@@ -201,7 +201,7 @@ export const OrderHeaderForm: React.FC<OrderHeaderFormProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="p-1 rounded bg-rose-600/80 hover:bg-rose-600 text-white transition cursor-pointer"
+              className="p-1 rounded bg-neutral-900/80 hover:bg-neutral-800 text-white transition cursor-pointer"
               title={lang === 'en' ? 'Close & hide control bar' : 'কন্ট্রোল বার বন্ধ/লুকান'}
             >
               <X className="w-3.5 h-3.5" />
@@ -218,7 +218,7 @@ export const OrderHeaderForm: React.FC<OrderHeaderFormProps> = ({
           <div className="bg-white p-2 rounded-lg border border-slate-200/90 shadow-2xs flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2 flex-wrap">
               <div className="flex items-center gap-1 text-[11px] font-bold text-slate-700">
-                <Package className="w-3.5 h-3.5 text-indigo-600" />
+                <Package className="w-3.5 h-3.5 text-neutral-800" />
                 <span>{lang === 'en' ? 'Select Item / Product:' : 'আইটেম নির্বাচন করুন:'}</span>
               </div>
 
@@ -230,14 +230,14 @@ export const OrderHeaderForm: React.FC<OrderHeaderFormProps> = ({
                   onClick={() => handleItemChange('elastic')}
                   className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold transition shadow-2xs cursor-pointer border ${
                     currentItemKey === 'elastic'
-                      ? 'bg-indigo-600 text-white border-indigo-700 ring-2 ring-indigo-300'
-                      : 'bg-slate-50 hover:bg-indigo-50 text-slate-700 border-slate-200'
+                      ? 'bg-neutral-900 text-white border-neutral-700 ring-2 ring-neutral-300'
+                      : 'bg-slate-50 hover:bg-neutral-100 text-slate-700 border-slate-200'
                   }`}
                 >
                   <span>🧵</span>
                   <span>{lang === 'en' ? 'Elastic' : 'ইলাস্টিক'}</span>
                   <span className={`text-[9.5px] px-1 py-0.2 rounded font-mono ${
-                    currentItemKey === 'elastic' ? 'bg-indigo-700 text-indigo-100' : 'bg-slate-200 text-slate-600'
+                    currentItemKey === 'elastic' ? 'bg-neutral-900 text-neutral-100' : 'bg-slate-200 text-slate-600'
                   }`}>
                     {lang === 'en' ? 'Mtr delivery' : 'মিটার'}
                   </span>
@@ -249,14 +249,14 @@ export const OrderHeaderForm: React.FC<OrderHeaderFormProps> = ({
                   onClick={() => handleItemChange('drawstring')}
                   className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold transition shadow-2xs cursor-pointer border ${
                     currentItemKey === 'drawstring'
-                      ? 'bg-amber-600 text-white border-amber-700 ring-2 ring-amber-300'
-                      : 'bg-slate-50 hover:bg-amber-50 text-slate-700 border-slate-200'
+                      ? 'bg-neutral-900 text-white border-neutral-700 ring-2 ring-neutral-300'
+                      : 'bg-slate-50 hover:bg-neutral-100 text-slate-700 border-slate-200'
                   }`}
                 >
                   <span>🪢</span>
                   <span>{lang === 'en' ? 'Drawstring' : 'ড্রস্ট্রিং'}</span>
                   <span className={`text-[9.5px] px-1 py-0.2 rounded font-mono ${
-                    currentItemKey === 'drawstring' ? 'bg-amber-700 text-amber-100' : 'bg-slate-200 text-slate-600'
+                    currentItemKey === 'drawstring' ? 'bg-neutral-900 text-neutral-100' : 'bg-slate-200 text-slate-600'
                   }`}>
                     {lang === 'en' ? 'Pcs delivery' : 'পিস'}
                   </span>
@@ -268,14 +268,14 @@ export const OrderHeaderForm: React.FC<OrderHeaderFormProps> = ({
                   onClick={() => handleItemChange('bow')}
                   className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold transition shadow-2xs cursor-pointer border ${
                     currentItemKey === 'bow'
-                      ? 'bg-rose-600 text-white border-rose-700 ring-2 ring-rose-300'
-                      : 'bg-slate-50 hover:bg-rose-50 text-slate-700 border-slate-200'
+                      ? 'bg-neutral-900 text-white border-neutral-700 ring-2 ring-neutral-300'
+                      : 'bg-slate-50 hover:bg-neutral-100 text-slate-700 border-slate-200'
                   }`}
                 >
                   <span>🎀</span>
                   <span>{lang === 'en' ? 'Bow' : 'বো (Bow)'}</span>
                   <span className={`text-[9.5px] px-1 py-0.2 rounded font-mono ${
-                    currentItemKey === 'bow' ? 'bg-rose-700 text-rose-100' : 'bg-slate-200 text-slate-600'
+                    currentItemKey === 'bow' ? 'bg-neutral-900 text-neutral-100' : 'bg-slate-200 text-slate-600'
                   }`}>
                     {lang === 'en' ? 'Pcs delivery' : 'পিস'}
                   </span>
@@ -287,14 +287,14 @@ export const OrderHeaderForm: React.FC<OrderHeaderFormProps> = ({
                   onClick={() => handleItemChange('tape')}
                   className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold transition shadow-2xs cursor-pointer border ${
                     currentItemKey === 'tape'
-                      ? 'bg-emerald-600 text-white border-emerald-700 ring-2 ring-emerald-300'
-                      : 'bg-slate-50 hover:bg-emerald-50 text-slate-700 border-slate-200'
+                      ? 'bg-neutral-900 text-white border-neutral-700 ring-2 ring-neutral-300'
+                      : 'bg-slate-50 hover:bg-neutral-100 text-slate-700 border-slate-200'
                   }`}
                 >
                   <span>🏷️</span>
                   <span>{lang === 'en' ? 'Tape' : 'টেপ'}</span>
                   <span className={`text-[9.5px] px-1 py-0.2 rounded font-mono ${
-                    currentItemKey === 'tape' ? 'bg-emerald-700 text-emerald-100' : 'bg-slate-200 text-slate-600'
+                    currentItemKey === 'tape' ? 'bg-neutral-900 text-neutral-100' : 'bg-slate-200 text-slate-600'
                   }`}>
                     {lang === 'en' ? 'Mtr' : 'মিটার'}
                   </span>
@@ -304,7 +304,7 @@ export const OrderHeaderForm: React.FC<OrderHeaderFormProps> = ({
 
             {/* Live Sticker Style Sync Confirmation Tag */}
             <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-600 bg-slate-100 px-2 py-1 rounded-md border border-slate-200">
-              <Sparkles className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+              <Sparkles className="w-3.5 h-3.5 text-neutral-700 shrink-0" />
               <span>
                 {lang === 'en'
                   ? `Sticker Style: ${currentItemConfig.name} (${isPcsMode ? 'Pieces Delivery' : 'Meters Delivery'})`
@@ -316,28 +316,28 @@ export const OrderHeaderForm: React.FC<OrderHeaderFormProps> = ({
           {/* Smart Grid of 6 Core Inputs */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-1.5 sm:gap-2">
             {/* 1. Company Name */}
-            <div className="bg-white p-1.5 rounded-lg border border-slate-200/90 shadow-2xs hover:border-indigo-300 transition">
+            <div className="bg-white p-1.5 rounded-lg border border-slate-200/90 shadow-2xs hover:border-neutral-300 transition">
               <AutocompleteInput
                 category="companies"
                 value={sheetData.companyName}
                 onChange={val => onChange({ companyName: val })}
                 placeholder="e.g. GOOD & FAST"
                 label={t.companyName}
-                icon={<Building2 className="w-3 h-3 text-indigo-500" />}
+                icon={<Building2 className="w-3 h-3 text-neutral-700" />}
                 lang={lang}
                 compact={true}
               />
             </div>
 
             {/* 2. Reference / PO */}
-            <div className="bg-white p-1.5 rounded-lg border border-slate-200/90 shadow-2xs hover:border-amber-300 transition">
+            <div className="bg-white p-1.5 rounded-lg border border-slate-200/90 shadow-2xs hover:border-neutral-300 transition">
               <AutocompleteInput
                 category="refs"
                 value={sheetData.ref}
                 onChange={val => onChange({ ref: val })}
                 placeholder="e.g. LIZ-LO-ELS-26080193"
                 label={t.ref}
-                icon={<Hash className="w-3 h-3 text-amber-500" />}
+                icon={<Hash className="w-3 h-3 text-neutral-700" />}
                 monoFont={true}
                 bold={true}
                 lang={lang}
@@ -346,28 +346,28 @@ export const OrderHeaderForm: React.FC<OrderHeaderFormProps> = ({
             </div>
 
             {/* 3. Customer */}
-            <div className="bg-white p-1.5 rounded-lg border border-slate-200/90 shadow-2xs hover:border-sky-300 transition">
+            <div className="bg-white p-1.5 rounded-lg border border-slate-200/90 shadow-2xs hover:border-neutral-300 transition">
               <AutocompleteInput
                 category="customers"
                 value={sheetData.customer}
                 onChange={val => onChange({ customer: val })}
                 placeholder="e.g. Liz"
                 label={t.customer}
-                icon={<User className="w-3 h-3 text-sky-500" />}
+                icon={<User className="w-3 h-3 text-neutral-700" />}
                 lang={lang}
                 compact={true}
               />
             </div>
 
             {/* 4. Buyer */}
-            <div className="bg-white p-1.5 rounded-lg border border-slate-200/90 shadow-2xs hover:border-violet-300 transition">
+            <div className="bg-white p-1.5 rounded-lg border border-slate-200/90 shadow-2xs hover:border-neutral-300 transition">
               <AutocompleteInput
                 category="buyers"
                 value={sheetData.buyer}
                 onChange={val => onChange({ buyer: val })}
                 placeholder="e.g. Sports Direct"
                 label={t.buyer}
-                icon={<Tag className="w-3 h-3 text-violet-500" />}
+                icon={<Tag className="w-3 h-3 text-neutral-700" />}
                 bold={true}
                 lang={lang}
                 compact={true}
@@ -375,14 +375,14 @@ export const OrderHeaderForm: React.FC<OrderHeaderFormProps> = ({
             </div>
 
             {/* 5. Size */}
-            <div className="bg-white p-1.5 rounded-lg border border-slate-200/90 shadow-2xs hover:border-emerald-300 transition">
+            <div className="bg-white p-1.5 rounded-lg border border-slate-200/90 shadow-2xs hover:border-neutral-300 transition">
               <AutocompleteInput
                 category="sizes"
                 value={sheetData.size}
                 onChange={val => onChange({ size: val })}
                 placeholder="e.g. 61 MM"
                 label={t.size}
-                icon={<Maximize2 className="w-3 h-3 text-emerald-500" />}
+                icon={<Maximize2 className="w-3 h-3 text-neutral-700" />}
                 bold={true}
                 uppercase={true}
                 lang={lang}
@@ -391,14 +391,14 @@ export const OrderHeaderForm: React.FC<OrderHeaderFormProps> = ({
             </div>
 
             {/* 6. Color */}
-            <div className="bg-white p-1.5 rounded-lg border border-slate-200/90 shadow-2xs hover:border-rose-300 transition">
+            <div className="bg-white p-1.5 rounded-lg border border-slate-200/90 shadow-2xs hover:border-neutral-300 transition">
               <AutocompleteInput
                 category="colors"
                 value={sheetData.color}
                 onChange={val => onChange({ color: val })}
                 placeholder="e.g. WHITE"
                 label={t.color}
-                icon={<Palette className="w-3 h-3 text-rose-500" />}
+                icon={<Palette className="w-3 h-3 text-neutral-700" />}
                 bold={true}
                 uppercase={true}
                 lang={lang}
@@ -413,7 +413,7 @@ export const OrderHeaderForm: React.FC<OrderHeaderFormProps> = ({
             <div className="flex items-center gap-2 flex-wrap">
               {/* Default Tare */}
               <div className="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs">
-                <Box className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                <Box className="w-3.5 h-3.5 text-neutral-800 shrink-0" />
                 <span className="text-xs font-bold text-slate-700">{t.defaultTare}:</span>
                 <input
                   type="number"
@@ -421,14 +421,14 @@ export const OrderHeaderForm: React.FC<OrderHeaderFormProps> = ({
                   min="0"
                   value={sheetData.defaultTare}
                   onChange={e => onChange({ defaultTare: parseFloat(e.target.value) || 0 })}
-                  className="w-16 px-1.5 py-0.5 text-xs font-bold font-mono text-center bg-amber-50/60 text-amber-900 border border-amber-200 rounded focus:ring-1 focus:ring-amber-500 focus:outline-none"
+                  className="w-16 px-1.5 py-0.5 text-xs font-bold font-mono text-center bg-neutral-100/60 text-neutral-900 border border-neutral-200 rounded focus:ring-1 focus:ring-neutral-400 focus:outline-none"
                 />
                 <span className="text-xs font-semibold text-slate-500">{weightUnitLabel}</span>
               </div>
 
               {/* Default Unit Weight (Dynamically adjusts to gm/m or gm/pc) */}
               <div className="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs">
-                <Scale className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                <Scale className="w-3.5 h-3.5 text-neutral-800 shrink-0" />
                 <span className="text-xs font-bold text-slate-700">
                   {isPcsMode ? (lang === 'en' ? 'Wt/pc:' : 'পিস ওজন:') : `${t.defaultWtPerUnit}:`}
                 </span>
@@ -438,9 +438,9 @@ export const OrderHeaderForm: React.FC<OrderHeaderFormProps> = ({
                   min="0.01"
                   value={sheetData.defaultWtPerUnit}
                   onChange={e => onChange({ defaultWtPerUnit: parseFloat(e.target.value) || 0 })}
-                  className="w-16 px-1.5 py-0.5 text-xs font-bold font-mono text-center bg-emerald-50/60 text-emerald-900 border border-emerald-200 rounded focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+                  className="w-16 px-1.5 py-0.5 text-xs font-bold font-mono text-center bg-neutral-100/60 text-neutral-900 border border-neutral-200 rounded focus:ring-1 focus:ring-neutral-400 focus:outline-none"
                 />
-                <span className="text-xs font-semibold text-emerald-700">
+                <span className="text-xs font-semibold text-neutral-800">
                   {isPcsMode ? 'gm/pc' : 'gm/m'}
                 </span>
               </div>
@@ -448,7 +448,7 @@ export const OrderHeaderForm: React.FC<OrderHeaderFormProps> = ({
               {/* Optional: Pcs per Packet for Drawstring & Bow */}
               {isPcsMode && (
                 <div className="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs">
-                  <Package className="w-3.5 h-3.5 text-purple-600 shrink-0" />
+                  <Package className="w-3.5 h-3.5 text-neutral-800 shrink-0" />
                   <span className="text-xs font-bold text-slate-700">{lang === 'en' ? 'Pcs/Pkt:' : 'পিস/প্যাকেট:'}</span>
                   <input
                     type="number"
@@ -457,7 +457,7 @@ export const OrderHeaderForm: React.FC<OrderHeaderFormProps> = ({
                     placeholder="e.g. 50"
                     value={sheetData.pcsPerPkt || ''}
                     onChange={e => onChange({ pcsPerPkt: parseInt(e.target.value, 10) || undefined })}
-                    className="w-14 px-1.5 py-0.5 text-xs font-bold font-mono text-center bg-purple-50/60 text-purple-900 border border-purple-200 rounded focus:ring-1 focus:ring-purple-500 focus:outline-none"
+                    className="w-14 px-1.5 py-0.5 text-xs font-bold font-mono text-center bg-neutral-100/60 text-neutral-900 border border-neutral-200 rounded focus:ring-1 focus:ring-neutral-400 focus:outline-none"
                   />
                   <span className="text-xs font-semibold text-slate-500">pcs</span>
                 </div>
@@ -469,8 +469,8 @@ export const OrderHeaderForm: React.FC<OrderHeaderFormProps> = ({
                 onClick={handleSyncClick}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition shadow-xs cursor-pointer ${
                   syncApplied
-                    ? 'bg-emerald-600 text-white'
-                    : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                    ? 'bg-neutral-900 text-white'
+                    : 'bg-neutral-900 hover:bg-neutral-800 text-white'
                 }`}
                 title="Apply default tare & unit weight to all active cartons in the table"
               >

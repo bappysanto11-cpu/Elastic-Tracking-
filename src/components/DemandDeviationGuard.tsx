@@ -69,11 +69,11 @@ export const DemandDeviationGuard: React.FC<DemandDeviationGuardProps> = ({
   return (
     <div className={`rounded-xl border transition-all duration-200 overflow-hidden mb-3.5 print:hidden ${
       hasCritical
-        ? 'bg-gradient-to-r from-red-950/90 via-slate-900 to-red-950/90 border-red-600/70 shadow-md text-white'
+        ? 'bg-gradient-to-r from-neutral-950/90 via-slate-900 to-neutral-950/90 border-neutral-600/70 shadow-md text-white'
         : hasWarnings
-        ? 'bg-gradient-to-r from-amber-950/80 via-slate-900 to-amber-950/80 border-amber-500/70 shadow-sm text-white'
+        ? 'bg-gradient-to-r from-neutral-950/80 via-slate-900 to-neutral-950/80 border-neutral-400/70 shadow-sm text-white'
         : selectedDemand
-        ? 'bg-gradient-to-r from-emerald-950/70 via-slate-900 to-slate-900 border-emerald-600/50 shadow-xs text-white'
+        ? 'bg-gradient-to-r from-neutral-950/70 via-slate-900 to-slate-900 border-neutral-600/50 shadow-xs text-white'
         : 'bg-slate-900 border-slate-800 text-slate-200'
     }`}>
       {/* Header Bar */}
@@ -83,19 +83,19 @@ export const DemandDeviationGuard: React.FC<DemandDeviationGuardProps> = ({
         <div className="flex items-center gap-3 min-w-0">
           <div className={`p-2 rounded-lg shrink-0 flex items-center justify-center ${
             hasCritical
-              ? 'bg-red-600/20 text-red-400 border border-red-500/40 animate-pulse'
+              ? 'bg-neutral-900/20 text-neutral-400 border border-neutral-400/40 animate-pulse'
               : hasWarnings
-              ? 'bg-amber-600/20 text-amber-400 border border-amber-500/40'
+              ? 'bg-neutral-900/20 text-neutral-400 border border-neutral-400/40'
               : selectedDemand
-              ? 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/40'
+              ? 'bg-neutral-900/20 text-neutral-400 border border-neutral-400/40'
               : 'bg-slate-800 text-slate-400 border border-slate-700'
           }`}>
             {hasCritical ? (
-              <ShieldAlert className="w-5 h-5 text-red-400" />
+              <ShieldAlert className="w-5 h-5 text-neutral-400" />
             ) : hasWarnings ? (
-              <AlertTriangle className="w-5 h-5 text-amber-400" />
+              <AlertTriangle className="w-5 h-5 text-neutral-400" />
             ) : (
-              <ShieldCheck className="w-5 h-5 text-emerald-400" />
+              <ShieldCheck className="w-5 h-5 text-neutral-400" />
             )}
           </div>
 
@@ -108,16 +108,16 @@ export const DemandDeviationGuard: React.FC<DemandDeviationGuardProps> = ({
               {/* Status Pill */}
               {selectedDemand ? (
                 hasCritical ? (
-                  <span className="px-2 py-0.5 rounded-full text-[10.5px] font-black bg-red-600 text-white shadow-xs animate-bounce">
+                  <span className="px-2 py-0.5 rounded-full text-[10.5px] font-black bg-neutral-900 text-white shadow-xs animate-bounce">
                     {lang === 'en' ? `${report.criticalCount} Critical Errors!` : `${report.criticalCount}টি গুরুতর প্যাকিং ত্রুটি!`}
                   </span>
                 ) : hasWarnings ? (
-                  <span className="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-amber-500 text-slate-950">
+                  <span className="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-neutral-800 text-slate-950">
                     {lang === 'en' ? `${report.warningCount} Spec Warnings` : `${report.warningCount}টি স্পেক সতর্কতা`}
                   </span>
                 ) : (
-                  <span className="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1">
-                    <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                  <span className="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-neutral-800/20 text-neutral-300 border border-neutral-400/40 flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3 text-neutral-400" />
                     <span>{lang === 'en' ? '100% Demand Compliant' : '১০০% চাহিদা সঠিক'}</span>
                   </span>
                 )
@@ -132,7 +132,7 @@ export const DemandDeviationGuard: React.FC<DemandDeviationGuardProps> = ({
             <div className="flex items-center gap-2 text-xs text-slate-300 mt-0.5 flex-wrap">
               {selectedDemand ? (
                 <>
-                  <span className="font-bold text-amber-300">
+                  <span className="font-bold text-neutral-300">
                     {selectedDemand.buyer} {selectedDemand.customer ? `(${selectedDemand.customer})` : ''}
                   </span>
                   <span className="text-slate-500">•</span>
@@ -142,7 +142,7 @@ export const DemandDeviationGuard: React.FC<DemandDeviationGuardProps> = ({
                     {selectedDemand.size} · {selectedDemand.color || 'STANDARD'}
                   </span>
                   <span className="text-slate-500">•</span>
-                  <span className="text-indigo-300 font-mono text-[11px]">
+                  <span className="text-neutral-300 font-mono text-[11px]">
                     Target: <strong>{selectedDemand.unitWeightGm} gm/m</strong> | Tare: <strong>{selectedDemand.defaultTare || 0.5} kg</strong>
                   </span>
                 </>
@@ -167,7 +167,7 @@ export const DemandDeviationGuard: React.FC<DemandDeviationGuardProps> = ({
               onClick={() => setIsSelectorOpen(!isSelectorOpen)}
               className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold transition cursor-pointer"
             >
-              <BookmarkCheck className="w-3.5 h-3.5 text-indigo-400" />
+              <BookmarkCheck className="w-3.5 h-3.5 text-neutral-400" />
               <span className="hidden sm:inline">
                 {selectedDemand ? `${selectedDemand.buyer} (${selectedDemand.size})` : (lang === 'en' ? 'Select Buyer Demand' : 'চাহিদা যুক্ত করুন')}
               </span>
@@ -186,7 +186,7 @@ export const DemandDeviationGuard: React.FC<DemandDeviationGuardProps> = ({
                         onSelectDemand(null);
                         setIsSelectorOpen(false);
                       }}
-                      className="text-[10px] text-rose-400 hover:underline"
+                      className="text-[10px] text-neutral-400 hover:underline"
                     >
                       {lang === 'en' ? 'Detach' : 'মুছে দিন'}
                     </button>
@@ -208,13 +208,13 @@ export const DemandDeviationGuard: React.FC<DemandDeviationGuardProps> = ({
                         }}
                         className={`w-full text-left p-2 rounded-lg transition flex items-center justify-between gap-2 cursor-pointer ${
                           selectedDemand?.id === d.id
-                            ? 'bg-indigo-600/30 text-white border border-indigo-500/50'
+                            ? 'bg-neutral-900/30 text-white border border-neutral-400/50'
                             : 'hover:bg-slate-800 text-slate-300 border border-transparent'
                         }`}
                       >
                         <div className="min-w-0">
                           <div className="flex items-center gap-1.5">
-                            <span className="font-black text-[10px] px-1.5 py-0.2 rounded bg-amber-400/20 text-amber-300">
+                            <span className="font-black text-[10px] px-1.5 py-0.2 rounded bg-neutral-400/20 text-neutral-300">
                               {d.buyer}
                             </span>
                             <span className="font-bold text-slate-200 font-mono truncate">{d.ref}</span>
@@ -224,7 +224,7 @@ export const DemandDeviationGuard: React.FC<DemandDeviationGuardProps> = ({
                           </p>
                         </div>
                         {selectedDemand?.id === d.id && (
-                          <Check className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+                          <Check className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
                         )}
                       </button>
                     ))
@@ -241,10 +241,10 @@ export const DemandDeviationGuard: React.FC<DemandDeviationGuardProps> = ({
               onClick={handleFix}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition shadow-xs cursor-pointer ${
                 justFixed
-                  ? 'bg-emerald-600 text-white'
+                  ? 'bg-neutral-900 text-white'
                   : hasCritical
-                  ? 'bg-red-600 hover:bg-red-500 text-white animate-pulse'
-                  : 'bg-indigo-600 hover:bg-indigo-500 text-white'
+                  ? 'bg-neutral-900 hover:bg-neutral-800 text-white animate-pulse'
+                  : 'bg-neutral-900 hover:bg-neutral-800 text-white'
               }`}
               title="Apply Demand standard unit weight & tare to all deviating cartons"
             >
@@ -255,7 +255,7 @@ export const DemandDeviationGuard: React.FC<DemandDeviationGuardProps> = ({
                 </>
               ) : (
                 <>
-                  <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                  <Sparkles className="w-3.5 h-3.5 text-neutral-300" />
                   <span>{lang === 'en' ? 'Fix All to Demand Specs' : 'চাহিদা অনুযায়ী অটো-ঠিক করুন'}</span>
                 </>
               )}
@@ -269,7 +269,7 @@ export const DemandDeviationGuard: React.FC<DemandDeviationGuardProps> = ({
               onClick={onToggleFilterDeviations}
               className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition cursor-pointer ${
                 filterOnlyDeviations
-                  ? 'bg-amber-500 text-slate-950 border-amber-400 font-bold'
+                  ? 'bg-neutral-800 text-slate-950 border-neutral-300 font-bold'
                   : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border-slate-700'
               }`}
               title="Toggle filter to only view cartons with deviations"
@@ -308,7 +308,7 @@ export const DemandDeviationGuard: React.FC<DemandDeviationGuardProps> = ({
                 {lang === 'en' ? 'Order Fulfillment' : 'অর্ডার অগ্রগতি'}
               </span>
               <div className="flex items-baseline justify-between">
-                <span className="text-sm font-black font-mono text-emerald-400">
+                <span className="text-sm font-black font-mono text-neutral-400">
                   {report.totalPackedMtr.toFixed(1)}m
                 </span>
                 <span className="text-[11px] text-slate-400 font-mono">
@@ -319,7 +319,7 @@ export const DemandDeviationGuard: React.FC<DemandDeviationGuardProps> = ({
                 <div className="w-full bg-slate-800 rounded-full h-1.5 mt-1.5 overflow-hidden">
                   <div 
                     className={`h-full rounded-full transition-all ${
-                      report.fulfillmentPercent > 105 ? 'bg-amber-400' : 'bg-emerald-500'
+                      report.fulfillmentPercent > 105 ? 'bg-neutral-400' : 'bg-neutral-800'
                     }`}
                     style={{ width: `${Math.min(report.fulfillmentPercent, 100)}%` }}
                   />
@@ -333,9 +333,9 @@ export const DemandDeviationGuard: React.FC<DemandDeviationGuardProps> = ({
                 {lang === 'en' ? 'Carton Quality Check' : 'কার্টন কোয়ালিটি স্ট্যাটাস'}
               </span>
               <div className="flex items-center gap-2 text-xs font-bold font-mono">
-                <span className="text-emerald-400">🟢 {report.compliantCount} OK</span>
-                <span className="text-amber-400">🟡 {report.warningCount} Warn</span>
-                <span className="text-red-400">🔴 {report.criticalCount} Err</span>
+                <span className="text-neutral-400">🟢 {report.compliantCount} OK</span>
+                <span className="text-neutral-400">🟡 {report.warningCount} Warn</span>
+                <span className="text-neutral-400">🔴 {report.criticalCount} Err</span>
               </div>
             </div>
 
@@ -352,7 +352,7 @@ export const DemandDeviationGuard: React.FC<DemandDeviationGuardProps> = ({
                     onClick={() => onChangeTolerance(tol)}
                     className={`px-2 py-0.5 rounded text-[10.5px] font-mono font-bold transition cursor-pointer ${
                       tolerancePercent === tol
-                        ? 'bg-indigo-600 text-white'
+                        ? 'bg-neutral-900 text-white'
                         : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
                     }`}
                   >
@@ -370,7 +370,7 @@ export const DemandDeviationGuard: React.FC<DemandDeviationGuardProps> = ({
                   : (lang === 'en' ? 'Remaining Demand' : 'বাকি চাহিদা')}
               </span>
               <span className={`text-sm font-black font-mono ${
-                report.overpackMeters > 0 ? 'text-amber-400' : 'text-slate-200'
+                report.overpackMeters > 0 ? 'text-neutral-400' : 'text-slate-200'
               }`}>
                 {report.overpackMeters > 0 
                   ? `+${report.overpackMeters.toFixed(1)} Mtr`
@@ -383,7 +383,7 @@ export const DemandDeviationGuard: React.FC<DemandDeviationGuardProps> = ({
           {report.allDeviations.length > 0 && (
             <div className="space-y-1.5 pt-1">
               <span className="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
+                <AlertTriangle className="w-3.5 h-3.5 text-neutral-400" />
                 <span>{lang === 'en' ? 'Identified Deviations in Active Cartons:' : 'চিহ্নিত প্যাকিং বিচ্যুতি ও ত্রুটিসমূহ:'}</span>
               </span>
 
@@ -393,13 +393,13 @@ export const DemandDeviationGuard: React.FC<DemandDeviationGuardProps> = ({
                     key={`${dev.cartonId}-${dev.type}-${idx}`}
                     className={`p-2 rounded-lg text-xs flex items-center justify-between gap-3 border ${
                       dev.severity === 'critical'
-                        ? 'bg-red-950/80 border-red-700/80 text-red-200'
-                        : 'bg-amber-950/70 border-amber-700/70 text-amber-200'
+                        ? 'bg-neutral-950/80 border-neutral-700/80 text-neutral-200'
+                        : 'bg-neutral-950/70 border-neutral-700/70 text-neutral-200'
                     }`}
                   >
                     <div className="flex items-center gap-2 min-w-0">
                       <span className={`px-1.5 py-0.2 rounded font-mono font-black text-[10.5px] ${
-                        dev.severity === 'critical' ? 'bg-red-800 text-white' : 'bg-amber-800 text-amber-100'
+                        dev.severity === 'critical' ? 'bg-neutral-900 text-white' : 'bg-neutral-900 text-neutral-100'
                       }`}>
                         CTN #{dev.cartonNo}
                       </span>

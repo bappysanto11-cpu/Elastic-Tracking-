@@ -487,9 +487,9 @@ export const AiPhotoScannerModal: React.FC<AiPhotoScannerModalProps> = ({
       <div className="relative w-full max-w-5xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[94vh]">
         
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white border-b border-indigo-950">
+        <div className="flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-slate-900 via-neutral-950 to-slate-900 text-white border-b border-neutral-800">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center shadow-inner">
+            <div className="w-10 h-10 rounded-xl bg-neutral-800/20 text-neutral-400 border border-neutral-400/30 flex items-center justify-center shadow-inner">
               <Camera className="w-5 h-5" />
             </div>
             <div>
@@ -497,8 +497,8 @@ export const AiPhotoScannerModal: React.FC<AiPhotoScannerModalProps> = ({
                 <h3 className="text-base sm:text-lg font-bold text-white tracking-wide">
                   {t.modalTitle}
                 </h3>
-                <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-mono px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
-                  <Sparkles className="w-3 h-3 text-emerald-400" />
+                <span className="bg-neutral-800/20 text-neutral-300 border border-neutral-400/40 text-[10px] font-mono px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
+                  <Sparkles className="w-3 h-3 text-neutral-400" />
                   Gemini Vision 20-Carton Batch
                 </span>
               </div>
@@ -524,13 +524,13 @@ export const AiPhotoScannerModal: React.FC<AiPhotoScannerModalProps> = ({
               onClick={() => setActiveMode('batch20')}
               className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
                 activeMode === 'batch20'
-                  ? 'bg-white text-indigo-900 shadow-xs ring-1 ring-black/5'
+                  ? 'bg-white text-neutral-900 shadow-xs ring-1 ring-black/5'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <Grid className="w-3.5 h-3.5 text-indigo-600" />
+              <Grid className="w-3.5 h-3.5 text-neutral-800" />
               <span>{t.batchTab}</span>
-              <span className="bg-emerald-100 text-emerald-800 text-[10px] font-mono px-1.5 py-0.2 rounded font-extrabold">
+              <span className="bg-neutral-100 text-neutral-900 text-[10px] font-mono px-1.5 py-0.2 rounded font-extrabold">
                 RECOMMENDED
               </span>
             </button>
@@ -539,7 +539,7 @@ export const AiPhotoScannerModal: React.FC<AiPhotoScannerModalProps> = ({
               onClick={() => setActiveMode('multiPhoto')}
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
                 activeMode === 'multiPhoto'
-                  ? 'bg-white text-indigo-900 shadow-xs ring-1 ring-black/5'
+                  ? 'bg-white text-neutral-900 shadow-xs ring-1 ring-black/5'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
@@ -557,7 +557,7 @@ export const AiPhotoScannerModal: React.FC<AiPhotoScannerModalProps> = ({
                 min="1"
                 value={startCartonNo}
                 onChange={(e) => setStartCartonNo(parseInt(e.target.value, 10) || 1)}
-                className="w-16 px-2 py-1 text-xs font-mono font-bold bg-white border border-slate-300 rounded-lg focus:border-indigo-500 focus:outline-none"
+                className="w-16 px-2 py-1 text-xs font-mono font-bold bg-white border border-slate-300 rounded-lg focus:border-neutral-400 focus:outline-none"
               />
             </div>
           )}
@@ -574,15 +574,15 @@ export const AiPhotoScannerModal: React.FC<AiPhotoScannerModalProps> = ({
               {!batchPhoto ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {/* Select File */}
-                  <label className="flex items-center justify-center gap-3 p-4 rounded-xl border-2 border-dashed border-indigo-300 hover:border-indigo-500 bg-indigo-50/40 hover:bg-indigo-50 transition cursor-pointer group">
-                    <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+                  <label className="flex items-center justify-center gap-3 p-4 rounded-xl border-2 border-dashed border-neutral-300 hover:border-neutral-400 bg-neutral-100/40 hover:bg-neutral-100 transition cursor-pointer group">
+                    <div className="w-10 h-10 rounded-xl bg-neutral-900 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
                       <Upload className="w-5 h-5" />
                     </div>
                     <div className="text-left">
-                      <span className="block text-xs sm:text-sm font-bold text-indigo-950">
+                      <span className="block text-xs sm:text-sm font-bold text-neutral-900">
                         {t.uploadBatchPhoto}
                       </span>
-                      <span className="block text-[11px] text-indigo-600">
+                      <span className="block text-[11px] text-neutral-800">
                         {lang === 'en' ? 'JPG, PNG of carton pallet or label grid' : 'প্যালেট বা কার্টনের ছবি সিলেক্ট করুন'}
                       </span>
                     </div>
@@ -596,15 +596,15 @@ export const AiPhotoScannerModal: React.FC<AiPhotoScannerModalProps> = ({
                   </label>
 
                   {/* Camera Snap */}
-                  <label className="flex items-center justify-center gap-3 p-4 rounded-xl border-2 border-dashed border-emerald-300 hover:border-emerald-500 bg-emerald-50/40 hover:bg-emerald-50 transition cursor-pointer group">
-                    <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+                  <label className="flex items-center justify-center gap-3 p-4 rounded-xl border-2 border-dashed border-neutral-300 hover:border-neutral-400 bg-neutral-100/40 hover:bg-neutral-100 transition cursor-pointer group">
+                    <div className="w-10 h-10 rounded-xl bg-neutral-900 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
                       <Camera className="w-5 h-5" />
                     </div>
                     <div className="text-left">
-                      <span className="block text-xs sm:text-sm font-bold text-emerald-950">
+                      <span className="block text-xs sm:text-sm font-bold text-neutral-900">
                         {t.snapBatchPhoto}
                       </span>
-                      <span className="block text-[11px] text-emerald-600">
+                      <span className="block text-[11px] text-neutral-800">
                         {lang === 'en' ? 'Take live photo with smartphone camera' : 'মোবাইল ক্যামেরা দিয়ে সরাসরি ছবি তুলুন'}
                       </span>
                     </div>
@@ -623,10 +623,10 @@ export const AiPhotoScannerModal: React.FC<AiPhotoScannerModalProps> = ({
                 <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <div className="flex items-center gap-2">
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-100 text-indigo-900 text-xs font-bold">
-                        <ImageIcon className="w-3.5 h-3.5 text-indigo-600" />
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-neutral-100 text-neutral-900 text-xs font-bold">
+                        <ImageIcon className="w-3.5 h-3.5 text-neutral-800" />
                         <span>{batchPhoto.file.name}</span>
-                        <span className="text-[10px] text-indigo-600 font-normal">
+                        <span className="text-[10px] text-neutral-800 font-normal">
                           ({(batchPhoto.file.size / 1024).toFixed(0)} KB)
                         </span>
                       </span>
@@ -652,7 +652,7 @@ export const AiPhotoScannerModal: React.FC<AiPhotoScannerModalProps> = ({
                           setDetectedDetails([]);
                         }}
                         disabled={isBatchScanning}
-                        className="flex items-center gap-1 px-2.5 py-1 text-xs text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
+                        className="flex items-center gap-1 px-2.5 py-1 text-xs text-neutral-800 hover:bg-neutral-100 rounded-lg transition cursor-pointer"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                         <span>{t.clearPhoto}</span>
@@ -662,7 +662,7 @@ export const AiPhotoScannerModal: React.FC<AiPhotoScannerModalProps> = ({
                         type="button"
                         onClick={handleExecuteBatchScan}
                         disabled={isBatchScanning}
-                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs sm:text-sm font-bold shadow-md shadow-emerald-600/20 transition cursor-pointer disabled:opacity-60"
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-neutral-900 to-neutral-900 hover:from-neutral-800 hover:to-neutral-800 text-white text-xs sm:text-sm font-bold shadow-md shadow-emerald-600/20 transition cursor-pointer disabled:opacity-60"
                       >
                         {isBatchScanning ? (
                           <>
@@ -671,7 +671,7 @@ export const AiPhotoScannerModal: React.FC<AiPhotoScannerModalProps> = ({
                           </>
                         ) : (
                           <>
-                            <Sparkles className="w-4 h-4 text-amber-300" />
+                            <Sparkles className="w-4 h-4 text-neutral-300" />
                             <span>{t.startScanBtn}</span>
                           </>
                         )}
@@ -690,10 +690,10 @@ export const AiPhotoScannerModal: React.FC<AiPhotoScannerModalProps> = ({
                     {isBatchScanning && (
                       <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-xs flex flex-col items-center justify-center text-white space-y-2">
                         <div className="relative">
-                          <Loader2 className="w-8 h-8 animate-spin text-emerald-400" />
-                          <Sparkles className="w-4 h-4 text-amber-300 absolute -top-1 -right-1" />
+                          <Loader2 className="w-8 h-8 animate-spin text-neutral-400" />
+                          <Sparkles className="w-4 h-4 text-neutral-300 absolute -top-1 -right-1" />
                         </div>
-                        <p className="text-xs font-bold tracking-wide text-emerald-300">
+                        <p className="text-xs font-bold tracking-wide text-neutral-300">
                           {lang === 'en' ? 'Scanning image to isolate up to 20 carton labels...' : 'ছবি থেকে ২০টি কার্টন লেবেল পৃথকভাবে শনাক্ত হচ্ছে...'}
                         </p>
                       </div>
@@ -704,9 +704,9 @@ export const AiPhotoScannerModal: React.FC<AiPhotoScannerModalProps> = ({
 
               {/* Error Message */}
               {apiError && (
-                <div className="p-3.5 bg-rose-50 border border-rose-200 text-rose-800 text-xs rounded-xl flex flex-wrap items-center justify-between gap-2 shadow-xs">
+                <div className="p-3.5 bg-neutral-100 border border-neutral-200 text-neutral-900 text-xs rounded-xl flex flex-wrap items-center justify-between gap-2 shadow-xs">
                   <div className="flex items-start gap-2 flex-1 min-w-[220px]">
-                    <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                    <AlertCircle className="w-4 h-4 text-neutral-800 shrink-0 mt-0.5" />
                     <span className="font-medium leading-relaxed">{apiError}</span>
                   </div>
                   {batchPhoto && (
@@ -714,7 +714,7 @@ export const AiPhotoScannerModal: React.FC<AiPhotoScannerModalProps> = ({
                       type="button"
                       onClick={handleExecuteBatchScan}
                       disabled={isBatchScanning}
-                      className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs flex items-center gap-1.5 shrink-0 transition cursor-pointer disabled:opacity-50"
+                      className="px-3 py-1.5 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-white font-bold text-xs flex items-center gap-1.5 shrink-0 transition cursor-pointer disabled:opacity-50"
                     >
                       <RotateCcw className="w-3.5 h-3.5" />
                       <span>{lang === 'en' ? 'Retry Scan' : 'আবার চেষ্টা করুন'}</span>
@@ -727,13 +727,13 @@ export const AiPhotoScannerModal: React.FC<AiPhotoScannerModalProps> = ({
               {parsedCartonRows.length > 0 && (
                 <div className="space-y-3">
                   {/* Summary Bar */}
-                  <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-emerald-50/80 border border-emerald-200 rounded-xl">
+                  <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-neutral-100/80 border border-neutral-200 rounded-xl">
                     <div className="flex items-center gap-3 sm:gap-4 text-xs flex-wrap">
-                      <span className="font-bold text-emerald-950 flex items-center gap-1.5">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                      <span className="font-bold text-neutral-900 flex items-center gap-1.5">
+                        <CheckCircle2 className="w-4 h-4 text-neutral-800" />
                         <span>
                           {t.labelsDetected}:{' '}
-                          <strong className="text-emerald-700 font-mono text-sm font-extrabold">
+                          <strong className="text-neutral-800 font-mono text-sm font-extrabold">
                             {parsedCartonRows.length}
                           </strong>{' '}
                           {lang === 'en' ? 'CartonRows' : 'টি কার্টন'}
@@ -774,7 +774,7 @@ export const AiPhotoScannerModal: React.FC<AiPhotoScannerModalProps> = ({
                     <button
                       type="button"
                       onClick={handleAddParsedRow}
-                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white border border-emerald-300 hover:bg-emerald-50 text-emerald-800 text-xs font-bold transition cursor-pointer"
+                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white border border-neutral-300 hover:bg-neutral-100 text-neutral-900 text-xs font-bold transition cursor-pointer"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       <span>{t.addRowBtn}</span>
@@ -783,19 +783,19 @@ export const AiPhotoScannerModal: React.FC<AiPhotoScannerModalProps> = ({
 
                   {/* Detected Order Header Details Card */}
                   {hasDetectedHeaderInfo && (
-                    <div className="p-3 bg-gradient-to-r from-indigo-50/90 to-purple-50/90 border border-indigo-200 rounded-xl space-y-2">
+                    <div className="p-3 bg-gradient-to-r from-neutral-100/90 to-neutral-100/90 border border-neutral-200 rounded-xl space-y-2">
                       <div className="flex items-center justify-between flex-wrap gap-2">
-                        <span className="text-xs font-bold text-indigo-950 flex items-center gap-1.5">
-                          <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+                        <span className="text-xs font-bold text-neutral-900 flex items-center gap-1.5">
+                          <Sparkles className="w-3.5 h-3.5 text-neutral-800" />
                           <span>{lang === 'en' ? 'Order & Shipping Details Detected from Photo:' : 'ছবি থেকে শনাক্তকৃত অর্ডার ও শিপিং তথ্য:'}</span>
                         </span>
                         
-                        <label className="flex items-center gap-1.5 text-xs font-bold text-indigo-900 cursor-pointer select-none">
+                        <label className="flex items-center gap-1.5 text-xs font-bold text-neutral-900 cursor-pointer select-none">
                           <input
                             type="checkbox"
                             checked={shouldUpdateHeader}
                             onChange={(e) => setShouldUpdateHeader(e.target.checked)}
-                            className="w-3.5 h-3.5 text-indigo-600 rounded border-indigo-300 focus:ring-indigo-500 cursor-pointer"
+                            className="w-3.5 h-3.5 text-neutral-800 rounded border-neutral-300 focus:ring-neutral-400 cursor-pointer"
                           />
                           <span>{lang === 'en' ? 'Auto-apply Order Details to Sheet & Stickers' : 'শীট ও স্টিকারে এই তথ্যগুলো সরাসরি বসান'}</span>
                         </label>
@@ -803,29 +803,29 @@ export const AiPhotoScannerModal: React.FC<AiPhotoScannerModalProps> = ({
 
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
                         {detectedHeader.buyer && (
-                          <div className="bg-white/80 border border-indigo-100 p-1.5 rounded-lg">
+                          <div className="bg-white/80 border border-neutral-200 p-1.5 rounded-lg">
                             <span className="text-[10px] text-slate-500 font-semibold block">BUYER:</span>
                             <span className="font-bold text-slate-900">{detectedHeader.buyer}</span>
                           </div>
                         )}
                         {(detectedHeader.ref || detectedHeader.jobNo) && (
-                          <div className="bg-white/80 border border-indigo-100 p-1.5 rounded-lg">
+                          <div className="bg-white/80 border border-neutral-200 p-1.5 rounded-lg">
                             <span className="text-[10px] text-slate-500 font-semibold block">REF / JOB NO:</span>
-                            <span className="font-bold text-indigo-700 font-mono">
+                            <span className="font-bold text-neutral-800 font-mono">
                               {detectedHeader.ref || ''}{detectedHeader.ref && detectedHeader.jobNo ? ' / ' : ''}{detectedHeader.jobNo || ''}
                             </span>
                           </div>
                         )}
                         {detectedHeader.color && (
-                          <div className="bg-white/80 border border-indigo-100 p-1.5 rounded-lg">
+                          <div className="bg-white/80 border border-neutral-200 p-1.5 rounded-lg">
                             <span className="text-[10px] text-slate-500 font-semibold block">COLOR / ITEM:</span>
                             <span className="font-bold text-slate-900">{detectedHeader.color}</span>
                           </div>
                         )}
                         {detectedHeader.defaultTare && detectedHeader.defaultTare > 0 && (
-                          <div className="bg-white/80 border border-indigo-100 p-1.5 rounded-lg">
+                          <div className="bg-white/80 border border-neutral-200 p-1.5 rounded-lg">
                             <span className="text-[10px] text-slate-500 font-semibold block">TARE WEIGHT:</span>
-                            <span className="font-bold text-emerald-700 font-mono">{detectedHeader.defaultTare.toFixed(2)} KG</span>
+                            <span className="font-bold text-neutral-800 font-mono">{detectedHeader.defaultTare.toFixed(2)} KG</span>
                           </div>
                         )}
                       </div>
@@ -852,7 +852,7 @@ export const AiPhotoScannerModal: React.FC<AiPhotoScannerModalProps> = ({
                           {parsedCartonRows.map((row, idx) => {
                             const detail = detectedDetails[idx];
                             return (
-                              <tr key={row.id || idx} className="hover:bg-indigo-50/40 transition">
+                              <tr key={row.id || idx} className="hover:bg-neutral-100/40 transition">
                                 {/* Carton No */}
                                 <td className="py-1.5 px-3">
                                   <input
@@ -860,7 +860,7 @@ export const AiPhotoScannerModal: React.FC<AiPhotoScannerModalProps> = ({
                                     min="1"
                                     value={row.cartonNo}
                                     onChange={(e) => handleUpdateParsedRow(idx, 'cartonNo', parseInt(e.target.value, 10) || 1)}
-                                    className="w-14 px-1.5 py-0.5 font-mono font-bold text-slate-900 border border-slate-300 rounded focus:border-indigo-500 focus:outline-none"
+                                    className="w-14 px-1.5 py-0.5 font-mono font-bold text-slate-900 border border-slate-300 rounded focus:border-neutral-400 focus:outline-none"
                                   />
                                 </td>
 
@@ -880,7 +880,7 @@ export const AiPhotoScannerModal: React.FC<AiPhotoScannerModalProps> = ({
                                       value={row.grossWt > 0 ? row.grossWt : ''}
                                       onChange={(e) => handleUpdateParsedRow(idx, 'grossWt', parseFloat(e.target.value) || 0)}
                                       placeholder="0.00"
-                                      className="w-full pl-1.5 pr-6 py-0.5 font-mono font-bold text-emerald-700 bg-emerald-50/50 border border-emerald-300 rounded focus:border-emerald-600 focus:outline-none"
+                                      className="w-full pl-1.5 pr-6 py-0.5 font-mono font-bold text-neutral-800 bg-neutral-100/50 border border-neutral-300 rounded focus:border-neutral-600 focus:outline-none"
                                     />
                                     <span className="absolute right-1.5 top-1 text-[10px] font-bold text-slate-400">
                                       KG
@@ -895,7 +895,7 @@ export const AiPhotoScannerModal: React.FC<AiPhotoScannerModalProps> = ({
                                     step="0.01"
                                     value={row.tareWt}
                                     onChange={(e) => handleUpdateParsedRow(idx, 'tareWt', parseFloat(e.target.value) || defaultTare)}
-                                    className="w-16 px-1.5 py-0.5 font-mono text-slate-600 border border-slate-200 rounded focus:border-indigo-500 focus:outline-none"
+                                    className="w-16 px-1.5 py-0.5 font-mono text-slate-600 border border-slate-200 rounded focus:border-neutral-400 focus:outline-none"
                                   />
                                 </td>
 
@@ -905,7 +905,7 @@ export const AiPhotoScannerModal: React.FC<AiPhotoScannerModalProps> = ({
                                 </td>
 
                                 {/* Length or Pcs */}
-                                <td className="py-1.5 px-3 font-mono font-bold text-indigo-700">
+                                <td className="py-1.5 px-3 font-mono font-bold text-neutral-800">
                                   {deliveryUnit === 'pcs'
                                     ? `${(row.qtyPcs || 0).toLocaleString()} Pcs`
                                     : `${(row.lengthMtr || 0).toFixed(2)} Mtr`}
@@ -923,7 +923,7 @@ export const AiPhotoScannerModal: React.FC<AiPhotoScannerModalProps> = ({
                                   <button
                                     type="button"
                                     onClick={() => handleRemoveParsedRow(idx)}
-                                    className="text-slate-400 hover:text-rose-600 p-1 cursor-pointer"
+                                    className="text-slate-400 hover:text-neutral-800 p-1 cursor-pointer"
                                     title="Delete row"
                                   >
                                     <Trash2 className="w-3.5 h-3.5" />
@@ -945,15 +945,15 @@ export const AiPhotoScannerModal: React.FC<AiPhotoScannerModalProps> = ({
           {activeMode === 'multiPhoto' && (
             <div className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <label className="flex items-center justify-center gap-3 p-4 rounded-xl border-2 border-dashed border-indigo-300 hover:border-indigo-500 bg-indigo-50/40 hover:bg-indigo-50 transition cursor-pointer group">
-                  <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+                <label className="flex items-center justify-center gap-3 p-4 rounded-xl border-2 border-dashed border-neutral-300 hover:border-neutral-400 bg-neutral-100/40 hover:bg-neutral-100 transition cursor-pointer group">
+                  <div className="w-10 h-10 rounded-xl bg-neutral-900 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
                     <Upload className="w-5 h-5" />
                   </div>
                   <div className="text-left">
-                    <span className="block text-xs sm:text-sm font-bold text-indigo-950">
+                    <span className="block text-xs sm:text-sm font-bold text-neutral-900">
                       {lang === 'en' ? 'Select Multiple Photos' : 'একাধিক ছবি সিলেক্ট করুন'}
                     </span>
-                    <span className="block text-[11px] text-indigo-600">
+                    <span className="block text-[11px] text-neutral-800">
                       {lang === 'en' ? 'Select 1 photo per carton box' : 'প্রতিটি কার্টনের জন্য আলাদা ছবি নির্বাচন করুন'}
                     </span>
                   </div>
@@ -982,15 +982,15 @@ export const AiPhotoScannerModal: React.FC<AiPhotoScannerModalProps> = ({
                   />
                 </label>
 
-                <label className="flex items-center justify-center gap-3 p-4 rounded-xl border-2 border-dashed border-emerald-300 hover:border-emerald-500 bg-emerald-50/40 hover:bg-emerald-50 transition cursor-pointer group">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+                <label className="flex items-center justify-center gap-3 p-4 rounded-xl border-2 border-dashed border-neutral-300 hover:border-neutral-400 bg-neutral-100/40 hover:bg-neutral-100 transition cursor-pointer group">
+                  <div className="w-10 h-10 rounded-xl bg-neutral-900 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
                     <Camera className="w-5 h-5" />
                   </div>
                   <div className="text-left">
-                    <span className="block text-xs sm:text-sm font-bold text-emerald-950">
+                    <span className="block text-xs sm:text-sm font-bold text-neutral-900">
                       {lang === 'en' ? 'Camera Snap' : 'ক্যামেরা দিয়ে ছবি'}
                     </span>
-                    <span className="block text-[11px] text-emerald-600">
+                    <span className="block text-[11px] text-neutral-800">
                       {lang === 'en' ? 'Take sequential photos of cartons' : 'একের পর এক কার্টনের ছবি তুলুন'}
                     </span>
                   </div>
@@ -1035,7 +1035,7 @@ export const AiPhotoScannerModal: React.FC<AiPhotoScannerModalProps> = ({
                           multiPhotos.forEach(p => URL.revokeObjectURL(p.previewUrl));
                           setMultiPhotos([]);
                         }}
-                        className="text-xs text-rose-600 hover:bg-rose-50 px-2 py-1 rounded"
+                        className="text-xs text-neutral-800 hover:bg-neutral-100 px-2 py-1 rounded"
                       >
                         {lang === 'en' ? 'Clear Photos' : 'ছবি মুছুন'}
                       </button>
@@ -1044,7 +1044,7 @@ export const AiPhotoScannerModal: React.FC<AiPhotoScannerModalProps> = ({
                         type="button"
                         onClick={handleExecuteMultiScan}
                         disabled={isMultiScanning}
-                        className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition cursor-pointer disabled:opacity-60"
+                        className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-bold transition cursor-pointer disabled:opacity-60"
                       >
                         {isMultiScanning ? (
                           <>
@@ -1053,7 +1053,7 @@ export const AiPhotoScannerModal: React.FC<AiPhotoScannerModalProps> = ({
                           </>
                         ) : (
                           <>
-                            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                            <Sparkles className="w-3.5 h-3.5 text-neutral-300" />
                             <span>{lang === 'en' ? 'Scan All Photos with AI' : 'সব ছবি স্ক্যান করুন'}</span>
                           </>
                         )}
@@ -1089,7 +1089,7 @@ export const AiPhotoScannerModal: React.FC<AiPhotoScannerModalProps> = ({
               <select
                 value={applyMode}
                 onChange={(e) => setApplyMode(e.target.value as 'replace' | 'append')}
-                className="bg-white border border-slate-300 text-xs font-semibold px-2.5 py-1.5 rounded-lg focus:outline-none focus:border-indigo-500 cursor-pointer"
+                className="bg-white border border-slate-300 text-xs font-semibold px-2.5 py-1.5 rounded-lg focus:outline-none focus:border-neutral-400 cursor-pointer"
               >
                 <option value="replace">{t.replaceOption}</option>
                 <option value="append">{t.appendOption}</option>
@@ -1101,7 +1101,7 @@ export const AiPhotoScannerModal: React.FC<AiPhotoScannerModalProps> = ({
                 type="checkbox"
                 checked={autoGoToStickers}
                 onChange={(e) => setAutoGoToStickers(e.target.checked)}
-                className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer"
+                className="w-4 h-4 text-neutral-800 rounded border-slate-300 focus:ring-neutral-400 cursor-pointer"
               />
               <span>{t.goToStickersCheck}</span>
             </label>
@@ -1121,9 +1121,9 @@ export const AiPhotoScannerModal: React.FC<AiPhotoScannerModalProps> = ({
               type="button"
               onClick={handleApplyCartonsToTable}
               disabled={parsedCartonRows.length === 0}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-700 to-indigo-800 hover:from-indigo-500 hover:to-indigo-700 text-white text-xs sm:text-sm font-bold shadow-md shadow-indigo-500/25 transition cursor-pointer disabled:opacity-50"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-neutral-900 via-neutral-900 to-neutral-950 hover:from-neutral-800 hover:to-neutral-900 text-white text-xs sm:text-sm font-bold shadow-md shadow-indigo-500/25 transition cursor-pointer disabled:opacity-50"
             >
-              <Check className="w-4 h-4 text-emerald-300" />
+              <Check className="w-4 h-4 text-neutral-300" />
               <span>
                 {t.applyButton} ({parsedCartonRows.length} CartonRows)
               </span>

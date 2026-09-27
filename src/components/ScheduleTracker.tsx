@@ -234,7 +234,7 @@ export const ScheduleTracker: React.FC = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-96">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-neutral-800" />
       </div>
     );
   }
@@ -246,7 +246,7 @@ export const ScheduleTracker: React.FC = () => {
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight flex items-center gap-2">
             <span>📊 Schedule Tracker</span>
-            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">
+            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-neutral-100 text-neutral-900">
               Real-Time Sync
             </span>
           </h1>
@@ -259,7 +259,7 @@ export const ScheduleTracker: React.FC = () => {
           <button
             onClick={handleExportToExcelCSV}
             disabled={items.length === 0}
-            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white text-xs sm:text-sm font-bold rounded-xl shadow-md border border-emerald-400 transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-4 py-2 bg-neutral-900 hover:bg-neutral-800 active:bg-neutral-900 text-white text-xs sm:text-sm font-bold rounded-xl shadow-md border border-neutral-300 transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             title="Export tracked schedule items to Excel (.csv)"
           >
             <Download className="w-4 h-4" />
@@ -269,7 +269,7 @@ export const ScheduleTracker: React.FC = () => {
       </div>
 
       {feedbackMsg && (
-        <div className="p-3 bg-emerald-900 text-emerald-100 rounded-xl text-xs font-semibold flex items-center justify-between shadow-xs">
+        <div className="p-3 bg-neutral-950 text-neutral-100 rounded-xl text-xs font-semibold flex items-center justify-between shadow-xs">
           <span>{feedbackMsg}</span>
           <button onClick={() => setFeedbackMsg(null)} className="p-1 opacity-70 hover:opacity-100">
             ✕
@@ -279,25 +279,25 @@ export const ScheduleTracker: React.FC = () => {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3 sm:gap-4">
-        <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white p-4 rounded-xl shadow-xs">
+        <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 text-white p-4 rounded-xl shadow-xs">
           <p className="text-xs opacity-90 font-medium">Total Orders</p>
           <p className="text-2xl sm:text-3xl font-black mt-1">{items.length}</p>
         </div>
-        <div className="bg-gradient-to-br from-yellow-500 to-yellow-600 text-white p-4 rounded-xl shadow-xs">
+        <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 text-white p-4 rounded-xl shadow-xs">
           <p className="text-xs opacity-90 font-medium">In-Progress</p>
           <p className="text-2xl sm:text-3xl font-black mt-1">{inProgressCount}</p>
         </div>
-        <div className="bg-gradient-to-br from-green-500 to-green-600 text-white p-4 rounded-xl shadow-xs">
+        <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 text-white p-4 rounded-xl shadow-xs">
           <p className="text-xs opacity-90 font-medium">Completed</p>
           <p className="text-2xl sm:text-3xl font-black mt-1">{completedCount}</p>
         </div>
-        <div className="bg-gradient-to-br from-orange-500 to-orange-600 text-white p-4 rounded-xl shadow-xs">
+        <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 text-white p-4 rounded-xl shadow-xs">
           <p className="text-xs opacity-90 font-medium">Total Demand</p>
           <p className="text-xl sm:text-2xl font-black mt-1">
             {totalDemand.toLocaleString()} <span className="text-xs font-medium">{items[0]?.unit || 'Mtr'}</span>
           </p>
         </div>
-        <div className="bg-gradient-to-br from-purple-500 to-purple-600 text-white p-4 rounded-xl shadow-xs col-span-2 md:col-span-1">
+        <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 text-white p-4 rounded-xl shadow-xs col-span-2 md:col-span-1">
           <p className="text-xs opacity-90 font-medium">Overall Progress</p>
           <p className="text-2xl sm:text-3xl font-black mt-1">{overallProgress.toFixed(0)}%</p>
           <div className="w-full bg-white bg-opacity-30 rounded-full h-1.5 mt-2">
@@ -320,10 +320,10 @@ export const ScheduleTracker: React.FC = () => {
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
           {/* Bulk Action Sticky Bar */}
           {selectedIds.length > 0 && (
-            <div className="p-3.5 bg-slate-900 text-white border-b border-indigo-700/60 flex flex-wrap items-center justify-between gap-3 animate-in fade-in">
+            <div className="p-3.5 bg-slate-900 text-white border-b border-neutral-700/60 flex flex-wrap items-center justify-between gap-3 animate-in fade-in">
               <div className="flex items-center gap-2">
-                <span className="px-3 py-1 rounded-full bg-blue-500 text-white font-black text-xs flex items-center gap-1.5 shadow-xs">
-                  <Zap className="w-3.5 h-3.5 text-amber-300" />
+                <span className="px-3 py-1 rounded-full bg-neutral-800 text-white font-black text-xs flex items-center gap-1.5 shadow-xs">
+                  <Zap className="w-3.5 h-3.5 text-neutral-300" />
                   <span>{selectedIds.length} Rows Selected</span>
                 </span>
               </div>
@@ -331,7 +331,7 @@ export const ScheduleTracker: React.FC = () => {
               <div className="flex flex-wrap items-center gap-2">
                 {/* Bulk Status */}
                 <div className="flex items-center gap-1.5 bg-white/10 p-1 rounded-lg border border-white/15">
-                  <span className="text-xs text-indigo-200 pl-1 font-semibold">Status:</span>
+                  <span className="text-xs text-neutral-200 pl-1 font-semibold">Status:</span>
                   <select
                     value={bulkStatus}
                     onChange={(e) => setBulkStatus(e.target.value as any)}
@@ -345,7 +345,7 @@ export const ScheduleTracker: React.FC = () => {
                   <button
                     onClick={handleApplyBulkStatus}
                     disabled={isBulkUpdating}
-                    className="px-2.5 py-1 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded cursor-pointer shadow-xs"
+                    className="px-2.5 py-1 bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-bold rounded cursor-pointer shadow-xs"
                   >
                     Apply Status
                   </button>
@@ -353,7 +353,7 @@ export const ScheduleTracker: React.FC = () => {
 
                 {/* Bulk Challan */}
                 <div className="flex items-center gap-1.5 bg-white/10 p-1 rounded-lg border border-white/15">
-                  <span className="text-xs text-emerald-200 pl-1 font-semibold">Challan Ref:</span>
+                  <span className="text-xs text-neutral-200 pl-1 font-semibold">Challan Ref:</span>
                   <input
                     type="text"
                     placeholder="e.g. CH-2026-0881"
@@ -363,14 +363,14 @@ export const ScheduleTracker: React.FC = () => {
                   />
                   <button
                     onClick={handleAutoGenerateChallan}
-                    className="px-1.5 py-1 bg-slate-700 hover:bg-slate-600 text-amber-300 text-[10px] font-bold rounded cursor-pointer"
+                    className="px-1.5 py-1 bg-slate-700 hover:bg-slate-600 text-neutral-300 text-[10px] font-bold rounded cursor-pointer"
                   >
                     Auto
                   </button>
                   <button
                     onClick={handleApplyBulkChallan}
                     disabled={isBulkUpdating}
-                    className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded cursor-pointer shadow-xs"
+                    className="px-2.5 py-1 bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-bold rounded cursor-pointer shadow-xs"
                   >
                     Apply Challan
                   </button>
@@ -395,7 +395,7 @@ export const ScheduleTracker: React.FC = () => {
                       type="checkbox"
                       checked={isAllSelected}
                       onChange={handleToggleSelectAll}
-                      className="w-4 h-4 rounded border-slate-300 text-blue-600 cursor-pointer"
+                      className="w-4 h-4 rounded border-slate-300 text-neutral-800 cursor-pointer"
                     />
                   </th>
                   <th className="px-4 py-3 text-left font-semibold">Buyer</th>
@@ -417,7 +417,7 @@ export const ScheduleTracker: React.FC = () => {
                     <tr
                       key={item.id}
                       className={`transition-colors ${
-                        isSelected ? 'bg-blue-50/90 ring-1 ring-blue-300' : 'hover:bg-slate-50'
+                        isSelected ? 'bg-neutral-100/90 ring-1 ring-neutral-300' : 'hover:bg-slate-50'
                       }`}
                     >
                       <td className="px-3 py-3 text-center">
@@ -425,7 +425,7 @@ export const ScheduleTracker: React.FC = () => {
                           type="checkbox"
                           checked={isSelected}
                           onChange={() => handleToggleSelectOne(item.id)}
-                          className="w-4 h-4 rounded border-slate-300 text-blue-600 cursor-pointer"
+                          className="w-4 h-4 rounded border-slate-300 text-neutral-800 cursor-pointer"
                         />
                       </td>
                       <td className="px-4 py-3 font-semibold text-slate-900">{item.buyer}</td>
@@ -434,7 +434,7 @@ export const ScheduleTracker: React.FC = () => {
                       <td className="px-4 py-3 text-slate-700">
                         {item.color} / {item.size}
                       </td>
-                      <td className="px-4 py-3 text-right font-bold text-blue-600">
+                      <td className="px-4 py-3 text-right font-bold text-neutral-800">
                         {item.demandQty}
                       </td>
                       <td className="px-4 py-3 text-right">
@@ -442,7 +442,7 @@ export const ScheduleTracker: React.FC = () => {
                           type="number"
                           value={editingQty[item.id] !== undefined ? editingQty[item.id] : item.completedQty}
                           onChange={(e) => setEditingQty({ ...editingQty, [item.id]: e.target.value })}
-                          className="w-16 px-2 py-1 border border-slate-300 rounded text-right text-xs focus:outline-none focus:border-blue-500 font-bold"
+                          className="w-16 px-2 py-1 border border-slate-300 rounded text-right text-xs focus:outline-none focus:border-neutral-400 font-bold"
                           min="0"
                           max={item.demandQty}
                         />
@@ -451,7 +451,7 @@ export const ScheduleTracker: React.FC = () => {
                         <div className="flex items-center gap-2">
                           <div className="w-16 bg-slate-200 rounded-full h-1.5">
                             <div
-                              className="bg-blue-600 h-1.5 rounded-full transition-all"
+                              className="bg-neutral-900 h-1.5 rounded-full transition-all"
                               style={{ width: `${item.progress}%` }}
                             ></div>
                           </div>
@@ -462,11 +462,11 @@ export const ScheduleTracker: React.FC = () => {
                         <span
                           className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold inline-block uppercase tracking-wider ${
                             item.status === 'completed'
-                              ? 'bg-emerald-100 text-emerald-800'
+                              ? 'bg-neutral-100 text-neutral-900'
                               : item.status === 'in-progress'
-                              ? 'bg-blue-100 text-blue-800'
+                              ? 'bg-neutral-100 text-neutral-900'
                               : item.status === 'paused'
-                              ? 'bg-amber-100 text-amber-800'
+                              ? 'bg-neutral-100 text-neutral-900'
                               : 'bg-slate-100 text-slate-700'
                           }`}
                         >
@@ -479,10 +479,10 @@ export const ScheduleTracker: React.FC = () => {
                           placeholder="CH-XXXX"
                           value={item.challanRef || ''}
                           onChange={(e) => handleUpdateItemChallan(item.id, e.target.value)}
-                          className={`w-full px-2 py-1 font-mono text-[11px] rounded transition border ${
+                          className={`w-full px-2 py-1 font-mono text-[11px] rounded-lg transition border ${
                             item.challanRef
-                              ? 'bg-emerald-50 text-emerald-900 font-bold border-emerald-300'
-                              : 'border-slate-300 text-slate-600'
+                              ? 'bg-neutral-100 text-neutral-900 font-bold border-neutral-400'
+                              : 'border-neutral-300 text-neutral-700'
                           }`}
                         />
                       </td>
@@ -491,7 +491,7 @@ export const ScheduleTracker: React.FC = () => {
                           {item.status === 'pending' && (
                             <button
                               onClick={() => handleStartJob(item.id)}
-                              className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                              className="p-1.5 text-neutral-700 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg transition cursor-pointer"
                               title="Start Job"
                             >
                               <Play className="w-3.5 h-3.5" />
@@ -501,14 +501,14 @@ export const ScheduleTracker: React.FC = () => {
                             <>
                               <button
                                 onClick={() => handleUpdateQty(item.id)}
-                                className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg transition"
+                                className="p-1.5 text-neutral-700 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg transition cursor-pointer"
                                 title="Update Progress"
                               >
                                 <TrendingUp className="w-3.5 h-3.5" />
                               </button>
                               <button
                                 onClick={() => handleCompleteJob(item.id)}
-                                className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg transition"
+                                className="p-1.5 text-neutral-900 hover:text-black hover:bg-neutral-100 rounded-lg transition cursor-pointer"
                                 title="Complete"
                               >
                                 <CheckCircle2 className="w-3.5 h-3.5" />

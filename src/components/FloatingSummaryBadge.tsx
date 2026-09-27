@@ -16,7 +16,7 @@ export function FloatingSummaryBadge({ summary, lang }: FloatingSummaryBadgeProp
     return (
       <button
         onClick={() => setIsMinimized(false)}
-        className="fixed bottom-6 right-6 z-40 bg-white shadow-xl shadow-indigo-100/50 border border-slate-200 rounded-full p-3 print:hidden hover:shadow-2xl hover:bg-slate-50 transition-all duration-300 text-indigo-500 flex items-center justify-center group"
+        className="fixed bottom-6 right-6 z-40 bg-white shadow-xl shadow-indigo-100/50 border border-slate-200 rounded-full p-3 print:hidden hover:shadow-2xl hover:bg-slate-50 transition-all duration-300 text-neutral-700 flex items-center justify-center group"
         title="Show Quick Stats"
       >
         <Calculator className="w-6 h-6 group-hover:scale-110 transition-transform" />
@@ -28,7 +28,7 @@ export function FloatingSummaryBadge({ summary, lang }: FloatingSummaryBadgeProp
     <div className="fixed bottom-6 right-6 z-40 bg-white shadow-xl shadow-indigo-100/50 border border-slate-200 rounded-2xl p-4 flex flex-col gap-3 max-w-[220px] print:hidden hover:shadow-2xl transition-shadow duration-300">
       <div className="flex items-center justify-between text-sm font-bold text-slate-800 border-b border-slate-100 pb-2">
         <div className="flex items-center gap-2">
-          <Calculator className="w-5 h-5 text-indigo-500" />
+          <Calculator className="w-5 h-5 text-neutral-700" />
           Quick Stats
         </div>
         <button 
@@ -46,12 +46,12 @@ export function FloatingSummaryBadge({ summary, lang }: FloatingSummaryBadgeProp
         </div>
         
         <div className="text-slate-500 font-medium">Avg Net Wt:</div>
-        <div className="font-bold text-right text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">
+        <div className="font-bold text-right text-neutral-800 bg-neutral-100 px-2 py-0.5 rounded">
           {summary.avgNetWtPerCtn} <span className="text-[10px] font-semibold">kg</span>
         </div>
         
         <div className="text-slate-500 font-medium">Std Dev:</div>
-        <div className="font-bold text-right text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">
+        <div className="font-bold text-right text-neutral-800 bg-neutral-100 px-2 py-0.5 rounded">
           ±{summary.stdDevNetWt} <span className="text-[10px] font-semibold">kg</span>
         </div>
       </div>

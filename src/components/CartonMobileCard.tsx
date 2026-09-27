@@ -100,13 +100,13 @@ export const CartonMobileCard = memo<CartonMobileCardProps>(({
       onClick={() => onSelectRow(carton.id, false)}
       className={`rounded-xl p-3.5 border transition-all ${
         isFocused
-          ? 'bg-blue-50/70 border-blue-400 ring-2 ring-blue-300/60 shadow-sm'
+          ? 'bg-neutral-100/70 border-neutral-300 ring-2 ring-neutral-300/60 shadow-sm'
           : isChecked
-          ? 'bg-indigo-50/70 border-indigo-400 ring-1 ring-indigo-300'
+          ? 'bg-neutral-100/70 border-neutral-300 ring-1 ring-neutral-300'
           : hasCriticalDev
-          ? 'bg-red-50/60 border-red-300'
+          ? 'bg-neutral-100/60 border-neutral-300'
           : hasWarningDev
-          ? 'bg-amber-50/60 border-amber-300'
+          ? 'bg-neutral-100/60 border-neutral-300'
           : 'bg-white border-slate-200 shadow-2xs hover:border-slate-300'
       }`}
     >
@@ -120,14 +120,14 @@ export const CartonMobileCard = memo<CartonMobileCardProps>(({
               e.stopPropagation();
               onToggleSelection(carton.id, false);
             }}
-            className="w-4 h-4 rounded text-indigo-600 border-slate-300 focus:ring-indigo-500 cursor-pointer"
+            className="w-4 h-4 rounded text-neutral-800 border-slate-300 focus:ring-neutral-400 cursor-pointer"
           />
           <div className="flex items-center gap-1.5">
             <span className="font-mono text-xs font-black text-slate-900 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">
               CTN #{carton.cartonNo}
             </span>
             {isFocused && (
-              <span className="text-[10px] font-bold bg-blue-600 text-white px-1.5 py-0.5 rounded leading-none">
+              <span className="text-[10px] font-bold bg-neutral-900 text-white px-1.5 py-0.5 rounded leading-none">
                 {lang === 'en' ? 'Active' : 'সক্রিয়'}
               </span>
             )}
@@ -143,7 +143,7 @@ export const CartonMobileCard = memo<CartonMobileCardProps>(({
                 e.stopPropagation();
                 onInspect(carton.id);
               }}
-              className="p-1 text-red-600 bg-red-100 rounded-md transition"
+              className="p-1 text-neutral-800 bg-neutral-100 rounded-md transition"
               title="Inspect critical issue"
             >
               <ShieldAlert className="w-4 h-4" />
@@ -155,13 +155,13 @@ export const CartonMobileCard = memo<CartonMobileCardProps>(({
                 e.stopPropagation();
                 onInspect(carton.id);
               }}
-              className="p-1 text-amber-600 bg-amber-100 rounded-md transition"
+              className="p-1 text-neutral-800 bg-neutral-100 rounded-md transition"
               title="Inspect warning"
             >
               <AlertTriangle className="w-4 h-4" />
             </button>
           ) : isCompliantWithDemand ? (
-            <span className="p-1 text-emerald-600 bg-emerald-100 rounded-md">
+            <span className="p-1 text-neutral-800 bg-neutral-100 rounded-md">
               <ShieldCheck className="w-4 h-4" />
             </span>
           ) : null}
@@ -173,7 +173,7 @@ export const CartonMobileCard = memo<CartonMobileCardProps>(({
                 e.stopPropagation();
                 onOpenCartonQr(carton);
               }}
-              className="p-1.5 text-slate-500 hover:text-emerald-700 bg-slate-100 hover:bg-emerald-50 rounded-lg transition"
+              className="p-1.5 text-slate-500 hover:text-neutral-800 bg-slate-100 hover:bg-neutral-100 rounded-lg transition"
               title="QR Code"
             >
               <QrCode className="w-3.5 h-3.5" />
@@ -186,7 +186,7 @@ export const CartonMobileCard = memo<CartonMobileCardProps>(({
               e.stopPropagation();
               onDuplicateCarton(carton);
             }}
-            className="p-1.5 text-slate-500 hover:text-indigo-700 bg-slate-100 hover:bg-indigo-50 rounded-lg transition"
+            className="p-1.5 text-slate-500 hover:text-neutral-800 bg-slate-100 hover:bg-neutral-100 rounded-lg transition"
             title="Duplicate"
           >
             <Copy className="w-3.5 h-3.5" />
@@ -198,7 +198,7 @@ export const CartonMobileCard = memo<CartonMobileCardProps>(({
               e.stopPropagation();
               onDeleteCarton(carton.id);
             }}
-            className="p-1.5 text-slate-500 hover:text-rose-700 bg-slate-100 hover:bg-rose-50 rounded-lg transition"
+            className="p-1.5 text-slate-500 hover:text-neutral-800 bg-slate-100 hover:bg-neutral-100 rounded-lg transition"
             title="Delete"
           >
             <Trash2 className="w-3.5 h-3.5" />
@@ -213,7 +213,7 @@ export const CartonMobileCard = memo<CartonMobileCardProps>(({
         <div className="bg-slate-50 p-2 rounded-lg border border-slate-200/80">
           <div className="flex items-center justify-between text-[11px] font-semibold text-slate-600 mb-1">
             <span className="flex items-center gap-1">
-              <Scale className="w-3 h-3 text-indigo-600" />
+              <Scale className="w-3 h-3 text-neutral-800" />
               {lang === 'en' ? 'Gross Wt' : 'গ্রস ওজন'}
             </span>
             <span className="text-[10px] text-slate-400 font-mono">{wUnit}</span>
@@ -251,8 +251,8 @@ export const CartonMobileCard = memo<CartonMobileCardProps>(({
             }}
             className={`w-full py-1.5 px-2.5 text-base font-black font-mono text-right rounded-md border focus:outline-none transition ${
               isNegativeNet
-                ? 'bg-red-50 border-red-400 text-red-900'
-                : 'bg-white border-slate-300 text-slate-900 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'
+                ? 'bg-neutral-100 border-neutral-300 text-neutral-900'
+                : 'bg-white border-slate-300 text-slate-900 focus:border-neutral-400 focus:ring-1 focus:ring-neutral-400'
             }`}
           />
 
@@ -261,12 +261,12 @@ export const CartonMobileCard = memo<CartonMobileCardProps>(({
         {/* Net Weight (Calculated) */}
         <div className={`p-2 rounded-lg border flex flex-col justify-between ${
           isNegativeNet
-            ? 'bg-red-50 border-red-300 text-red-900'
-            : 'bg-emerald-50/80 border-emerald-200 text-emerald-950'
+            ? 'bg-neutral-100 border-neutral-300 text-neutral-900'
+            : 'bg-neutral-100/80 border-neutral-200 text-neutral-900'
         }`}>
           <div className="flex items-center justify-between text-[11px] font-semibold">
             <span className="flex items-center gap-1">
-              <Scale className="w-3 h-3 text-emerald-600" />
+              <Scale className="w-3 h-3 text-neutral-800" />
               {lang === 'en' ? 'Net Wt' : 'নেট ওজন'}
             </span>
             <span className="text-[10px] opacity-75 font-mono">{wUnit}</span>
@@ -278,13 +278,13 @@ export const CartonMobileCard = memo<CartonMobileCardProps>(({
           </div>
           <div className="text-[10px] font-semibold text-right">
             {isNegativeNet ? (
-              <span className="text-red-700 font-bold">⚠️ Gross &lt; Tare</span>
+              <span className="text-neutral-800 font-bold">⚠️ Gross &lt; Tare</span>
             ) : underpackDev ? (
-              <span className="text-amber-800 font-bold">⚠️ Underpack</span>
+              <span className="text-neutral-900 font-bold">⚠️ Underpack</span>
             ) : overpackDev ? (
-              <span className="text-amber-800 font-bold">⚠️ Overpack</span>
+              <span className="text-neutral-900 font-bold">⚠️ Overpack</span>
             ) : (
-              <span className="text-emerald-700 font-medium">Auto-computed</span>
+              <span className="text-neutral-800 font-medium">Auto-computed</span>
             )}
           </div>
         </div>
@@ -297,7 +297,7 @@ export const CartonMobileCard = memo<CartonMobileCardProps>(({
               <button
                 type="button"
                 onClick={() => onFixField(carton.id, 'tareWt', activeDemandTare)}
-                className="text-[10px] bg-amber-200 text-amber-900 font-bold px-1 py-0.2 rounded hover:bg-amber-300 cursor-pointer"
+                className="text-[10px] bg-neutral-200 text-neutral-900 font-bold px-1 py-0.2 rounded hover:bg-neutral-300 cursor-pointer"
               >
                 Fix
               </button>
@@ -310,7 +310,7 @@ export const CartonMobileCard = memo<CartonMobileCardProps>(({
             value={carton.tareWt}
             onChange={e => onUpdateCarton(carton.id, { tareWt: parseFloat(e.target.value) || 0 })}
             className={`w-full py-1 px-2 text-xs font-mono text-right rounded border bg-white focus:outline-none ${
-              tareDev ? 'border-amber-400 bg-amber-50/50 text-amber-900 font-bold' : 'border-slate-300 text-slate-800'
+              tareDev ? 'border-neutral-300 bg-neutral-100/50 text-neutral-900 font-bold' : 'border-slate-300 text-slate-800'
             }`}
           />
         </div>
@@ -323,7 +323,7 @@ export const CartonMobileCard = memo<CartonMobileCardProps>(({
               <button
                 type="button"
                 onClick={() => onFixField(carton.id, 'wtPerUnit', activeDemandUnitWt)}
-                className="text-[10px] bg-red-600 text-white font-bold px-1 py-0.2 rounded hover:bg-red-700 cursor-pointer flex items-center gap-0.5"
+                className="text-[10px] bg-neutral-900 text-white font-bold px-1 py-0.2 rounded hover:bg-neutral-800 cursor-pointer flex items-center gap-0.5"
               >
                 <Zap className="w-2.5 h-2.5" />
                 <span>Fix</span>
@@ -337,7 +337,7 @@ export const CartonMobileCard = memo<CartonMobileCardProps>(({
             value={carton.wtPerUnit}
             onChange={e => onUpdateCarton(carton.id, { wtPerUnit: parseFloat(e.target.value) || 30 })}
             className={`w-full py-1 px-2 text-xs font-mono text-right rounded border bg-white focus:outline-none ${
-              unitWtDev ? 'border-red-400 bg-red-50 text-red-950 font-bold' : 'border-slate-300 text-slate-800'
+              unitWtDev ? 'border-neutral-300 bg-neutral-100 text-neutral-900 font-bold' : 'border-slate-300 text-slate-800'
             }`}
           />
         </div>
@@ -347,10 +347,10 @@ export const CartonMobileCard = memo<CartonMobileCardProps>(({
       {/* Bottom Summary Strip: Lengths & Notes */}
       <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
         <div className="flex items-center gap-3 font-mono text-[11px]">
-          <span className="text-indigo-900 bg-indigo-50 px-2 py-0.5 rounded font-bold border border-indigo-100">
+          <span className="text-neutral-900 bg-neutral-100 px-2 py-0.5 rounded font-bold border border-neutral-200">
             {carton.lengthMtr.toFixed(2)} Mtr
           </span>
-          <span className="text-purple-900 bg-purple-50 px-2 py-0.5 rounded font-bold border border-purple-100">
+          <span className="text-neutral-900 bg-neutral-100 px-2 py-0.5 rounded font-bold border border-neutral-200">
             {carton.lengthGry.toFixed(2)} Gry
           </span>
         </div>

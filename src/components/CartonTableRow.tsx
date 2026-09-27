@@ -149,33 +149,33 @@ export const CartonTableRow = memo<CartonTableRowProps>(({
       className={`transition-colors duration-75 cursor-pointer relative ${
         isFocused
           ? hasCriticalDev
-            ? 'bg-red-100/95 text-red-950 border-l-4 border-l-red-600 ring-2 ring-inset ring-red-500/80 shadow-xs z-10'
+            ? 'bg-neutral-100/95 text-neutral-900 border-l-4 border-l-red-600 ring-2 ring-inset ring-neutral-400/80 shadow-xs z-10'
             : hasWarningDev
-            ? 'bg-amber-100/95 text-amber-950 border-l-4 border-l-amber-500 ring-2 ring-inset ring-amber-500/80 shadow-xs z-10'
+            ? 'bg-neutral-100/95 text-neutral-900 border-l-4 border-l-amber-500 ring-2 ring-inset ring-neutral-400/80 shadow-xs z-10'
             : isChecked
-            ? 'bg-indigo-100/95 font-medium border-l-4 border-l-indigo-600 ring-2 ring-inset ring-indigo-500/80 shadow-xs z-10'
-            : 'bg-blue-50/95 text-slate-950 font-medium border-l-4 border-l-blue-600 ring-2 ring-inset ring-blue-500/80 shadow-xs z-10'
+            ? 'bg-neutral-200/90 text-neutral-950 font-medium border-l-4 border-l-neutral-900 ring-2 ring-inset ring-neutral-400 shadow-xs z-10'
+            : 'bg-neutral-100/95 text-neutral-950 font-medium border-l-4 border-l-neutral-900 ring-2 ring-inset ring-neutral-400 shadow-xs z-10'
           : hasCriticalDev
-          ? 'bg-red-50/90 hover:bg-red-100/90 text-red-950 border-l-4 border-l-red-600'
+          ? 'bg-neutral-100/90 hover:bg-neutral-100/90 text-neutral-900 border-l-4 border-l-red-600'
           : hasWarningDev
-          ? 'bg-amber-50/80 hover:bg-amber-100/80 text-amber-950 border-l-4 border-l-amber-500'
+          ? 'bg-neutral-100/80 hover:bg-neutral-100/80 text-neutral-900 border-l-4 border-l-amber-500'
           : isChecked
-          ? 'bg-indigo-50/90 font-medium border-l-4 border-l-indigo-600 ring-1 ring-inset ring-indigo-200'
+          ? 'bg-neutral-100 text-neutral-950 font-medium border-l-4 border-l-neutral-900 ring-1 ring-inset ring-neutral-300'
           : isGrossDeviating
           ? isOverweightAvg
-            ? 'bg-amber-50/60 hover:bg-amber-100/60 font-medium border-l-4 border-l-amber-500'
-            : 'bg-sky-50/60 hover:bg-sky-100/60 font-medium border-l-4 border-l-sky-500'
+            ? 'bg-neutral-100/60 hover:bg-neutral-100/60 font-medium border-l-4 border-l-amber-500'
+            : 'bg-neutral-100/80 hover:bg-neutral-150 font-medium border-l-4 border-l-neutral-500'
           : isCompliantWithDemand
-          ? 'bg-emerald-50/30 hover:bg-emerald-50/60 font-medium border-l-4 border-l-emerald-500'
+          ? 'bg-neutral-50 hover:bg-neutral-100/80 font-medium border-l-4 border-l-neutral-800'
           : isActive 
-          ? 'bg-white font-medium hover:bg-slate-50/80 border-l-4 border-l-transparent' 
-          : 'bg-slate-50/50 text-slate-400 hover:bg-slate-100/60 border-l-4 border-l-transparent'
+          ? 'bg-white font-medium hover:bg-neutral-50/80 border-l-4 border-l-transparent' 
+          : 'bg-neutral-50/50 text-neutral-400 hover:bg-neutral-100/60 border-l-4 border-l-transparent'
       }`}
     >
       {/* Selection Checkbox */}
       <td 
-        className={`py-2 px-3 text-center border-r border-slate-200 ${
-          isChecked ? 'bg-indigo-100/60' : isFocused ? 'bg-blue-100/40' : 'bg-transparent'
+        className={`py-2 px-3 text-center border-r border-neutral-200 ${
+          isChecked ? 'bg-neutral-200/60' : isFocused ? 'bg-neutral-150' : 'bg-transparent'
         }`}
         onClick={(e) => {
           e.stopPropagation();
@@ -187,7 +187,7 @@ export const CartonTableRow = memo<CartonTableRowProps>(({
             type="checkbox"
             checked={isChecked}
             onChange={() => {}} // Handled by td onClick
-            className="w-4 h-4 rounded text-indigo-600 border-slate-300 focus:ring-indigo-500 cursor-pointer"
+            className="w-4 h-4 rounded text-neutral-900 border-neutral-300 focus:ring-neutral-900 accent-neutral-900 cursor-pointer"
           />
         </div>
       </td>
@@ -195,20 +195,20 @@ export const CartonTableRow = memo<CartonTableRowProps>(({
       {/* CTN # with Active/Editing Beacon and Quality Flag */}
       <td className={`py-2 px-2 text-center font-bold border-r ${
         isFocused
-          ? 'bg-blue-100/90 text-blue-950 border-blue-300 font-black'
+          ? 'bg-neutral-900 text-white border-neutral-900 font-black'
           : hasCriticalDev
-          ? 'bg-red-100/80 text-red-900 border-red-200'
+          ? 'bg-neutral-100/80 text-neutral-900 border-neutral-200'
           : hasWarningDev
-          ? 'bg-amber-100/80 text-amber-950 border-amber-200'
+          ? 'bg-neutral-100/80 text-neutral-900 border-neutral-200'
           : isChecked
-          ? 'bg-indigo-100/80 text-indigo-950 border-indigo-200 font-black'
-          : 'text-slate-800 border-slate-200 bg-slate-100/60'
+          ? 'bg-neutral-200 text-neutral-950 border-neutral-300 font-black'
+          : 'text-neutral-800 border-neutral-200 bg-neutral-100/60'
       }`}>
         <div className="flex items-center justify-center gap-1">
           {/* Active Editing Row Pulse Beacon */}
           {isFocused && (
             <span 
-              className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-blue-600 text-white shrink-0 shadow-2xs animate-pulse"
+              className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-white text-neutral-900 shrink-0 shadow-2xs animate-pulse"
               title={lang === 'en' ? 'Active / Editing Carton' : 'সক্রিয় / এডিটিং কার্টন'}
             >
               <Edit3 className="w-2.5 h-2.5" />
@@ -223,7 +223,7 @@ export const CartonTableRow = memo<CartonTableRowProps>(({
                 e.stopPropagation();
                 onInspect(carton.id);
               }}
-              className="p-0.5 text-red-600 hover:bg-red-200 rounded shrink-0 transition"
+              className="p-0.5 text-neutral-800 hover:bg-neutral-200 rounded shrink-0 transition"
               title={lang === 'en' ? 'Click to inspect critical packing deviation!' : 'প্যাকিং ত্রুটি বিস্তারিত দেখতে ক্লিক করুন!'}
             >
               <ShieldAlert className="w-3.5 h-3.5 animate-pulse" />
@@ -235,7 +235,7 @@ export const CartonTableRow = memo<CartonTableRowProps>(({
                 e.stopPropagation();
                 onInspect(carton.id);
               }}
-              className="p-0.5 text-amber-600 hover:bg-amber-200 rounded shrink-0 transition"
+              className="p-0.5 text-neutral-800 hover:bg-neutral-200 rounded shrink-0 transition"
               title={lang === 'en' ? 'Click to inspect packing warning!' : 'প্যাকিং সতর্কতা বিস্তারিত দেখতে ক্লিক করুন!'}
             >
               <AlertTriangle className="w-3.5 h-3.5" />
@@ -247,7 +247,7 @@ export const CartonTableRow = memo<CartonTableRowProps>(({
                 e.stopPropagation();
                 onInspect(carton.id);
               }}
-              className={`p-0.5 rounded shrink-0 transition cursor-pointer ${isOverweightAvg ? 'text-amber-700 hover:bg-amber-200' : 'text-sky-700 hover:bg-sky-200'}`}
+              className={`p-0.5 rounded shrink-0 transition cursor-pointer ${isOverweightAvg ? 'text-neutral-800 hover:bg-neutral-200' : 'text-neutral-800 hover:bg-neutral-200'}`}
               title={
                 lang === 'en'
                   ? `Weight deviates by ${isOverweightAvg ? '+' : ''}${grossDevPercent.toFixed(1)}% from batch average (${batchAvgGrossWt.toFixed(2)} ${wUnit}). Click to inspect!`
@@ -258,7 +258,7 @@ export const CartonTableRow = memo<CartonTableRowProps>(({
             </button>
           ) : isCompliantWithDemand ? (
             <span 
-              className="p-0.5 text-emerald-600 shrink-0 inline-block"
+              className="p-0.5 text-neutral-800 shrink-0 inline-block"
               title={lang === 'en' ? '100% Demand Compliant' : 'চাহিদার সাথে শতভাগ সামঞ্জস্যপূর্ণ'}
             >
               <ShieldCheck className="w-3.5 h-3.5" />
@@ -271,7 +271,7 @@ export const CartonTableRow = memo<CartonTableRowProps>(({
             onFocus={() => onSelectRow(carton.id, false)}
             onChange={e => onUpdateCarton(carton.id, { cartonNo: parseInt(e.target.value) || index + 1 })}
             className={`w-10 text-center font-bold focus:outline-none rounded ${
-              isFocused ? 'bg-white shadow-2xs border border-blue-400 text-blue-950 font-black' : 'bg-transparent'
+              isFocused ? 'bg-white shadow-2xs border border-neutral-300 text-neutral-900 font-black' : 'bg-transparent'
             }`}
           />
         </div>
@@ -281,7 +281,7 @@ export const CartonTableRow = memo<CartonTableRowProps>(({
       <td className="py-1.5 px-2 text-right border-r border-slate-200">
         {isConverting ? (
           <div className="flex items-center justify-end gap-1">
-            <span className="text-[9px] font-bold text-orange-600 bg-orange-100 px-1 py-0.5 rounded uppercase leading-none shadow-xs border border-orange-200">
+            <span className="text-[9px] font-bold text-neutral-800 bg-neutral-100 px-1 py-0.5 rounded uppercase leading-none shadow-xs border border-neutral-200">
               {converterState.mode} → Kg
             </span>
             <input
@@ -301,7 +301,7 @@ export const CartonTableRow = memo<CartonTableRowProps>(({
                 }
               }}
               onBlur={onApplyConversion}
-              className="w-16 sm:w-20 text-right px-1.5 py-1 text-xs font-bold rounded focus:outline-none border-2 border-orange-400 bg-orange-50 text-orange-950 shadow-inner"
+              className="w-16 sm:w-20 text-right px-1.5 py-1 text-xs font-bold rounded focus:outline-none border-2 border-neutral-300 bg-neutral-100 text-neutral-900 shadow-inner"
               placeholder={converterState.mode}
             />
           </div>
@@ -312,7 +312,7 @@ export const CartonTableRow = memo<CartonTableRowProps>(({
                 <button 
                   tabIndex={-1} 
                   onMouseDown={(e) => { e.preventDefault(); onStartConversion(carton.id, 'yds'); }} 
-                  className="text-[7px] leading-none tracking-tighter bg-slate-200 hover:bg-slate-300 hover:text-indigo-700 px-1 py-0.5 rounded font-bold text-slate-600 cursor-pointer uppercase" 
+                  className="text-[7px] leading-none tracking-tighter bg-slate-200 hover:bg-slate-300 hover:text-neutral-800 px-1 py-0.5 rounded font-bold text-slate-600 cursor-pointer uppercase" 
                   title="Calculate Gross Kg from Yards"
                 >
                   Yds
@@ -320,7 +320,7 @@ export const CartonTableRow = memo<CartonTableRowProps>(({
                 <button 
                   tabIndex={-1} 
                   onMouseDown={(e) => { e.preventDefault(); onStartConversion(carton.id, 'mtr'); }} 
-                  className="text-[7px] leading-none tracking-tighter bg-slate-200 hover:bg-slate-300 hover:text-indigo-700 px-1 py-0.5 rounded font-bold text-slate-600 cursor-pointer uppercase" 
+                  className="text-[7px] leading-none tracking-tighter bg-slate-200 hover:bg-slate-300 hover:text-neutral-800 px-1 py-0.5 rounded font-bold text-slate-600 cursor-pointer uppercase" 
                   title="Calculate Gross Kg from Meters"
                 >
                   Mtr
@@ -328,7 +328,7 @@ export const CartonTableRow = memo<CartonTableRowProps>(({
                 <button 
                   tabIndex={-1} 
                   onMouseDown={(e) => { e.preventDefault(); onStartConversion(carton.id, 'lb'); }} 
-                  className="text-[7px] leading-none tracking-tighter bg-slate-200 hover:bg-slate-300 hover:text-indigo-700 px-1 py-0.5 rounded font-bold text-slate-600 cursor-pointer uppercase" 
+                  className="text-[7px] leading-none tracking-tighter bg-slate-200 hover:bg-slate-300 hover:text-neutral-800 px-1 py-0.5 rounded font-bold text-slate-600 cursor-pointer uppercase" 
                   title="Convert Lbs to Gross Kg"
                 >
                   Lbs
@@ -389,12 +389,12 @@ export const CartonTableRow = memo<CartonTableRowProps>(({
               placeholder="0.00"
               className={`w-20 sm:w-24 text-right px-2 py-1 font-bold rounded focus:outline-none transition ${
                 isNegativeNet
-                  ? 'bg-white border-2 border-red-500 text-red-900 focus:ring-2 focus:ring-red-500'
+                  ? 'bg-white border-2 border-neutral-400 text-neutral-900 focus:ring-2 focus:ring-neutral-400'
                   : isFocused
-                  ? 'text-slate-950 bg-white border-2 border-blue-500 shadow-xs focus:ring-2 focus:ring-blue-400 font-black'
+                  ? 'text-slate-950 bg-white border-2 border-neutral-400 shadow-xs focus:ring-2 focus:ring-neutral-400 font-black'
                   : isChecked
-                  ? 'text-slate-950 bg-white border border-indigo-400 shadow-xs focus:ring-2 focus:ring-indigo-400'
-                  : 'text-slate-900 bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'
+                  ? 'text-slate-950 bg-white border border-neutral-300 shadow-xs focus:ring-2 focus:ring-neutral-400'
+                  : 'text-slate-900 bg-slate-50 border border-slate-200 focus:bg-white focus:border-neutral-400 focus:ring-1 focus:ring-neutral-400'
               }`}
             />
           </div>
@@ -417,9 +417,9 @@ export const CartonTableRow = memo<CartonTableRowProps>(({
             }}
             className={`w-16 text-right px-2 py-1 text-slate-600 border rounded focus:bg-white focus:border-slate-400 focus:outline-none ${
               tareDev 
-                ? 'border-amber-400 bg-amber-50/50 text-amber-900 font-bold' 
+                ? 'border-neutral-300 bg-neutral-100/50 text-neutral-900 font-bold' 
                 : isFocused
-                ? 'bg-white border-blue-300 text-slate-900 shadow-2xs font-semibold'
+                ? 'bg-white border-neutral-300 text-slate-900 shadow-2xs font-semibold'
                 : 'bg-transparent border-transparent hover:border-slate-200'
             }`}
           />
@@ -430,7 +430,7 @@ export const CartonTableRow = memo<CartonTableRowProps>(({
                 e.stopPropagation();
                 onFixField(carton.id, 'tareWt', activeDemandTare);
               }}
-              className="text-[10px] bg-amber-200 hover:bg-amber-300 text-amber-900 font-sans font-bold px-1 py-0.5 rounded shrink-0 cursor-pointer"
+              className="text-[10px] bg-neutral-200 hover:bg-neutral-300 text-neutral-900 font-sans font-bold px-1 py-0.5 rounded shrink-0 cursor-pointer"
               title={lang === 'en' ? `Set Tare to demand standard: ${activeDemandTare} ${wUnit}` : `ট্যার চাহিদার মান ${activeDemandTare} ${wUnit} সেট করুন`}
             >
               Fix
@@ -440,42 +440,42 @@ export const CartonTableRow = memo<CartonTableRowProps>(({
       </td>
 
       {/* Net Wt */}
-      <td className={`py-1.5 px-3 text-right font-bold border-r border-slate-200 text-xs ${
+      <td className={`py-1.5 px-3 text-right font-bold border-r border-neutral-200 text-xs ${
         isNegativeNet
-          ? 'bg-red-100 text-red-700 font-black'
+          ? 'bg-neutral-100 text-neutral-800 font-black'
           : underpackDev || overpackDev
-          ? 'bg-amber-100/70 text-amber-950 font-black'
+          ? 'bg-neutral-100/70 text-neutral-900 font-black'
           : isChecked
-          ? 'text-emerald-900 bg-emerald-100/70 font-black'
+          ? 'text-neutral-950 bg-neutral-200/70 font-black'
           : isFocused
-          ? 'text-emerald-900 bg-emerald-100/70 font-black'
-          : 'text-emerald-700 bg-emerald-50/30'
+          ? 'text-neutral-950 bg-neutral-200/70 font-black'
+          : 'text-neutral-900 font-bold'
       }`}>
         <div className="flex items-center justify-end gap-1">
           {isNegativeNet && (
             <span title={lang === 'en' ? 'Gross weight is less than tare weight!' : 'গ্রস ওজন ট্যার ওজনের চেয়ে কম!'}>
-              <AlertTriangle className="w-3.5 h-3.5 text-red-600 shrink-0 inline" />
+              <AlertTriangle className="w-3.5 h-3.5 text-neutral-800 shrink-0 inline" />
             </span>
           )}
           <span>{carton.netWt.toFixed(2)}</span>
         </div>
         {isNegativeNet ? (
-          <div className="text-[9px] font-sans font-bold text-red-600 tracking-tight leading-none mt-0.5">
+          <div className="text-[9px] font-sans font-bold text-neutral-800 tracking-tight leading-none mt-0.5">
             {lang === 'en' ? 'Gross < Tare' : 'গ্রস < ট্যার'}
           </div>
         ) : underpackDev ? (
-          <div className="text-[9px] font-sans font-bold text-amber-700 tracking-tight leading-none mt-0.5">
+          <div className="text-[9px] font-sans font-bold text-neutral-800 tracking-tight leading-none mt-0.5">
             {lang === 'en' ? '⚠️ Underpacked' : '⚠️ কম প্যাক'}
           </div>
         ) : overpackDev ? (
-          <div className="text-[9px] font-sans font-bold text-amber-700 tracking-tight leading-none mt-0.5">
+          <div className="text-[9px] font-sans font-bold text-neutral-800 tracking-tight leading-none mt-0.5">
             {lang === 'en' ? '⚠️ Overpacked' : '⚠️ অতিরিক্ত প্যাক'}
           </div>
         ) : null}
       </td>
 
       {/* Wt/Unit */}
-      <td className="py-1.5 px-2 text-right border-r border-slate-200">
+      <td className="py-1.5 px-2 text-right border-r border-neutral-200">
         <div className="flex items-center justify-end gap-1">
           <input
             type="number"
@@ -489,10 +489,10 @@ export const CartonTableRow = memo<CartonTableRowProps>(({
             }}
             className={`w-16 sm:w-20 text-right px-2 py-1 font-semibold rounded focus:bg-white focus:outline-none ${
               unitWtDev
-                ? 'border-2 border-red-500 bg-red-100/70 text-red-950 font-bold focus:ring-1 focus:ring-red-500'
+                ? 'border-2 border-neutral-400 bg-neutral-100/70 text-neutral-900 font-bold focus:ring-1 focus:ring-neutral-400'
                 : isFocused
-                ? 'bg-white border-blue-300 text-slate-900 shadow-2xs font-bold'
-                : 'text-slate-800 bg-transparent border border-transparent hover:border-slate-200 focus:border-indigo-500'
+                ? 'bg-white border-neutral-900 text-neutral-900 shadow-2xs font-bold'
+                : 'text-neutral-800 bg-transparent border border-transparent hover:border-neutral-200 focus:border-neutral-900'
             }`}
           />
           {unitWtDev && activeDemandUnitWt !== undefined && (
@@ -502,7 +502,7 @@ export const CartonTableRow = memo<CartonTableRowProps>(({
                 e.stopPropagation();
                 onFixField(carton.id, 'wtPerUnit', activeDemandUnitWt);
               }}
-              className="text-[10px] bg-red-600 hover:bg-red-700 text-white font-sans font-bold px-1.5 py-0.5 rounded shadow-xs shrink-0 cursor-pointer transition flex items-center gap-0.5"
+              className="text-[10px] bg-neutral-900 hover:bg-neutral-800 text-white font-sans font-bold px-1.5 py-0.5 rounded shadow-xs shrink-0 cursor-pointer transition flex items-center gap-0.5"
               title={lang === 'en' ? `Fix Unit Wt to Demand Requirement: ${activeDemandUnitWt} gm/m` : `চাহিদা অনুযায়ী ইউনিট ওজন ${activeDemandUnitWt} gm/m সেট করুন`}
             >
               <Zap className="w-2.5 h-2.5" />
@@ -511,41 +511,41 @@ export const CartonTableRow = memo<CartonTableRowProps>(({
           )}
         </div>
         {unitWtDev && (
-          <div className="text-[9px] font-sans font-bold text-red-700 tracking-tight leading-none mt-0.5 text-right">
+          <div className="text-[9px] font-sans font-bold text-neutral-800 tracking-tight leading-none mt-0.5 text-right">
             Exp: {activeDemandUnitWt}g ({unitWtDev.percentDiff !== undefined ? `${unitWtDev.percentDiff > 0 ? '+' : ''}${unitWtDev.percentDiff.toFixed(0)}%` : ''})
           </div>
         )}
       </td>
 
       {/* Length (Mtr) */}
-      <td className={`py-1.5 px-3 text-right font-black border-r border-slate-200 text-xs ${
-        isChecked ? 'text-indigo-950 bg-indigo-100/80' : isFocused ? 'text-indigo-950 bg-indigo-100/70 font-black' : 'text-indigo-700 bg-indigo-50/40'
+      <td className={`py-1.5 px-3 text-right font-black border-r border-neutral-200 text-xs ${
+        isChecked ? 'text-neutral-950 bg-neutral-200/80' : isFocused ? 'text-neutral-950 bg-neutral-200/70 font-black' : 'text-neutral-900 font-bold'
       }`}>
         {carton.lengthMtr.toFixed(2)}
       </td>
 
       {/* Length (Gry) */}
-      <td className={`py-1.5 px-3 text-right font-black border-r border-slate-200 text-xs ${
-        isChecked ? 'text-purple-950 bg-purple-100/80' : isFocused ? 'text-purple-950 bg-purple-100/70 font-black' : 'text-purple-700 bg-purple-50/40'
+      <td className={`py-1.5 px-3 text-right font-black border-r border-neutral-200 text-xs ${
+        isChecked ? 'text-neutral-950 bg-neutral-200/80' : isFocused ? 'text-neutral-950 bg-neutral-200/70 font-black' : 'text-neutral-900 font-bold'
       }`}>
         {carton.lengthGry.toFixed(2)}
       </td>
 
       {/* Length (Yds) */}
-      <td className="py-1.5 px-3 text-right text-slate-500 border-r border-slate-200 text-xs">
+      <td className="py-1.5 px-3 text-right text-neutral-500 border-r border-neutral-200 text-xs">
         {carton.lengthYds ? carton.lengthYds.toFixed(2) : '0.00'}
       </td>
 
       {/* Notes */}
-      <td className="py-1.5 px-2 border-r border-slate-200">
+      <td className="py-1.5 px-2 border-r border-neutral-200">
         <input
           type="text"
           value={carton.notes || ''}
           onFocus={() => onSelectRow(carton.id, false)}
           onChange={e => onUpdateCarton(carton.id, { notes: e.target.value })}
           placeholder="..."
-          className={`w-full px-2 py-1 text-slate-700 font-sans text-xs rounded focus:bg-white focus:border-slate-300 focus:outline-none ${
-            isFocused ? 'bg-white border border-blue-200 shadow-2xs' : 'bg-transparent border border-transparent hover:border-slate-200'
+          className={`w-full px-2 py-1 text-neutral-800 font-sans text-xs rounded focus:bg-white focus:border-neutral-400 focus:outline-none ${
+            isFocused ? 'bg-white border border-neutral-300 shadow-2xs' : 'bg-transparent border border-transparent hover:border-neutral-200'
           }`}
         />
       </td>
@@ -559,7 +559,7 @@ export const CartonTableRow = memo<CartonTableRowProps>(({
                 e.stopPropagation();
                 onOpenCartonQr(carton);
               }}
-              className="p-1 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded transition cursor-pointer"
+              className="p-1 text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 rounded transition cursor-pointer"
               title={lang === 'en' ? 'Scan & Preview Carton QR' : 'কার্টন কিউআর কোড দেখুন'}
             >
               <QrCode className="w-3.5 h-3.5" />
@@ -570,7 +570,7 @@ export const CartonTableRow = memo<CartonTableRowProps>(({
               e.stopPropagation();
               onDuplicateCarton(carton);
             }}
-            className="p-1 text-slate-400 hover:text-indigo-600 rounded transition cursor-pointer"
+            className="p-1 text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 rounded transition cursor-pointer"
             title={lang === 'en' ? 'Duplicate (Ctrl+D)' : 'ডুপ্লিকেট (Ctrl+D)'}
           >
             <Copy className="w-3.5 h-3.5" />
@@ -580,7 +580,7 @@ export const CartonTableRow = memo<CartonTableRowProps>(({
               e.stopPropagation();
               onDeleteCarton(carton.id);
             }}
-            className="p-1 text-slate-400 hover:text-rose-600 rounded transition cursor-pointer"
+            className="p-1 text-neutral-400 hover:text-neutral-800 hover:bg-neutral-100 rounded transition cursor-pointer"
             title={lang === 'en' ? 'Delete Row (Ctrl+Delete)' : 'সারি মুছুন (Ctrl+Delete)'}
           >
             <Trash2 className="w-3.5 h-3.5" />

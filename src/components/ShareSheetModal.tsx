@@ -65,7 +65,7 @@ export const ShareSheetModal: React.FC<ShareSheetModalProps> = ({
       <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-sm overflow-hidden text-slate-800 animate-in fade-in zoom-in-95 duration-200">
         <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-slate-900 text-white">
           <h2 className="text-sm font-bold text-white flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-indigo-400">
+            <div className="w-7 h-7 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-neutral-400">
               <QrCode className="w-4 h-4" />
             </div>
             <span>{lang === 'en' ? 'Share Sheet Data' : 'শীট শেয়ার করুন'}</span>
@@ -81,18 +81,18 @@ export const ShareSheetModal: React.FC<ShareSheetModalProps> = ({
         <div className="p-6 flex flex-col items-center">
           {isGenerating ? (
             <div className="flex flex-col items-center justify-center py-8 space-y-3">
-              <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
+              <Loader2 className="w-8 h-8 text-neutral-800 animate-spin" />
               <p className="text-xs text-slate-500 font-medium">
                 {lang === 'en' ? 'Generating QR Code...' : 'কিউআর কোড তৈরি হচ্ছে...'}
               </p>
             </div>
           ) : error ? (
             <div className="flex flex-col items-center justify-center py-8 space-y-3 text-center">
-              <div className="w-10 h-10 rounded-xl bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600">
+              <div className="w-10 h-10 rounded-xl bg-neutral-100 border border-neutral-200 flex items-center justify-center text-neutral-800">
                 <X className="w-5 h-5" />
               </div>
               <p className="text-sm text-slate-900 font-bold">{lang === 'en' ? 'Error generating link' : 'লিংক তৈরি করতে সমস্যা হয়েছে'}</p>
-              <p className="text-xs text-rose-600">{error}</p>
+              <p className="text-xs text-neutral-800">{error}</p>
               <button
                 onClick={generateShareLink}
                 className="mt-2 px-4 py-2 border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-lg transition cursor-pointer"
@@ -126,11 +126,11 @@ export const ShareSheetModal: React.FC<ShareSheetModalProps> = ({
                     onClick={handleCopy}
                     className={`p-2.5 rounded-lg transition cursor-pointer shrink-0 border ${
                       copied
-                        ? 'bg-emerald-50 text-emerald-700 border-emerald-300 shadow-xs'
-                        : 'bg-white hover:bg-slate-50 text-indigo-600 border-slate-300'
+                        ? 'bg-neutral-100 text-neutral-800 border-neutral-300 shadow-xs'
+                        : 'bg-white hover:bg-slate-50 text-neutral-800 border-slate-300'
                     }`}
                   >
-                    {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+                    {copied ? <Check className="w-4 h-4 text-neutral-800" /> : <Copy className="w-4 h-4" />}
                   </button>
                 </div>
               </div>

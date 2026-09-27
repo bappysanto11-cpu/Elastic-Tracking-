@@ -41,6 +41,11 @@ import { ScheduleItem } from './types/schedule';
 import { completeScheduleItemInTracker } from './utils/excelFileTrackerService';
 import { getSharedPackingSheet } from './utils/shareSheet';
 import { commitCurrentCartonsToSchedule, loadPackingSchedules } from './utils/schedulePackingService';
+import { 
+  getOrCreateOrderCartons, 
+  saveOrderPackingData, 
+  generateCartonsForOrder 
+} from './utils/orderCartonStorage';
 
 // ভারী কম্পোনেন্টগুলোকে Lazy তে র্যাপ করুন (এগুলো এখন আলাদা চাঙ্কে লোড হবে)
 const AnalyticsView = lazy(() => import('./components/AnalyticsView'));
@@ -423,28 +428,90 @@ export default function App() {
     setActiveTab('table');
   };
 
-  const handleLoadScheduleItemIntoSheet = (item: ScheduleItem) => {
+  // Helper to persist order cartons when modified in active packing session
+  const persistActiveOrderCartons = (updatedCartons: CartonRow[], targetItem?: ScheduleItem | null) => {
+    const itemToSave = targetItem || activePackingScheduleItem;
+    if (itemToSave && itemToSave.id) {
+      saveOrderPackingData({
+        orderId: itemToSave.id,
+        buyer: itemToSave.buyer || sheetData.buyer,
+        customer: itemToSave.customer || sheetData.customer,
+        customerRefPO: itemToSave.customerRefPO || sheetData.ref,
+        jobNo: itemToSave.jobNo || '',
+        woNumber: itemToSave.woNumber || '',
+        itemDescription: itemToSave.itemDescription || sheetData.customItemName || 'Elastic Trim',
+        color: itemToSave.color || sheetData.color,
+        size: itemToSave.size || sheetData.size,
+        demandQty: Number(itemToSave.demandQty) || Number(itemToSave.orderQty) || 1000,
+        unit: itemToSave.unit || 'mtr',
+        cartonCapacity: 500,
+        totalCartons: updatedCartons.length,
+        cartons: updatedCartons,
+        defaultTare: sheetData.defaultTare || 0.50,
+        defaultWtPerUnit: sheetData.defaultWtPerUnit || 30.00,
+        updatedAt: new Date().toISOString(),
+      }).catch(err => console.warn('Could not auto-save order packing data:', err));
+    }
+  };
+
+  const handleLoadScheduleItemIntoSheet = (item: ScheduleItem, targetTab?: 'table' | 'sheet' | 'stickers' | 'challan') => {
     setActivePackingScheduleItem(item);
     try {
       localStorage.setItem('garment_active_packing_schedule_item', JSON.stringify(item));
     } catch {}
     setPreviousActiveTab(activeTab === 'table' ? 'upload' : activeTab);
-    setSheetData(prev => ({
-      ...prev,
-      buyer: item.buyer || prev.buyer,
-      customer: item.customer || prev.customer,
-      ref: item.customerRefPO || item.jobNo || prev.ref,
-      item: item.itemDescription || prev.item,
-      color: item.color || prev.color,
-      size: item.size || prev.size,
-      logs: [
-        ...(prev.logs || []),
-        createLog('SYSTEM', `Loaded Schedule Order for ${item.buyer} (${item.customerRefPO || item.jobNo} - ${item.demandQty} ${item.unit})`),
-      ].slice(-50),
-    }));
 
-    setActiveTab('table');
+    // Asynchronously resolve or auto-generate order-specific cartons
+    getOrCreateOrderCartons(item).then(({ data: orderData }) => {
+      setSheetData(prev => ({
+        ...prev,
+        buyer: item.buyer || prev.buyer,
+        customer: item.customer || prev.customer,
+        ref: item.customerRefPO || item.jobNo || prev.ref,
+        customItemName: item.itemDescription || prev.customItemName,
+        itemType: item.itemDescription?.toLowerCase().includes('drawstring')
+          ? 'drawstring'
+          : item.itemDescription?.toLowerCase().includes('bow')
+          ? 'bow'
+          : 'elastic',
+        color: item.color || prev.color,
+        size: item.size || prev.size,
+        cartons: orderData.cartons && orderData.cartons.length > 0 ? orderData.cartons : prev.cartons,
+        defaultTare: orderData.defaultTare || prev.defaultTare,
+        defaultWtPerUnit: orderData.defaultWtPerUnit || prev.defaultWtPerUnit,
+        deliveryUnit: (item.unit?.toLowerCase().includes('pc') ? 'pcs' : 'mtr') as any,
+        logs: [
+          ...(prev.logs || []),
+          createLog('SYSTEM', `Loaded ${orderData.cartons.length} Order-Specific Cartons for ${item.buyer} (${item.customerRefPO || item.jobNo} - ${item.demandQty} ${item.unit})`),
+        ].slice(-50),
+      }));
+    }).catch(err => {
+      console.warn('Could not load order-specific cartons:', err);
+      // Fallback: at least update order headers
+      setSheetData(prev => ({
+        ...prev,
+        buyer: item.buyer || prev.buyer,
+        customer: item.customer || prev.customer,
+        ref: item.customerRefPO || item.jobNo || prev.ref,
+        customItemName: item.itemDescription || prev.customItemName,
+        color: item.color || prev.color,
+        size: item.size || prev.size,
+      }));
+    });
+
+    if (targetTab) {
+      setActiveTab(targetTab);
+    } else {
+      setActiveTab('table');
+    }
   };
+
+  // Auto-sync cartons with the active order in Firestore & LocalStorage
+  useEffect(() => {
+    if (activePackingScheduleItem && activePackingScheduleItem.id && sheetData.cartons && sheetData.cartons.length > 0) {
+      persistActiveOrderCartons(sheetData.cartons, activePackingScheduleItem);
+    }
+  }, [sheetData.cartons, activePackingScheduleItem?.id]);
 
   const handleLoadPackingScheduleIntoSheet = (schedule: any) => {
     const target = Number(schedule.targetQty) || 0;
@@ -1020,11 +1087,7 @@ export default function App() {
   const t = translations[lang];
 
   return (
-    <div className="min-h-screen bg-[#07090e] text-slate-100 flex flex-col font-sans relative selection:bg-indigo-500/30 selection:text-indigo-200">
-      {/* Ambient Glow Orbs for Sophisticated Glassmorphic Depth */}
-      <div className="fixed top-0 left-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-[120px] pointer-events-none -z-10" />
-      <div className="fixed top-1/3 right-10 w-[28rem] h-[28rem] bg-indigo-600/10 rounded-full blur-[140px] pointer-events-none -z-10" />
-      <div className="fixed bottom-10 left-1/3 w-80 h-80 bg-emerald-600/8 rounded-full blur-[120px] pointer-events-none -z-10" />
+    <div className="min-h-screen bg-[#f8fafc] text-neutral-900 flex flex-col font-sans relative selection:bg-neutral-900 selection:text-white">
 
       {/* Header Bar */}
       <Header
@@ -1064,14 +1127,14 @@ export default function App() {
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 relative z-10">
         {/* Packing Complete Feedback Notification Toast */}
         {packingCompleteToast && (
-          <div className="mb-4 p-3.5 rounded-xl bg-emerald-950/80 backdrop-blur-xl text-emerald-100 border border-emerald-500/50 shadow-[0_0_25px_rgba(16,185,129,0.25)] flex items-center justify-between animate-in fade-in slide-in-from-top-3 duration-200">
+          <div className="mb-4 p-3.5 rounded-xl bg-neutral-900 text-white border border-neutral-700 shadow-md flex items-center justify-between animate-in fade-in slide-in-from-top-3 duration-200">
             <div className="flex items-center gap-2.5">
               <span className="text-xl">🎉</span>
               <span className="text-sm font-bold text-white">{packingCompleteToast.message}</span>
             </div>
             <button
               onClick={() => setPackingCompleteToast(null)}
-              className="text-emerald-300 hover:text-white text-xs font-bold px-2 py-1 rounded hover:bg-emerald-800/60 transition cursor-pointer"
+              className="text-neutral-400 hover:text-white text-xs font-bold px-2 py-1 rounded hover:bg-neutral-800 transition cursor-pointer"
             >
               ✕
             </button>
@@ -1080,19 +1143,19 @@ export default function App() {
 
         {/* View-Only Security Mode Banner */}
         {isViewOnlyMode && (
-          <div className="mb-4 p-3 sm:p-3.5 rounded-xl bg-indigo-950/80 backdrop-blur-xl text-white border border-indigo-500/40 flex items-center justify-between shadow-[0_0_20px_rgba(99,102,241,0.25)] print:hidden animate-in fade-in">
+          <div className="mb-4 p-3 sm:p-3.5 rounded-xl bg-neutral-900 text-white border border-neutral-700 flex items-center justify-between shadow-md print:hidden animate-in fade-in">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-indigo-900/60 border border-indigo-500/40 flex items-center justify-center text-indigo-300 shrink-0">
+              <div className="w-8 h-8 rounded-lg bg-neutral-800 border border-neutral-700 flex items-center justify-center text-white shrink-0">
                 <span className="text-sm">🔒</span>
               </div>
               <div>
                 <p className="text-xs sm:text-sm font-bold text-white flex items-center gap-2">
                   <span>{lang === 'en' ? 'View-Only Access Enforced' : 'টিম ভিউ-অনলি মোড সক্রিয়'}</span>
-                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/30 text-indigo-200 border border-indigo-500/40">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-neutral-800 text-neutral-300 border border-neutral-600">
                     Firebase Auth
                   </span>
                 </p>
-                <p className="text-[11px] text-indigo-200">
+                <p className="text-[11px] text-neutral-400">
                   {lang === 'en' 
                     ? 'Read-only access level active for this team session. Weight modifications are restricted.' 
                     : 'এই সেশনের জন্য শুধুমাত্র দেখার অনুমতি দেওয়া হয়েছে। কোনো পরিমাপ পরিবর্তন করা যাবে না।'}
@@ -1105,13 +1168,13 @@ export default function App() {
                   setToolsModalTab('security');
                   setIsToolsOpen(true);
                 }}
-                className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white transition shadow-xs cursor-pointer"
+                className="px-3 py-1.5 rounded-lg bg-white hover:bg-neutral-100 text-xs font-bold text-neutral-900 transition shadow-xs cursor-pointer"
               >
                 {lang === 'en' ? 'Security Settings' : 'সিকিউরিটি সেটিংস'}
               </button>
               <button
                 onClick={() => setIsViewOnlyMode(false)}
-                className="p-1.5 rounded-lg text-indigo-300 hover:text-white hover:bg-indigo-900 transition cursor-pointer"
+                className="p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 transition cursor-pointer"
                 title="Dismiss Banner"
               >
                 ✕
@@ -1122,19 +1185,19 @@ export default function App() {
 
         {/* View Switcher Tabs (Shown on non-hub views so user can navigate back to Hub or switch views) */}
         {activeTab !== 'upload' && (
-          <div className="flex items-center flex-wrap gap-2 p-1.5 bg-slate-900/50 backdrop-blur-2xl rounded-2xl mb-4 border border-white/[0.08] shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] ring-1 ring-white/[0.05] print:hidden relative">
+          <div className="flex items-center flex-wrap gap-2 p-1.5 bg-white rounded-2xl mb-4 border border-neutral-200 shadow-xs ring-1 ring-neutral-200/50 print:hidden relative">
           {/* Primary Tab 1: Upload Schedule & Production Output Hub */}
           <button
             onClick={() => setActiveTab('upload')}
             className={`flex items-center gap-2 px-3.5 py-2 text-xs rounded-xl transition-all duration-200 cursor-pointer shrink-0 ${
               activeTab === 'upload'
-                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-[0_0_20px_rgba(37,99,235,0.4)] border border-blue-400/40 font-bold'
-                : 'text-slate-300 hover:text-white hover:bg-white/[0.06] font-medium border border-transparent'
+                ? 'bg-neutral-900 text-white font-bold shadow-xs'
+                : 'text-neutral-700 hover:text-neutral-900 hover:bg-neutral-100 font-medium border border-transparent'
             }`}
           >
-            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
+            <FileSpreadsheet className="w-3.5 h-3.5 text-neutral-800" />
             <span>{lang === 'en' ? 'Schedule & Output Hub' : 'শিডিউল ও আউটপুট হাব'}</span>
-            <span className="text-[10px] bg-blue-950/80 text-blue-200 px-1.5 py-0.5 rounded font-mono font-bold border border-blue-500/30">
+            <span className="text-[10px] bg-neutral-100 text-neutral-800 px-1.5 py-0.5 rounded font-mono font-bold border border-neutral-300">
               Hub
             </span>
           </button>
@@ -1146,8 +1209,8 @@ export default function App() {
               onClick={() => setIsViewsDropdownOpen(prev => !prev)}
               className={`flex items-center gap-2 px-3.5 py-2 text-xs rounded-xl transition-all duration-200 cursor-pointer shrink-0 ${
                 activeTab === 'table' || activeTab === 'sheet' || activeTab === 'stickers'
-                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-[0_0_20px_rgba(37,99,235,0.4)] font-bold border border-blue-400/50'
-                  : 'text-slate-300 hover:text-white hover:bg-white/[0.06] font-medium border border-transparent'
+                  ? 'bg-neutral-900 text-white font-bold shadow-xs'
+                  : 'text-neutral-700 hover:text-neutral-900 hover:bg-neutral-100 font-medium border border-transparent'
               }`}
               title={lang === 'en' ? 'Choose from 1. Live Table, 2. Factory Sheet, 3. Carton Stickers' : '১. লাইভ টেবিল, ২. ফ্যাক্টরি শিট, বা ৩. কার্টন স্টিকার নির্বাচন করুন'}
             >
@@ -1155,31 +1218,31 @@ export default function App() {
                 <>
                   <Table className="w-3.5 h-3.5 text-white" />
                   <span>1. {t.tableView}</span>
-                  <span className="text-[10px] bg-blue-900/80 text-blue-100 px-1.5 py-0.2 rounded font-mono font-bold border border-blue-400/40">
+                  <span className="text-[10px] bg-neutral-800 text-white px-1.5 py-0.2 rounded font-mono font-bold border border-neutral-700">
                     {filteredCartons.length}
                   </span>
                 </>
               ) : activeTab === 'sheet' ? (
                 <>
-                  <LayoutGrid className="w-3.5 h-3.5 text-emerald-300" />
+                  <LayoutGrid className="w-3.5 h-3.5 text-white" />
                   <span>2. {t.exactSheetView}</span>
-                  <span className="text-[10px] bg-blue-900/80 text-emerald-200 px-1.5 py-0.2 rounded font-mono font-bold border border-blue-400/40">
+                  <span className="text-[10px] bg-neutral-800 text-white px-1.5 py-0.2 rounded font-mono font-bold border border-neutral-700">
                     Sheet
                   </span>
                 </>
               ) : activeTab === 'stickers' ? (
                 <>
-                  <Tag className="w-3.5 h-3.5 text-indigo-200" />
+                  <Tag className="w-3.5 h-3.5 text-white" />
                   <span>3. {t.stickerLabels}</span>
-                  <span className="text-[10px] bg-blue-900/80 text-indigo-200 px-1.5 py-0.2 rounded font-mono font-bold border border-blue-400/40">
+                  <span className="text-[10px] bg-neutral-800 text-white px-1.5 py-0.2 rounded font-mono font-bold border border-neutral-700">
                     Stickers
                   </span>
                 </>
               ) : (
                 <>
-                  <Layers className="w-3.5 h-3.5 text-sky-400" />
+                  <Layers className="w-3.5 h-3.5 text-neutral-700" />
                   <span>{lang === 'en' ? 'Table, Sheet & Stickers' : 'টেবিল, শিট ও স্টিকার'}</span>
-                  <span className="text-[10px] bg-slate-800/80 text-slate-300 px-1.5 py-0.5 rounded font-mono border border-slate-700">
+                  <span className="text-[10px] bg-neutral-100 text-neutral-800 px-1.5 py-0.5 rounded font-mono border border-neutral-300">
                     3-in-1
                   </span>
                 </>
@@ -1189,10 +1252,10 @@ export default function App() {
 
             {/* Dropdown Menu for the 3 options */}
             {isViewsDropdownOpen && (
-              <div className="absolute left-0 mt-2 w-72 sm:w-84 bg-slate-950/90 backdrop-blur-2xl border border-white/[0.1] rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.7)] p-2.5 z-50 animate-in fade-in zoom-in-95 duration-150 space-y-1.5 ring-1 ring-white/[0.05]">
-                <div className="px-2.5 py-1.5 border-b border-white/[0.06] flex items-center justify-between text-[11px] text-slate-400 font-semibold">
+              <div className="absolute left-0 mt-2 w-72 sm:w-84 bg-white border border-neutral-200 rounded-2xl shadow-xl p-2.5 z-50 animate-in fade-in zoom-in-95 duration-150 space-y-1.5 text-neutral-900">
+                <div className="px-2.5 py-1.5 border-b border-neutral-200 flex items-center justify-between text-[11px] text-neutral-500 font-semibold">
                   <span>{lang === 'en' ? 'Select Production View' : 'প্রোডাকশন ভিউ অপশন নির্বাচন করুন'}</span>
-                  <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/70 px-1.5 py-0.5 rounded border border-emerald-500/30">
+                  <span className="text-[10px] font-mono text-neutral-900 bg-neutral-100 px-1.5 py-0.5 rounded border border-neutral-300 font-bold">
                     3 Options
                   </span>
                 </div>
@@ -1206,26 +1269,26 @@ export default function App() {
                   }}
                   className={`w-full flex items-center justify-between p-2.5 rounded-xl text-xs transition cursor-pointer text-left ${
                     activeTab === 'table'
-                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold shadow-[0_0_15px_rgba(37,99,235,0.3)] border border-blue-400/40'
-                      : 'text-slate-200 hover:bg-white/[0.06] hover:text-white border border-transparent'
+                      ? 'bg-neutral-900 text-white font-bold shadow-xs'
+                      : 'text-neutral-800 hover:bg-neutral-100 border border-transparent'
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
-                    <span className={`p-1.5 rounded-lg ${activeTab === 'table' ? 'bg-blue-700 text-white' : 'bg-slate-800/80 text-blue-400 border border-slate-700/80'}`}>
+                    <span className={`p-1.5 rounded-lg ${activeTab === 'table' ? 'bg-neutral-800 text-white' : 'bg-neutral-100 text-neutral-800 border border-neutral-200'}`}>
                       <Table className="w-4 h-4" />
                     </span>
                     <div>
                       <div className="flex items-center gap-1.5">
-                        <span className="text-xs font-mono font-bold text-amber-400">1.</span>
+                        <span className="text-xs font-mono font-bold">1.</span>
                         <span className="font-semibold text-xs">{t.tableView}</span>
                       </div>
-                      <p className={`text-[10px] leading-tight mt-0.5 ${activeTab === 'table' ? 'text-blue-100' : 'text-slate-400'}`}>
+                      <p className={`text-[10px] leading-tight mt-0.5 ${activeTab === 'table' ? 'text-neutral-300' : 'text-neutral-500'}`}>
                         {lang === 'en' ? 'Live data entry, tare/gross weight & meters' : 'লাইভ ডাটা এন্ট্রি ও মিটার হিসাব টেবিল'}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0">
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono font-bold ${activeTab === 'table' ? 'bg-blue-800 text-white' : 'bg-slate-800 text-slate-300 border border-slate-700'}`}>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono font-bold ${activeTab === 'table' ? 'bg-neutral-800 text-white' : 'bg-neutral-100 text-neutral-800 border border-neutral-300'}`}>
                       {filteredCartons.length}
                     </span>
                     {activeTab === 'table' && <Check className="w-3.5 h-3.5 text-white" />}
@@ -1241,20 +1304,20 @@ export default function App() {
                   }}
                   className={`w-full flex items-center justify-between p-2.5 rounded-xl text-xs transition cursor-pointer text-left ${
                     activeTab === 'sheet'
-                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold shadow-[0_0_15px_rgba(37,99,235,0.3)] border border-blue-400/40'
-                      : 'text-slate-200 hover:bg-white/[0.06] hover:text-white border border-transparent'
+                      ? 'bg-neutral-900 text-white font-bold shadow-xs'
+                      : 'text-neutral-800 hover:bg-neutral-100 border border-transparent'
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
-                    <span className={`p-1.5 rounded-lg ${activeTab === 'sheet' ? 'bg-blue-700 text-white' : 'bg-slate-800/80 text-emerald-400 border border-slate-700/80'}`}>
+                    <span className={`p-1.5 rounded-lg ${activeTab === 'sheet' ? 'bg-neutral-800 text-white' : 'bg-neutral-100 text-neutral-800 border border-neutral-200'}`}>
                       <LayoutGrid className="w-4 h-4" />
                     </span>
                     <div>
                       <div className="flex items-center gap-1.5">
-                        <span className="text-xs font-mono font-bold text-amber-400">2.</span>
+                        <span className="text-xs font-mono font-bold">2.</span>
                         <span className="font-semibold text-xs">{t.exactSheetView}</span>
                       </div>
-                      <p className={`text-[10px] leading-tight mt-0.5 ${activeTab === 'sheet' ? 'text-blue-100' : 'text-slate-400'}`}>
+                      <p className={`text-[10px] leading-tight mt-0.5 ${activeTab === 'sheet' ? 'text-neutral-300' : 'text-neutral-500'}`}>
                         {lang === 'en' ? 'Exact replica of factory printed packing sheet' : 'ফ্যাক্টরি পেপারের হুবহু প্রিন্ট ভিউ'}
                       </p>
                     </div>
@@ -1271,20 +1334,20 @@ export default function App() {
                   }}
                   className={`w-full flex items-center justify-between p-2.5 rounded-xl text-xs transition cursor-pointer text-left ${
                     activeTab === 'stickers'
-                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold shadow-[0_0_15px_rgba(37,99,235,0.3)] border border-blue-400/40'
-                      : 'text-slate-200 hover:bg-white/[0.06] hover:text-white border border-transparent'
+                      ? 'bg-neutral-900 text-white font-bold shadow-xs'
+                      : 'text-neutral-800 hover:bg-neutral-100 border border-transparent'
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
-                    <span className={`p-1.5 rounded-lg ${activeTab === 'stickers' ? 'bg-blue-700 text-white' : 'bg-slate-800/80 text-indigo-400 border border-slate-700/80'}`}>
+                    <span className={`p-1.5 rounded-lg ${activeTab === 'stickers' ? 'bg-neutral-800 text-white' : 'bg-neutral-100 text-neutral-800 border border-neutral-200'}`}>
                       <Tag className="w-4 h-4" />
                     </span>
                     <div>
                       <div className="flex items-center gap-1.5">
-                        <span className="text-xs font-mono font-bold text-amber-400">3.</span>
+                        <span className="text-xs font-mono font-bold">3.</span>
                         <span className="font-semibold text-xs">{t.stickerLabels}</span>
                       </div>
-                      <p className={`text-[10px] leading-tight mt-0.5 ${activeTab === 'stickers' ? 'text-blue-100' : 'text-slate-400'}`}>
+                      <p className={`text-[10px] leading-tight mt-0.5 ${activeTab === 'stickers' ? 'text-neutral-300' : 'text-neutral-500'}`}>
                         {lang === 'en' ? 'Carton sticker barcodes, QR & packing details' : 'কার্টনের গায়ে লাগানোর বারকোড ও কিউআর স্টিকার'}
                       </p>
                     </div>
@@ -1300,11 +1363,11 @@ export default function App() {
             onClick={() => setActiveTab('analytics')}
             className={`flex items-center gap-2 px-3.5 py-2 text-xs rounded-xl transition-all duration-200 cursor-pointer shrink-0 ${
               activeTab === 'analytics'
-                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-[0_0_20px_rgba(37,99,235,0.4)] border border-blue-400/40 font-bold'
-                : 'text-slate-300 hover:text-white hover:bg-white/[0.06] font-medium border border-transparent'
+                ? 'bg-neutral-900 text-white font-bold shadow-xs'
+                : 'text-neutral-700 hover:text-neutral-900 hover:bg-neutral-100 font-medium border border-transparent'
             }`}
           >
-            <BarChart3 className="w-3.5 h-3.5 text-rose-400" />
+            <BarChart3 className="w-3.5 h-3.5 text-neutral-800" />
             <span>{t.analyticsTab || 'Analytics'}</span>
           </button>
         </div>
@@ -1388,6 +1451,23 @@ export default function App() {
                 sheetData={filteredSheetData}
                 summary={filteredSummary}
                 lang={lang}
+                activeScheduleItem={activePackingScheduleItem}
+                onSelectScheduleItem={item => handleLoadScheduleItemIntoSheet(item, 'stickers')}
+                onAutoGenerateCartons={capacity => {
+                  if (activePackingScheduleItem) {
+                    const newCartons = generateCartonsForOrder(
+                      activePackingScheduleItem,
+                      capacity,
+                      sheetData.defaultTare || 0.50,
+                      sheetData.defaultWtPerUnit || 30.00
+                    );
+                    setSheetData(prev => ({
+                      ...prev,
+                      cartons: newCartons,
+                    }));
+                    persistActiveOrderCartons(newCartons, activePackingScheduleItem);
+                  }
+                }}
                 onRequestPrint={orientation => handleRequestPrint(orientation || 'portrait')}
                 onOpenCartonQr={handleOpenCartonQr}
                 onUpdateHeader={handleUpdateHeader}
@@ -1427,21 +1507,20 @@ export default function App() {
                 onLoadRowToPackingSheet={handleLoadScheduleItemIntoSheet}
                 onNavigateToTab={tab => setActiveTab(tab)}
                 onDirectOutput={(target, item) => {
-                  handleLoadScheduleItemIntoSheet(item);
-                  if (target === 'table') {
-                    setActiveTab('table');
-                  } else if (target === 'sheet') {
-                    setActiveTab('sheet');
-                  } else if (target === 'stickers') {
-                    setActiveTab('stickers');
+                  if (target === 'stickers') {
+                    handleLoadScheduleItemIntoSheet(item, 'stickers');
                   } else if (target === 'print_stickers') {
-                    setActiveTab('stickers');
-                    setTimeout(() => handleRequestPrint('portrait'), 200);
+                    handleLoadScheduleItemIntoSheet(item, 'stickers');
+                    setTimeout(() => handleRequestPrint('portrait'), 350);
+                  } else if (target === 'sheet') {
+                    handleLoadScheduleItemIntoSheet(item, 'sheet');
                   } else if (target === 'print_sheet') {
-                    setActiveTab('sheet');
-                    setTimeout(() => handleRequestPrint('landscape'), 200);
+                    handleLoadScheduleItemIntoSheet(item, 'sheet');
+                    setTimeout(() => handleRequestPrint('landscape'), 350);
                   } else if (target === 'challan') {
-                    setActiveTab('challan');
+                    handleLoadScheduleItemIntoSheet(item, 'challan');
+                  } else {
+                    handleLoadScheduleItemIntoSheet(item, 'table');
                   }
                 }}
               />

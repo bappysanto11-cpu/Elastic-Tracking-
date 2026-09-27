@@ -136,11 +136,11 @@ export const FactorySheetView: React.FC<FactorySheetViewProps> = ({
 
         {/* Row 2: Total Mtr OR Total Pcs */}
         {isPcsMode ? (
-          <div className="flex min-h-[22px] items-stretch bg-amber-50/50">
-            <div className="w-[42px] sm:w-[46px] shrink-0 border-r border-slate-800 px-1 py-0.5 font-black uppercase text-slate-900 bg-amber-200 flex items-center justify-start text-[9px] sm:text-[10px]">
+          <div className="flex min-h-[22px] items-stretch bg-neutral-100/50">
+            <div className="w-[42px] sm:w-[46px] shrink-0 border-r border-slate-800 px-1 py-0.5 font-black uppercase text-slate-900 bg-neutral-200 flex items-center justify-start text-[9px] sm:text-[10px]">
               Total
             </div>
-            <div className="flex-1 px-1 py-0.5 font-mono font-black text-center text-amber-950 text-[11px] sm:text-xs flex items-center justify-center">
+            <div className="flex-1 px-1 py-0.5 font-mono font-black text-center text-neutral-900 text-[11px] sm:text-xs flex items-center justify-center">
               {summary.totalQtyPcs || (summary.totalNetWt > 0 && sheetData.defaultWtPerUnit > 0 ? Math.round((summary.totalNetWt * 1000) / sheetData.defaultWtPerUnit) : 0)}
             </div>
             <div className="w-7 shrink-0 border-l border-slate-800 px-0.5 py-0.5 font-bold text-center text-slate-800 flex items-center justify-center text-[9px] sm:text-[10px]">
@@ -148,11 +148,11 @@ export const FactorySheetView: React.FC<FactorySheetViewProps> = ({
             </div>
           </div>
         ) : (
-          <div className="flex min-h-[22px] items-stretch bg-indigo-50/40">
+          <div className="flex min-h-[22px] items-stretch bg-neutral-100/40">
             <div className="w-[42px] sm:w-[46px] shrink-0 border-r border-slate-800 px-1 py-0.5 font-black uppercase text-slate-900 bg-slate-200 flex items-center justify-start text-[9px] sm:text-[10px]">
               Total
             </div>
-            <div className="flex-1 px-1 py-0.5 font-mono font-black text-center text-indigo-950 text-[11px] sm:text-xs flex items-center justify-center">
+            <div className="flex-1 px-1 py-0.5 font-mono font-black text-center text-neutral-900 text-[11px] sm:text-xs flex items-center justify-center">
               {summary.totalMtr.toFixed(1)}
             </div>
             <div className="w-7 shrink-0 border-l border-slate-800 px-0.5 py-0.5 font-bold text-center text-slate-800 flex items-center justify-center text-[9px] sm:text-[10px]">
@@ -163,11 +163,11 @@ export const FactorySheetView: React.FC<FactorySheetViewProps> = ({
 
         {/* Row 3: Total Gry OR Total Packets */}
         {isPcsMode ? (
-          <div className="flex min-h-[22px] items-stretch bg-purple-50/50">
-            <div className="w-[42px] sm:w-[46px] shrink-0 border-r border-slate-800 px-1 py-0.5 font-black uppercase text-slate-900 bg-purple-200 flex items-center justify-start text-[9px] sm:text-[10px]">
+          <div className="flex min-h-[22px] items-stretch bg-neutral-100/50">
+            <div className="w-[42px] sm:w-[46px] shrink-0 border-r border-slate-800 px-1 py-0.5 font-black uppercase text-slate-900 bg-neutral-200 flex items-center justify-start text-[9px] sm:text-[10px]">
               Total
             </div>
-            <div className="flex-1 px-1 py-0.5 font-mono font-black text-center text-purple-950 text-[11px] sm:text-xs flex items-center justify-center">
+            <div className="flex-1 px-1 py-0.5 font-mono font-black text-center text-neutral-900 text-[11px] sm:text-xs flex items-center justify-center">
               {summary.totalPkts || (sheetData.pcsPerPkt ? Math.round((summary.totalQtyPcs || 0) / sheetData.pcsPerPkt) : '-')}
             </div>
             <div className="w-7 shrink-0 border-l border-slate-800 px-0.5 py-0.5 font-bold text-center text-slate-800 flex items-center justify-center text-[9px] sm:text-[10px]">
@@ -175,11 +175,11 @@ export const FactorySheetView: React.FC<FactorySheetViewProps> = ({
             </div>
           </div>
         ) : (
-          <div className="flex min-h-[22px] items-stretch bg-purple-50/40">
+          <div className="flex min-h-[22px] items-stretch bg-neutral-100/40">
             <div className="w-[42px] sm:w-[46px] shrink-0 border-r border-slate-800 px-1 py-0.5 font-black uppercase text-slate-900 bg-slate-200 flex items-center justify-start text-[9px] sm:text-[10px]">
               Total
             </div>
-            <div className="flex-1 px-1 py-0.5 font-mono font-black text-center text-purple-950 text-[11px] sm:text-xs flex items-center justify-center">
+            <div className="flex-1 px-1 py-0.5 font-mono font-black text-center text-neutral-900 text-[11px] sm:text-xs flex items-center justify-center">
               {summary.totalGry.toFixed(2)}
             </div>
             <div className="w-7 shrink-0 border-l border-slate-800 px-0.5 py-0.5 font-bold text-center text-slate-800 flex items-center justify-center text-[9px] sm:text-[10px]">
@@ -217,7 +217,7 @@ export const FactorySheetView: React.FC<FactorySheetViewProps> = ({
         {/* Left: Layout switcher */}
         <div className="flex flex-wrap items-center gap-2.5">
           <div className="flex items-center gap-1.5">
-            <Columns className="w-4 h-4 text-indigo-600" />
+            <Columns className="w-4 h-4 text-neutral-800" />
             <span className="text-xs font-bold text-slate-700">
               {lang === 'en' ? 'Grid Layout:' : 'গ্রিড লেআউট:'}
             </span>
@@ -289,7 +289,7 @@ export const FactorySheetView: React.FC<FactorySheetViewProps> = ({
             {zoomLevel !== 100 && (
               <button
                 onClick={() => setZoomLevel(100)}
-                className="text-[10px] font-bold px-1.5 py-0.5 text-indigo-600 hover:bg-white rounded transition cursor-pointer"
+                className="text-[10px] font-bold px-1.5 py-0.5 text-neutral-800 hover:bg-white rounded transition cursor-pointer"
               >
                 Reset
               </button>
@@ -302,7 +302,7 @@ export const FactorySheetView: React.FC<FactorySheetViewProps> = ({
               type="checkbox"
               checked={embedTotalInGrid}
               onChange={e => setEmbedTotalInGrid(e.target.checked)}
-              className="rounded text-indigo-600 focus:ring-indigo-500"
+              className="rounded text-neutral-800 focus:ring-neutral-400"
             />
             <span className="hidden sm:inline">{lang === 'en' ? 'Embed Total in Slot 7' : 'স্লট ৭-এ টোটাল সামারি'}</span>
             <span className="sm:hidden">{lang === 'en' ? 'Slot 7 Total' : 'স্লট ৭'}</span>
@@ -313,7 +313,7 @@ export const FactorySheetView: React.FC<FactorySheetViewProps> = ({
             onClick={() => setIsEditable(!isEditable)}
             className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition cursor-pointer ${
               isEditable
-                ? 'bg-indigo-50 border-indigo-200 text-indigo-700'
+                ? 'bg-neutral-100 border-neutral-200 text-neutral-800'
                 : 'bg-slate-50 border-slate-200 text-slate-600'
             }`}
             title="Click to enable or disable direct input in the sticker cards"
@@ -385,14 +385,14 @@ export const FactorySheetView: React.FC<FactorySheetViewProps> = ({
                   key={c.id || index}
                   className={`border flex flex-col bg-white carton-print-block transition ${
                     isNegativeNet
-                      ? 'border-2 border-red-500 ring-2 ring-red-200'
-                      : 'border-slate-900 hover:border-indigo-600'
+                      ? 'border-2 border-neutral-400 ring-2 ring-neutral-300'
+                      : 'border-slate-900 hover:border-neutral-600'
                   }`}
                 >
                   {/* Company Name Header in each carton block */}
                   <div className={`border-b py-0.5 px-1 text-center font-bold text-[9.5px] sm:text-[10.5px] tracking-wide uppercase truncate ${
                     isNegativeNet 
-                      ? 'bg-red-100 text-red-900 border-red-500' 
+                      ? 'bg-neutral-100 text-neutral-900 border-neutral-400' 
                       : 'border-slate-900 text-slate-900 bg-slate-50'
                   }`}>
                     {sheetData.companyName || 'GOOD & FAST Pa. Co. Ltd'}
@@ -451,7 +451,7 @@ export const FactorySheetView: React.FC<FactorySheetViewProps> = ({
                     </div>
 
                     {/* Gross wt */}
-                    <div className={`flex min-h-[22px] items-stretch ${isNegativeNet ? 'bg-red-50' : 'bg-amber-50/30'}`}>
+                    <div className={`flex min-h-[22px] items-stretch ${isNegativeNet ? 'bg-neutral-100' : 'bg-neutral-100/30'}`}>
                       <div className="w-[38px] sm:w-[42px] shrink-0 border-r border-slate-800 px-1 py-0.5 font-bold text-slate-800 text-[9px] sm:text-[9.5px] flex items-center justify-start">
                         Gross wt
                       </div>
@@ -469,8 +469,8 @@ export const FactorySheetView: React.FC<FactorySheetViewProps> = ({
                             placeholder="0.00"
                             className={`w-full text-center font-bold font-mono border rounded-xs focus:outline-none py-0.2 ${
                               isNegativeNet
-                                ? 'bg-white border-red-500 text-red-900 focus:ring-1 focus:ring-red-500'
-                                : 'bg-white/90 border-slate-300 focus:bg-white focus:ring-1 focus:ring-indigo-500'
+                                ? 'bg-white border-neutral-400 text-neutral-900 focus:ring-1 focus:ring-neutral-400'
+                                : 'bg-white/90 border-slate-300 focus:bg-white focus:ring-1 focus:ring-neutral-400'
                             }`}
                           />
                         ) : (
@@ -483,14 +483,14 @@ export const FactorySheetView: React.FC<FactorySheetViewProps> = ({
                     </div>
 
                     {/* Net wt */}
-                    <div className={`flex min-h-[20px] items-stretch ${isNegativeNet ? 'bg-red-100' : 'bg-emerald-50/40'}`}>
+                    <div className={`flex min-h-[20px] items-stretch ${isNegativeNet ? 'bg-neutral-100' : 'bg-neutral-100/40'}`}>
                       <div className="w-[38px] sm:w-[42px] shrink-0 border-r border-slate-800 px-1 py-0.5 font-bold text-slate-800 text-[9px] sm:text-[9.5px] flex items-center justify-start">
                         Net wt
                       </div>
                       <div className={`flex-1 px-1 py-0.5 font-mono text-center font-bold text-[10px] sm:text-[11px] flex items-center justify-center gap-0.5 ${
-                        isNegativeNet ? 'text-red-700 font-black' : 'text-emerald-950'
+                        isNegativeNet ? 'text-neutral-800 font-black' : 'text-neutral-900'
                       }`}>
-                        {isNegativeNet && <AlertTriangle className="w-3 h-3 text-red-600 shrink-0" />}
+                        {isNegativeNet && <AlertTriangle className="w-3 h-3 text-neutral-800 shrink-0" />}
                         <span>{hasData ? c.netWt.toFixed(2) : '0.00'}</span>
                       </div>
                       <div className="w-6 shrink-0 border-l border-slate-800 px-0.5 py-0.5 font-semibold text-center text-slate-700 text-[9px] sm:text-[9.5px] flex items-center justify-center">
@@ -513,11 +513,11 @@ export const FactorySheetView: React.FC<FactorySheetViewProps> = ({
 
                     {/* Row 8: Length (Mtr) for Elastic/Tape OR Qty (Pcs) for Drawstring/Bow */}
                     {isPcsMode ? (
-                      <div className="flex min-h-[20px] items-stretch bg-amber-50/40">
+                      <div className="flex min-h-[20px] items-stretch bg-neutral-100/40">
                         <div className="w-[38px] sm:w-[42px] shrink-0 border-r border-slate-800 px-1 py-0.5 font-bold text-slate-800 text-[9px] sm:text-[9.5px] flex items-center justify-start">
                           Qty
                         </div>
-                        <div className="flex-1 px-1 py-0.5 font-mono text-center font-black text-amber-950 text-[10px] sm:text-[11px] flex items-center justify-center">
+                        <div className="flex-1 px-1 py-0.5 font-mono text-center font-black text-neutral-900 text-[10px] sm:text-[11px] flex items-center justify-center">
                           {hasData ? (c.qtyPcs || (c.wtPerUnit > 0 ? Math.round((c.netWt * 1000) / c.wtPerUnit) : 0)) : '0'}
                         </div>
                         <div className="w-6 shrink-0 border-l border-slate-800 px-0.5 py-0.5 font-semibold text-center text-slate-700 text-[9px] sm:text-[9.5px] flex items-center justify-center">
@@ -525,11 +525,11 @@ export const FactorySheetView: React.FC<FactorySheetViewProps> = ({
                         </div>
                       </div>
                     ) : (
-                      <div className="flex min-h-[20px] items-stretch bg-indigo-50/40">
+                      <div className="flex min-h-[20px] items-stretch bg-neutral-100/40">
                         <div className="w-[38px] sm:w-[42px] shrink-0 border-r border-slate-800 px-1 py-0.5 font-bold text-slate-800 text-[9px] sm:text-[9.5px] flex items-center justify-start">
                           Length
                         </div>
-                        <div className="flex-1 px-1 py-0.5 font-mono text-center font-black text-indigo-950 text-[10px] sm:text-[11px] flex items-center justify-center">
+                        <div className="flex-1 px-1 py-0.5 font-mono text-center font-black text-neutral-900 text-[10px] sm:text-[11px] flex items-center justify-center">
                           {hasData ? c.lengthMtr.toFixed(2) : '0.00'}
                         </div>
                         <div className="w-6 shrink-0 border-l border-slate-800 px-0.5 py-0.5 font-semibold text-center text-slate-700 text-[9px] sm:text-[9.5px] flex items-center justify-center">
@@ -540,11 +540,11 @@ export const FactorySheetView: React.FC<FactorySheetViewProps> = ({
 
                     {/* Row 9: Length (Gry) for Elastic/Tape OR Packets / Unit wt for Drawstring/Bow */}
                     {isPcsMode ? (
-                      <div className="flex min-h-[20px] items-stretch bg-purple-50/40">
+                      <div className="flex min-h-[20px] items-stretch bg-neutral-100/40">
                         <div className="w-[38px] sm:w-[42px] shrink-0 border-r border-slate-800 px-1 py-0.5 font-bold text-slate-800 text-[9px] sm:text-[9.5px] flex items-center justify-start">
                           {sheetData.pcsPerPkt ? 'Packets' : 'Unit Wt'}
                         </div>
-                        <div className="flex-1 px-1 py-0.5 font-mono text-center font-black text-purple-950 text-[10px] sm:text-[11px] flex items-center justify-center">
+                        <div className="flex-1 px-1 py-0.5 font-mono text-center font-black text-neutral-900 text-[10px] sm:text-[11px] flex items-center justify-center">
                           {hasData ? (
                             sheetData.pcsPerPkt 
                               ? (c.pkts || Math.round((c.qtyPcs || (c.wtPerUnit > 0 ? (c.netWt * 1000) / c.wtPerUnit : 0)) / sheetData.pcsPerPkt))
@@ -556,11 +556,11 @@ export const FactorySheetView: React.FC<FactorySheetViewProps> = ({
                         </div>
                       </div>
                     ) : (
-                      <div className="flex min-h-[20px] items-stretch bg-purple-50/40">
+                      <div className="flex min-h-[20px] items-stretch bg-neutral-100/40">
                         <div className="w-[38px] sm:w-[42px] shrink-0 border-r border-slate-800 px-1 py-0.5 font-bold text-slate-800 text-[9px] sm:text-[9.5px] flex items-center justify-start">
                           Length
                         </div>
-                        <div className="flex-1 px-1 py-0.5 font-mono text-center font-black text-purple-950 text-[10px] sm:text-[11px] flex items-center justify-center">
+                        <div className="flex-1 px-1 py-0.5 font-mono text-center font-black text-neutral-900 text-[10px] sm:text-[11px] flex items-center justify-center">
                           {hasData ? c.lengthGry.toFixed(2) : '0.00'}
                         </div>
                         <div className="w-6 shrink-0 border-l border-slate-800 px-0.5 py-0.5 font-semibold text-center text-slate-700 text-[9px] sm:text-[9.5px] flex items-center justify-center">

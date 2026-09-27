@@ -105,32 +105,28 @@ export const ToolsModal: React.FC<ToolsModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl w-full max-w-2xl sm:max-w-3xl overflow-hidden flex flex-col max-h-[92vh] shadow-2xl border border-slate-200 text-slate-800">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+      <div className="bg-white rounded-2xl w-full max-w-2xl sm:max-w-3xl overflow-hidden flex flex-col max-h-[92vh] shadow-2xl border border-neutral-300 text-neutral-900">
         {/* Modal Header */}
-        <div className="p-4 sm:p-5 bg-slate-900 text-white flex items-center justify-between">
+        <div className="p-4 sm:p-5 bg-white border-b border-neutral-200 text-neutral-900 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-xl border flex items-center justify-center shrink-0 shadow-xs transition ${
-              activeTab === 'security'
-                ? 'bg-indigo-950 border-indigo-700 text-indigo-400'
-                : 'bg-slate-800 border-slate-700 text-amber-400'
-            }`}>
-              {activeTab === 'security' ? <ShieldCheck className="w-5 h-5" /> : <Wrench className="w-5 h-5" />}
+            <div className="w-10 h-10 rounded-xl bg-neutral-900 text-white flex items-center justify-center shrink-0 shadow-xs">
+              {activeTab === 'security' ? <ShieldCheck className="w-5 h-5 text-white" /> : <Wrench className="w-5 h-5 text-white" />}
             </div>
             <div>
-              <h3 className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+              <h3 className="text-sm sm:text-base font-bold text-neutral-900 flex items-center gap-2">
                 <span>
                   {activeTab === 'security'
                     ? (lang === 'en' ? 'Security Settings & Team Access' : 'সিকিউরিটি সেটিংস ও টিম অ্যাক্সেস')
                     : (lang === 'en' ? 'Garment Calculation Utilities' : 'গার্মেন্টস ও ট্রিম ক্যালকুলেশন টুলস')}
                 </span>
                 {activeTab === 'security' && (
-                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/30 text-indigo-300 border border-indigo-500/40">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-neutral-100 text-neutral-800 border border-neutral-300">
                     Firebase Auth
                   </span>
                 )}
               </h3>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-neutral-500">
                 {activeTab === 'security'
                   ? (lang === 'en'
                       ? 'Define view-only or editor access levels for team members'
@@ -143,24 +139,24 @@ export const ToolsModal: React.FC<ToolsModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white transition cursor-pointer"
+            className="p-1.5 rounded-lg text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 transition cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Navigation Tabs */}
-        <div className="px-4 sm:px-5 pt-3 pb-2 bg-slate-100/90 border-b border-slate-200 flex items-center gap-2">
+        <div className="px-4 sm:px-5 pt-3 pb-2 bg-neutral-50 border-b border-neutral-200 flex items-center gap-2">
           <button
             type="button"
             onClick={() => setActiveTab('tools')}
             className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
               activeTab === 'tools'
-                ? 'bg-white text-slate-900 shadow-xs border border-slate-300/80 ring-1 ring-slate-200'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                ? 'bg-neutral-900 text-white shadow-xs'
+                : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-200/70'
             }`}
           >
-            <Scale className={`w-3.5 h-3.5 ${activeTab === 'tools' ? 'text-amber-600' : 'text-slate-500'}`} />
+            <Scale className={`w-3.5 h-3.5 ${activeTab === 'tools' ? 'text-white' : 'text-neutral-500'}`} />
             <span>{lang === 'en' ? 'Calculation Tools' : 'ক্যালকুলেশন টুলস'}</span>
           </button>
 
@@ -169,13 +165,13 @@ export const ToolsModal: React.FC<ToolsModalProps> = ({
             onClick={() => setActiveTab('security')}
             className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
               activeTab === 'security'
-                ? 'bg-white text-indigo-700 shadow-xs border border-indigo-300/80 ring-1 ring-indigo-200'
-                : 'text-slate-600 hover:text-indigo-700 hover:bg-indigo-50/60'
+                ? 'bg-neutral-900 text-white shadow-xs'
+                : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-200/70'
             }`}
           >
-            <ShieldCheck className={`w-3.5 h-3.5 ${activeTab === 'security' ? 'text-indigo-600' : 'text-slate-500'}`} />
+            <ShieldCheck className={`w-3.5 h-3.5 ${activeTab === 'security' ? 'text-white' : 'text-neutral-500'}`} />
             <span>{lang === 'en' ? 'Security Settings' : 'সিকিউরিটি সেটিংস'}</span>
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-700 border border-indigo-200">
+            <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold border ${activeTab === 'security' ? 'bg-neutral-800 text-white border-neutral-700' : 'bg-neutral-100 text-neutral-800 border-neutral-300'}`}>
               Auth
             </span>
           </button>
@@ -193,12 +189,12 @@ export const ToolsModal: React.FC<ToolsModalProps> = ({
               <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <Scale className="w-4 h-4 text-emerald-600" />
+                    <Scale className="w-4 h-4 text-neutral-800" />
                     <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
                       {t.sampleTesterTitle}
                     </h4>
                   </div>
-                  <span className="text-xs font-mono font-bold text-emerald-700 bg-emerald-100 border border-emerald-300 px-2.5 py-0.5 rounded-lg">
+                  <span className="text-xs font-mono font-bold text-neutral-800 bg-neutral-100 border border-neutral-300 px-2.5 py-0.5 rounded-lg">
                     Result: {calculatedUnitWt.toFixed(2)} gm/m
                   </span>
                 </div>
@@ -214,7 +210,7 @@ export const ToolsModal: React.FC<ToolsModalProps> = ({
                       min="0.1"
                       value={sampleLength}
                       onChange={e => setSampleLength(parseFloat(e.target.value) || 1)}
-                      className="w-full px-3 py-1.5 text-xs font-mono font-bold bg-white border border-slate-300 rounded-lg text-slate-900 focus:ring-2 focus:ring-emerald-500"
+                      className="w-full px-3 py-1.5 text-xs font-mono font-bold bg-white border border-slate-300 rounded-lg text-slate-900 focus:ring-2 focus:ring-neutral-400"
                     />
                   </div>
 
@@ -228,18 +224,18 @@ export const ToolsModal: React.FC<ToolsModalProps> = ({
                       min="0.1"
                       value={sampleWeight}
                       onChange={e => setSampleWeight(parseFloat(e.target.value) || 0)}
-                      className="w-full px-3 py-1.5 text-xs font-mono font-bold bg-white border border-slate-300 rounded-lg text-slate-900 focus:ring-2 focus:ring-emerald-500"
+                      className="w-full px-3 py-1.5 text-xs font-mono font-bold bg-white border border-slate-300 rounded-lg text-slate-900 focus:ring-2 focus:ring-neutral-400"
                     />
                   </div>
                 </div>
 
                 <div className="flex items-center justify-between pt-2.5 border-t border-slate-200 text-xs">
                   <span className="text-slate-600">
-                    Formula: {sampleWeight}g ÷ {sampleLength}m = <strong className="text-emerald-700 font-mono">{calculatedUnitWt.toFixed(2)} gm/m</strong>
+                    Formula: {sampleWeight}g ÷ {sampleLength}m = <strong className="text-neutral-800 font-mono">{calculatedUnitWt.toFixed(2)} gm/m</strong>
                   </span>
                   <button
                     onClick={handleApplySample}
-                    className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-lg shadow-xs transition cursor-pointer"
+                    className="px-3.5 py-1.5 bg-neutral-900 hover:bg-neutral-800 text-white font-semibold text-xs rounded-lg shadow-xs transition cursor-pointer"
                   >
                     {lang === 'en' ? 'Apply to Order' : 'অর্ডারে সেট করুন'}
                   </button>
@@ -250,7 +246,7 @@ export const ToolsModal: React.FC<ToolsModalProps> = ({
               <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <Target className="w-4 h-4 text-indigo-600" />
+                    <Target className="w-4 h-4 text-neutral-800" />
                     <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
                       {t.reverseCalcTitle}
                     </h4>
@@ -259,7 +255,7 @@ export const ToolsModal: React.FC<ToolsModalProps> = ({
                     <button
                       onClick={() => setActiveTargetMode('mtr')}
                       className={`px-2.5 py-1 text-xs font-bold rounded-lg cursor-pointer transition ${
-                        activeTargetMode === 'mtr' ? 'bg-indigo-600 text-white shadow-xs' : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-100'
+                        activeTargetMode === 'mtr' ? 'bg-neutral-900 text-white shadow-xs' : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-100'
                       }`}
                     >
                       Meters
@@ -267,7 +263,7 @@ export const ToolsModal: React.FC<ToolsModalProps> = ({
                     <button
                       onClick={() => setActiveTargetMode('gry')}
                       className={`px-2.5 py-1 text-xs font-bold rounded-lg cursor-pointer transition ${
-                        activeTargetMode === 'gry' ? 'bg-indigo-600 text-white shadow-xs' : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-100'
+                        activeTargetMode === 'gry' ? 'bg-neutral-900 text-white shadow-xs' : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-100'
                       }`}
                     >
                       Gross Yards (Gry)
@@ -292,7 +288,7 @@ export const ToolsModal: React.FC<ToolsModalProps> = ({
                         if (activeTargetMode === 'mtr') setTargetMeters(v);
                         else setTargetGry(v);
                       }}
-                      className="w-full px-3 py-1.5 text-xs font-mono font-bold bg-white border border-slate-300 rounded-lg text-slate-900 focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3 py-1.5 text-xs font-mono font-bold bg-white border border-slate-300 rounded-lg text-slate-900 focus:ring-2 focus:ring-neutral-400"
                     />
                   </div>
 
@@ -300,7 +296,7 @@ export const ToolsModal: React.FC<ToolsModalProps> = ({
                     <span className="text-[10px] text-slate-500 uppercase font-semibold">
                       {lang === 'en' ? 'Required Net Weight' : 'প্রয়োজনীয় মোট নেট ওজন'}
                     </span>
-                    <span className="text-base font-extrabold font-mono text-indigo-600">
+                    <span className="text-base font-extrabold font-mono text-neutral-800">
                       {reverseResult.requiredNetKg} Kg
                     </span>
                   </div>
@@ -309,7 +305,7 @@ export const ToolsModal: React.FC<ToolsModalProps> = ({
                     <span className="text-[10px] text-slate-500 uppercase font-semibold">
                       {lang === 'en' ? 'Estimated Cartons (~10kg)' : 'আনুমানিক কার্টন সংখ্যা'}
                     </span>
-                    <span className="text-base font-extrabold font-mono text-indigo-600">
+                    <span className="text-base font-extrabold font-mono text-neutral-800">
                       ~{reverseResult.estimatedCartons} CTN ({reverseResult.estMtrPerCarton} m/ctn)
                     </span>
                   </div>
@@ -319,7 +315,7 @@ export const ToolsModal: React.FC<ToolsModalProps> = ({
               {/* 3. Weight Unit Converter */}
               <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
                 <div className="flex items-center gap-2 mb-3">
-                  <Scale className="w-4 h-4 text-orange-600" />
+                  <Scale className="w-4 h-4 text-neutral-800" />
                   <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
                     {lang === 'en' ? 'Batch Unit Converter' : 'ওজন ইউনিট কনভার্টার'}
                   </h4>
@@ -332,7 +328,7 @@ export const ToolsModal: React.FC<ToolsModalProps> = ({
                     <select
                       value={convertTarget}
                       onChange={(e) => setConvertTarget(e.target.value as 'cartons' | 'unit')}
-                      className="w-full px-3 py-1.5 text-xs font-semibold bg-white border border-slate-300 rounded-lg text-slate-800 focus:ring-2 focus:ring-orange-500"
+                      className="w-full px-3 py-1.5 text-xs font-semibold bg-white border border-slate-300 rounded-lg text-slate-800 focus:ring-2 focus:ring-neutral-400"
                     >
                       <option value="cartons">{lang === 'en' ? 'Carton Weights (Gross & Tare)' : 'কার্টন ওজন (গ্রস ও ট্যার)'}</option>
                       <option value="unit">{lang === 'en' ? 'Unit Weight (gm/m)' : 'ইউনিট ওজন (gm/m)'}</option>
@@ -347,7 +343,7 @@ export const ToolsModal: React.FC<ToolsModalProps> = ({
                       step="0.0001"
                       value={convertMultiplier}
                       onChange={(e) => setConvertMultiplier(e.target.value)}
-                      className="w-full px-3 py-1.5 text-xs font-mono font-bold bg-white border border-slate-300 rounded-lg text-slate-900 focus:ring-2 focus:ring-orange-500"
+                      className="w-full px-3 py-1.5 text-xs font-mono font-bold bg-white border border-slate-300 rounded-lg text-slate-900 focus:ring-2 focus:ring-neutral-400"
                     />
                   </div>
                 </div>
@@ -362,7 +358,7 @@ export const ToolsModal: React.FC<ToolsModalProps> = ({
                 </div>
 
                 <div className="flex items-center justify-between pt-2.5 border-t border-slate-200 text-xs">
-                  <span className="text-orange-600 font-semibold">
+                  <span className="text-neutral-800 font-semibold">
                     {convertSuccess ? <span className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5"/> {convertSuccess}</span> : ''}
                   </span>
                   <button
@@ -376,7 +372,7 @@ export const ToolsModal: React.FC<ToolsModalProps> = ({
                         }
                       }
                     }}
-                    className="px-3.5 py-1.5 bg-orange-600 hover:bg-orange-700 text-white font-semibold text-xs rounded-lg shadow-xs transition cursor-pointer"
+                    className="px-3.5 py-1.5 bg-neutral-900 hover:bg-neutral-800 text-white font-semibold text-xs rounded-lg shadow-xs transition cursor-pointer"
                   >
                     {lang === 'en' ? 'Convert All' : 'সব কনভার্ট করুন'}
                   </button>
@@ -386,7 +382,7 @@ export const ToolsModal: React.FC<ToolsModalProps> = ({
               {/* 4. Bulk Paste Carton Weights */}
               <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
                 <div className="flex items-center gap-2 mb-2">
-                  <ClipboardPaste className="w-4 h-4 text-purple-600" />
+                  <ClipboardPaste className="w-4 h-4 text-neutral-800" />
                   <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
                     {lang === 'en' ? 'Paste Weights from Excel or Clipboard' : 'এক্সেল বা ক্লিপবোর্ড থেকে ওজন পেস্ট করুন'}
                   </h4>
@@ -402,17 +398,17 @@ export const ToolsModal: React.FC<ToolsModalProps> = ({
                   value={pasteText}
                   onChange={e => setPasteText(e.target.value)}
                   placeholder="10.06&#10;10.60&#10;10.66"
-                  className="w-full p-3 text-xs font-mono bg-white border border-slate-300 rounded-lg mb-2.5 text-slate-900 focus:ring-2 focus:ring-purple-500"
+                  className="w-full p-3 text-xs font-mono bg-white border border-slate-300 rounded-lg mb-2.5 text-slate-900 focus:ring-2 focus:ring-neutral-400"
                 />
 
                 {pasteStatus && (
-                  <p className="text-xs font-semibold text-purple-700 mb-2.5">{pasteStatus}</p>
+                  <p className="text-xs font-semibold text-neutral-800 mb-2.5">{pasteStatus}</p>
                 )}
 
                 <div className="flex justify-end">
                   <button
                     onClick={handleProcessPaste}
-                    className="px-4 py-1.5 bg-purple-600 hover:bg-purple-700 text-white font-semibold text-xs rounded-lg shadow-xs transition cursor-pointer"
+                    className="px-4 py-1.5 bg-neutral-900 hover:bg-neutral-800 text-white font-semibold text-xs rounded-lg shadow-xs transition cursor-pointer"
                   >
                     {lang === 'en' ? 'Import Carton Weights' : 'কার্টন ওজন যুক্ত করুন'}
                   </button>
@@ -425,7 +421,7 @@ export const ToolsModal: React.FC<ToolsModalProps> = ({
         {/* Footer */}
         <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
           <div className="flex items-center gap-2 text-xs text-slate-500">
-            <ShieldCheck className="w-4 h-4 text-indigo-600" />
+            <ShieldCheck className="w-4 h-4 text-neutral-800" />
             <span>
               {activeTab === 'security'
                 ? (lang === 'en' ? 'Roles synced with Firebase Auth & Cloud Firestore' : 'ফায়ারবেস ক্লাউড স্টোরেজে সুরক্ষিতভাবে সংরক্ষিত')

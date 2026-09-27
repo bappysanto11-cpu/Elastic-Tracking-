@@ -83,7 +83,7 @@ export const StickerBulkConfigPanel: React.FC<StickerBulkConfigPanelProps> = ({
         className="flex items-center justify-between px-3.5 py-2.5 bg-slate-50/80 hover:bg-slate-100/80 cursor-pointer transition border-b border-slate-200/80 select-none"
       >
         <div className="flex items-center gap-2.5 flex-wrap min-w-0">
-          <div className="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
+          <div className="w-7 h-7 rounded-lg bg-neutral-900 text-white flex items-center justify-center shrink-0 shadow-2xs">
             <SlidersHorizontal className="w-3.5 h-3.5" />
           </div>
           <div>
@@ -91,7 +91,7 @@ export const StickerBulkConfigPanel: React.FC<StickerBulkConfigPanelProps> = ({
               <span className="text-xs font-bold text-slate-800">
                 {lang === 'en' ? 'Bulk Sticker Configuration & Page Break Controls' : 'বাল্ক স্টিকার কনফিগারেশন ও পেজ ব্রেক কন্ট্রোল'}
               </span>
-              <span className="text-[10px] bg-indigo-100 text-indigo-800 font-bold px-2 py-0.2 rounded-full font-mono border border-indigo-200">
+              <span className="text-[10px] bg-neutral-100 text-neutral-900 font-bold px-2 py-0.2 rounded-full font-mono border border-neutral-200">
                 {currentPaper.name}
               </span>
               <span className="text-[10px] bg-slate-200 text-slate-700 font-semibold px-1.5 py-0.2 rounded font-mono">
@@ -101,17 +101,17 @@ export const StickerBulkConfigPanel: React.FC<StickerBulkConfigPanelProps> = ({
                 Font: {Math.round(bulkConfig.fontScale * 100)}%
               </span>
               {bulkConfig.showCropMarks && (
-                <span className="text-[10px] bg-emerald-100 text-emerald-800 border border-emerald-300 font-semibold px-1.5 py-0.2 rounded flex items-center gap-1">
-                  <Scissors className="w-2.5 h-2.5 text-emerald-700" />
+                <span className="text-[10px] bg-neutral-100 text-neutral-900 border border-neutral-300 font-semibold px-1.5 py-0.2 rounded flex items-center gap-1">
+                  <Scissors className="w-2.5 h-2.5 text-neutral-800" />
                   <span>{lang === 'en' ? 'Crop Marks' : 'কাটিং মার্ক'}</span>
                 </span>
               )}
               {currentPaper.category === 'roll' ? (
-                <span className="text-[10px] bg-amber-100 text-amber-800 border border-amber-300 font-semibold px-1.5 py-0.2 rounded">
+                <span className="text-[10px] bg-neutral-100 text-neutral-900 border border-neutral-300 font-semibold px-1.5 py-0.2 rounded">
                   1 Label / Page Break
                 </span>
               ) : (
-                <span className="text-[10px] bg-blue-50 text-blue-700 border border-blue-200 font-semibold px-1.5 py-0.2 rounded">
+                <span className="text-[10px] bg-neutral-100 text-neutral-800 border border-neutral-200 font-semibold px-1.5 py-0.2 rounded">
                   {currentPaper.labelsPerPage > 0 ? `${currentPaper.labelsPerPage} Labels / Page` : 'Auto Flow'}
                 </span>
               )}
@@ -126,8 +126,8 @@ export const StickerBulkConfigPanel: React.FC<StickerBulkConfigPanelProps> = ({
 
         <div className="flex items-center gap-2 shrink-0">
           {hasOverflowWarning && (
-            <span className="flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-300 px-2 py-0.5 rounded-full animate-pulse">
-              <AlertTriangle className="w-3 h-3 text-amber-600" />
+            <span className="flex items-center gap-1 text-[10px] font-bold text-neutral-800 bg-neutral-100 border border-neutral-300 px-2 py-0.5 rounded-full animate-pulse">
+              <AlertTriangle className="w-3 h-3 text-neutral-800" />
               <span className="hidden md:inline">{lang === 'en' ? 'Overflow Adjusted' : 'ওভারফ্লো অ্যাডজাস্টেড'}</span>
             </span>
           )}
@@ -149,7 +149,7 @@ export const StickerBulkConfigPanel: React.FC<StickerBulkConfigPanelProps> = ({
           {/* Top Quick Action Bar */}
           <div className="flex items-center justify-between flex-wrap gap-2 pb-3 border-b border-slate-100">
             <div className="flex items-center gap-1.5 text-slate-600">
-              <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+              <Sparkles className="w-3.5 h-3.5 text-neutral-800" />
               <span className="font-semibold text-slate-700 text-[11px]">
                 {lang === 'en' ? 'Synchronized across all carton sticker cards' : 'সব কার্টন স্টিকারে একযোগে কার্যকর'}
               </span>
@@ -159,10 +159,10 @@ export const StickerBulkConfigPanel: React.FC<StickerBulkConfigPanelProps> = ({
               <button
                 type="button"
                 onClick={handleOptimizeForCurrentPaper}
-                className="flex items-center gap-1 px-2.5 py-1 rounded bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold transition cursor-pointer"
+                className="flex items-center gap-1 px-2.5 py-1 rounded bg-neutral-100 hover:bg-neutral-100 text-neutral-800 border border-neutral-200 text-xs font-bold transition cursor-pointer"
                 title="Auto-apply recommended padding and font scale for this paper size"
               >
-                <Sparkles className="w-3 h-3 text-indigo-600" />
+                <Sparkles className="w-3 h-3 text-neutral-800" />
                 <span>{lang === 'en' ? 'Optimize for Selected Paper' : 'পেপার অনুযায়ী অপ্টিমাইজ'}</span>
               </button>
 
@@ -182,7 +182,7 @@ export const StickerBulkConfigPanel: React.FC<StickerBulkConfigPanelProps> = ({
           <div className="space-y-2">
             <label className="flex items-center justify-between font-bold text-slate-700 text-xs">
               <span className="flex items-center gap-1.5">
-                <FileText className="w-3.5 h-3.5 text-indigo-600" />
+                <FileText className="w-3.5 h-3.5 text-neutral-800" />
                 <span>{lang === 'en' ? 'Target Paper Size & Print Medium:' : 'টার্গেট পেপার সাইজ ও প্রিন্ট মিডিয়া:'}</span>
               </span>
               <span className="text-[11px] text-slate-500 font-normal">
@@ -202,7 +202,7 @@ export const StickerBulkConfigPanel: React.FC<StickerBulkConfigPanelProps> = ({
                     onClick={() => handlePaperSizeChange(key)}
                     className={`p-2.5 rounded-xl border text-left transition flex flex-col justify-between gap-1.5 cursor-pointer relative ${
                       isSelected
-                        ? 'bg-indigo-50/90 border-indigo-600 ring-2 ring-indigo-500/20 shadow-2xs text-indigo-950'
+                        ? 'bg-neutral-100/90 border-neutral-600 ring-2 ring-neutral-400/20 shadow-2xs text-neutral-900'
                         : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700'
                     }`}
                   >
@@ -211,15 +211,15 @@ export const StickerBulkConfigPanel: React.FC<StickerBulkConfigPanelProps> = ({
                         {def.name}
                       </span>
                       {isSelected && (
-                        <Check className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                        <Check className="w-3.5 h-3.5 text-neutral-800 shrink-0" />
                       )}
                     </div>
 
                     <div className="flex items-center justify-between text-[10px] text-slate-500">
                       <span className={`px-1.5 py-0.2 rounded font-mono font-semibold ${
                         def.category === 'roll' 
-                          ? 'bg-amber-100 text-amber-800 border border-amber-200' 
-                          : 'bg-blue-100 text-blue-800 border border-blue-200'
+                          ? 'bg-neutral-100 text-neutral-900 border border-neutral-200' 
+                          : 'bg-neutral-100 text-neutral-900 border border-neutral-200'
                       }`}>
                         {def.category === 'roll' ? 'Roll (1/page)' : `${def.labelsPerPage}/page`}
                       </span>
@@ -242,10 +242,10 @@ export const StickerBulkConfigPanel: React.FC<StickerBulkConfigPanelProps> = ({
             <div className="p-3 bg-slate-50/90 rounded-xl border border-slate-200 space-y-2.5">
               <div className="flex items-center justify-between">
                 <span className="font-bold text-slate-700 flex items-center gap-1.5 text-xs">
-                  <Maximize2 className="w-3.5 h-3.5 text-indigo-600" />
+                  <Maximize2 className="w-3.5 h-3.5 text-neutral-800" />
                   <span>{lang === 'en' ? 'Uniform Label Padding' : 'লেবেল প্যাডিং'}</span>
                 </span>
-                <span className="font-mono font-bold bg-white px-2 py-0.5 rounded border border-slate-200 text-indigo-700 text-xs">
+                <span className="font-mono font-bold bg-white px-2 py-0.5 rounded border border-slate-200 text-neutral-800 text-xs">
                   {bulkConfig.uniformPadding}px (~{(bulkConfig.uniformPadding * 0.264).toFixed(1)}mm)
                 </span>
               </div>
@@ -276,7 +276,7 @@ export const StickerBulkConfigPanel: React.FC<StickerBulkConfigPanelProps> = ({
                     onClick={() => onUpdateBulkConfig({ ...bulkConfig, uniformPadding: preset.px })}
                     className={`px-2 py-0.5 rounded text-[10px] font-bold transition border cursor-pointer ${
                       bulkConfig.uniformPadding === preset.px
-                        ? 'bg-indigo-600 text-white border-indigo-700 shadow-2xs'
+                        ? 'bg-neutral-900 text-white border-neutral-700 shadow-2xs'
                         : 'bg-white hover:bg-slate-100 text-slate-600 border-slate-200'
                     }`}
                   >
@@ -290,10 +290,10 @@ export const StickerBulkConfigPanel: React.FC<StickerBulkConfigPanelProps> = ({
             <div className="p-3 bg-slate-50/90 rounded-xl border border-slate-200 space-y-2.5">
               <div className="flex items-center justify-between">
                 <span className="font-bold text-slate-700 flex items-center gap-1.5 text-xs">
-                  <Type className="w-3.5 h-3.5 text-indigo-600" />
+                  <Type className="w-3.5 h-3.5 text-neutral-800" />
                   <span>{lang === 'en' ? 'Font Scale Override' : 'ফন্ট স্কেল ওভাররাইড'}</span>
                 </span>
-                <span className="font-mono font-bold bg-white px-2 py-0.5 rounded border border-slate-200 text-indigo-700 text-xs">
+                <span className="font-mono font-bold bg-white px-2 py-0.5 rounded border border-slate-200 text-neutral-800 text-xs">
                   {Math.round(bulkConfig.fontScale * 100)}%
                 </span>
               </div>
@@ -324,7 +324,7 @@ export const StickerBulkConfigPanel: React.FC<StickerBulkConfigPanelProps> = ({
                     onClick={() => onUpdateBulkConfig({ ...bulkConfig, fontScale: preset.scale })}
                     className={`px-2 py-0.5 rounded text-[10px] font-bold transition border cursor-pointer ${
                       Math.abs(bulkConfig.fontScale - preset.scale) < 0.02
-                        ? 'bg-indigo-600 text-white border-indigo-700 shadow-2xs'
+                        ? 'bg-neutral-900 text-white border-neutral-700 shadow-2xs'
                         : 'bg-white hover:bg-slate-100 text-slate-600 border-slate-200'
                     }`}
                   >
@@ -344,7 +344,7 @@ export const StickerBulkConfigPanel: React.FC<StickerBulkConfigPanelProps> = ({
                 type="checkbox"
                 checked={bulkConfig.forcePageBreakPerLabel}
                 onChange={(e) => onUpdateBulkConfig({ ...bulkConfig, forcePageBreakPerLabel: e.target.checked })}
-                className="mt-0.5 rounded text-indigo-600 focus:ring-indigo-500"
+                className="mt-0.5 rounded text-neutral-800 focus:ring-neutral-400"
               />
               <div className="space-y-0.5">
                 <span className="font-bold text-slate-800 block text-xs">
@@ -364,7 +364,7 @@ export const StickerBulkConfigPanel: React.FC<StickerBulkConfigPanelProps> = ({
                 type="checkbox"
                 checked={bulkConfig.autoScaleToFitPage}
                 onChange={(e) => onUpdateBulkConfig({ ...bulkConfig, autoScaleToFitPage: e.target.checked })}
-                className="mt-0.5 rounded text-indigo-600 focus:ring-indigo-500"
+                className="mt-0.5 rounded text-neutral-800 focus:ring-neutral-400"
               />
               <div className="space-y-0.5">
                 <span className="font-bold text-slate-800 block text-xs">
@@ -384,7 +384,7 @@ export const StickerBulkConfigPanel: React.FC<StickerBulkConfigPanelProps> = ({
                 type="checkbox"
                 checked={bulkConfig.showPageBreakVisuals}
                 onChange={(e) => onUpdateBulkConfig({ ...bulkConfig, showPageBreakVisuals: e.target.checked })}
-                className="mt-0.5 rounded text-indigo-600 focus:ring-indigo-500"
+                className="mt-0.5 rounded text-neutral-800 focus:ring-neutral-400"
               />
               <div className="space-y-0.5">
                 <span className="font-bold text-slate-800 block text-xs">
@@ -401,18 +401,18 @@ export const StickerBulkConfigPanel: React.FC<StickerBulkConfigPanelProps> = ({
             {/* Dashed Crop Marks for Manual Cutting */}
             <label className={`flex items-start gap-2.5 p-2.5 rounded-lg border cursor-pointer transition ${
               bulkConfig.showCropMarks
-                ? 'bg-emerald-50/60 border-emerald-300'
+                ? 'bg-neutral-100/60 border-neutral-300'
                 : 'border-slate-200 hover:bg-slate-50'
             }`}>
               <input
                 type="checkbox"
                 checked={!!bulkConfig.showCropMarks}
                 onChange={(e) => onUpdateBulkConfig({ ...bulkConfig, showCropMarks: e.target.checked })}
-                className="mt-0.5 rounded text-emerald-600 focus:ring-emerald-500"
+                className="mt-0.5 rounded text-neutral-800 focus:ring-neutral-400"
               />
               <div className="space-y-0.5">
                 <span className="font-bold text-slate-800 flex items-center gap-1 text-xs">
-                  <Scissors className="w-3 h-3 text-emerald-600" />
+                  <Scissors className="w-3 h-3 text-neutral-800" />
                   <span>{lang === 'en' ? 'Dashed Crop Marks' : 'ড্যাশড ক্রপ / কাটিং মার্ক'}</span>
                 </span>
                 <span className="text-[10px] text-slate-500 block leading-tight">
@@ -425,13 +425,13 @@ export const StickerBulkConfigPanel: React.FC<StickerBulkConfigPanelProps> = ({
           </div>
 
           {/* 4. Page Break & Print Diagnostics Bar */}
-          <div className="flex items-center justify-between bg-indigo-50/70 border border-indigo-100 p-2.5 rounded-lg text-slate-700 flex-wrap gap-2 text-[11px]">
+          <div className="flex items-center justify-between bg-neutral-100/70 border border-neutral-200 p-2.5 rounded-lg text-slate-700 flex-wrap gap-2 text-[11px]">
             <div className="flex items-center gap-2">
-              <Printer className="w-4 h-4 text-indigo-600 shrink-0" />
+              <Printer className="w-4 h-4 text-neutral-800 shrink-0" />
               <span className="font-semibold">
                 {lang === 'en' ? 'Print Output Status:' : 'প্রিন্ট আউটপুট স্ট্যাটাস:'}
               </span>
-              <span className="font-mono text-indigo-900 font-bold">
+              <span className="font-mono text-neutral-900 font-bold">
                 {totalLabelsCount} {lang === 'en' ? 'Labels' : 'লেবেল'} → ~{calculatedPages} {lang === 'en' ? 'Page(s)' : 'পেজ'} ({currentPaper.name})
               </span>
             </div>

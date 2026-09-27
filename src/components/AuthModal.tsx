@@ -182,7 +182,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         {/* Modal Header */}
         <div className="bg-slate-900 text-white px-5 py-4 flex items-center justify-between border-b border-slate-800">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-slate-800 text-indigo-400 rounded-xl border border-slate-700">
+            <div className="p-2 bg-slate-800 text-neutral-400 rounded-xl border border-slate-700">
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
@@ -206,16 +206,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
         {/* Status Messages */}
         {error && (
-          <div className="mx-5 mt-4 p-3 bg-red-50 border border-red-200 rounded-xl flex items-center gap-2 text-xs text-red-700">
-            <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
+          <div className="mx-5 mt-4 p-3 bg-neutral-100 border border-neutral-200 rounded-xl flex items-center gap-2 text-xs text-neutral-800">
+            <AlertCircle className="w-4 h-4 shrink-0 text-neutral-700" />
             <span className="flex-1">{error}</span>
-            <button onClick={clearError} className="text-red-500 hover:text-red-800 font-bold">×</button>
+            <button onClick={clearError} className="text-neutral-700 hover:text-neutral-900 font-bold">×</button>
           </div>
         )}
 
         {successMsg && (
-          <div className="mx-5 mt-4 p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-2 text-xs text-emerald-700">
-            <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-500" />
+          <div className="mx-5 mt-4 p-3 bg-neutral-100 border border-neutral-200 rounded-xl flex items-center gap-2 text-xs text-neutral-800">
+            <CheckCircle2 className="w-4 h-4 shrink-0 text-neutral-700" />
             <span>{successMsg}</span>
           </div>
         )}
@@ -232,10 +232,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     <img 
                       src={user.photoURL} 
                       alt="User avatar" 
-                      className="w-12 h-12 rounded-full border-2 border-indigo-400 object-cover shadow-xs" 
+                      className="w-12 h-12 rounded-full border-2 border-neutral-300 object-cover shadow-xs" 
                     />
                   ) : (
-                    <div className="w-12 h-12 rounded-full bg-indigo-600 text-white font-black text-lg flex items-center justify-center shadow-xs">
+                    <div className="w-12 h-12 rounded-full bg-neutral-900 text-white font-black text-lg flex items-center justify-center shadow-xs">
                       {user.displayName?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'U'}
                     </div>
                   )}
@@ -243,7 +243,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     <h4 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
                       {user.displayName || (user.isAnonymous ? 'Guest User' : 'Packing Specialist')}
                       {user.isAnonymous && (
-                        <span className="text-[10px] bg-amber-50 text-amber-700 font-semibold px-1.5 py-0.5 rounded border border-amber-200">
+                        <span className="text-[10px] bg-neutral-100 text-neutral-800 font-semibold px-1.5 py-0.5 rounded border border-neutral-200">
                           Guest
                         </span>
                       )}
@@ -253,7 +253,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     </p>
                     <div className="flex items-center gap-1 mt-1">
                       {hasGoogle && (
-                        <span className="text-[9px] bg-red-50 text-red-700 font-semibold px-1.5 py-0.5 rounded border border-red-200">
+                        <span className="text-[9px] bg-neutral-100 text-neutral-800 font-semibold px-1.5 py-0.5 rounded border border-neutral-200">
                           Google
                         </span>
                       )}
@@ -263,7 +263,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                         </span>
                       )}
                       {hasPassword && (
-                        <span className="text-[9px] bg-blue-50 text-blue-700 font-semibold px-1.5 py-0.5 rounded border border-blue-200">
+                        <span className="text-[9px] bg-neutral-100 text-neutral-800 font-semibold px-1.5 py-0.5 rounded border border-neutral-200">
                           Email
                         </span>
                       )}
@@ -273,7 +273,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
                 <button
                   onClick={logout}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 text-xs font-semibold transition cursor-pointer"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-neutral-200 bg-neutral-100 text-neutral-800 hover:bg-neutral-100 text-xs font-semibold transition cursor-pointer"
                   title="Logout from all devices"
                 >
                   <LogOut className="w-3.5 h-3.5" />
@@ -287,7 +287,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   onClick={() => setActiveTab('profile')}
                   className={`px-3 py-2 border-b-2 transition cursor-pointer flex items-center gap-1.5 ${
                     activeTab === 'profile'
-                      ? 'border-indigo-600 text-indigo-600 font-bold'
+                      ? 'border-neutral-600 text-neutral-800 font-bold'
                       : 'border-transparent text-slate-500 hover:text-slate-800'
                   }`}
                 >
@@ -298,13 +298,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   onClick={() => setActiveTab('cloud_sheets')}
                   className={`px-3 py-2 border-b-2 transition cursor-pointer flex items-center gap-1.5 ${
                     activeTab === 'cloud_sheets'
-                      ? 'border-indigo-600 text-indigo-600 font-bold'
+                      ? 'border-neutral-600 text-neutral-800 font-bold'
                       : 'border-transparent text-slate-500 hover:text-slate-800'
                   }`}
                 >
                   <Cloud className="w-3.5 h-3.5" />
                   <span>{lang === 'en' ? 'Cloud Sheets' : 'ক্লাউড শিট'}</span>
-                  <span className="text-[10px] bg-indigo-50 text-indigo-700 border border-indigo-200 px-1.5 py-0.2 rounded-full font-mono">
+                  <span className="text-[10px] bg-neutral-100 text-neutral-800 border border-neutral-200 px-1.5 py-0.2 rounded-full font-mono">
                     {cloudSheets.length}
                   </span>
                 </button>
@@ -312,7 +312,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   onClick={() => setActiveTab('connected_accounts')}
                   className={`px-3 py-2 border-b-2 transition cursor-pointer flex items-center gap-1.5 ${
                     activeTab === 'connected_accounts'
-                      ? 'border-indigo-600 text-indigo-600 font-bold'
+                      ? 'border-neutral-600 text-neutral-800 font-bold'
                       : 'border-transparent text-slate-500 hover:text-slate-800'
                   }`}
                 >
@@ -327,7 +327,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between gap-3 shadow-xs">
                     <div>
                       <h5 className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                        <CloudUpload className="w-4 h-4 text-indigo-600" />
+                        <CloudUpload className="w-4 h-4 text-neutral-800" />
                         {lang === 'en' ? 'Backup Active Sheet to Cloud' : 'বর্তমান শিট ক্লাউডে ব্যাকআপ নিন'}
                       </h5>
                       <p className="text-[11px] text-slate-500 mt-0.5 font-mono">
@@ -337,7 +337,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     <button
                       onClick={handleSaveCurrentToCloud}
                       disabled={actionLoading}
-                      className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-xs transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                      className="px-3.5 py-2 bg-neutral-900 hover:bg-neutral-800 text-white rounded-xl text-xs font-bold shadow-xs transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
                     >
                       <CloudUpload className="w-3.5 h-3.5" />
                       <span>{actionLoading ? 'Saving...' : (lang === 'en' ? 'Save to Cloud' : 'ক্লাউডে সেভ')}</span>
@@ -351,7 +351,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-slate-500">{lang === 'en' ? 'Database Type:' : 'ডাটাবেস:'}</span>
-                      <span className="font-mono font-semibold text-emerald-700">Firestore Cloud DB</span>
+                      <span className="font-mono font-semibold text-neutral-800">Firestore Cloud DB</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-slate-500">{lang === 'en' ? 'IndexedDB Local Sync:' : 'লোকাল ব্যাকআপ:'}</span>
@@ -370,7 +370,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     </span>
                     <button
                       onClick={loadSheets}
-                      className="text-xs text-indigo-600 hover:text-indigo-800 flex items-center gap-1 cursor-pointer font-medium"
+                      className="text-xs text-neutral-800 hover:text-neutral-900 flex items-center gap-1 cursor-pointer font-medium"
                     >
                       <RefreshCw className={`w-3 h-3 ${loadingSheets ? 'animate-spin' : ''}`} />
                       <span>{lang === 'en' ? 'Refresh' : 'রিফ্রেশ'}</span>
@@ -379,7 +379,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
                   {loadingSheets ? (
                     <div className="text-center py-6 text-xs text-slate-500">
-                      <RefreshCw className="w-5 h-5 animate-spin mx-auto text-indigo-600 mb-2" />
+                      <RefreshCw className="w-5 h-5 animate-spin mx-auto text-neutral-800 mb-2" />
                       Loading cloud sheets...
                     </div>
                   ) : cloudSheets.length === 0 ? (
@@ -392,7 +392,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       {cloudSheets.map(sheet => (
                         <div
                           key={sheet.id}
-                          className="p-2.5 bg-slate-50 hover:bg-indigo-50/50 border border-slate-200 rounded-xl flex items-center justify-between gap-2 transition"
+                          className="p-2.5 bg-slate-50 hover:bg-neutral-100/50 border border-slate-200 rounded-xl flex items-center justify-between gap-2 transition"
                         >
                           <div>
                             <span className="text-xs font-bold font-mono text-slate-900 block">
@@ -410,7 +410,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                           <div className="flex items-center gap-1.5">
                             <button
                               onClick={() => handleRestoreCloudSheet(sheet)}
-                              className="p-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition cursor-pointer text-xs flex items-center gap-1"
+                              className="p-1.5 bg-neutral-900 text-white rounded-lg hover:bg-neutral-800 transition cursor-pointer text-xs flex items-center gap-1"
                               title="Load this sheet"
                             >
                               <Download className="w-3.5 h-3.5" />
@@ -418,7 +418,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                             </button>
                             <button
                               onClick={() => handleDeleteCloudSheet(sheet.id)}
-                              className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer"
+                              className="p-1.5 text-slate-400 hover:text-neutral-800 hover:bg-neutral-100 rounded-lg transition cursor-pointer"
                               title="Delete from cloud"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -444,11 +444,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center">
-                        <svg className="w-4 h-4" viewBox="0 0 24 24">
-                          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-                          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                        <svg className="w-4 h-4 fill-neutral-900" viewBox="0 0 24 24">
+                          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" opacity="0.85" />
+                          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" opacity="0.65" />
+                          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" opacity="0.75" />
                         </svg>
                       </div>
                       <div>
@@ -460,14 +460,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     </div>
 
                     {hasGoogle ? (
-                      <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-md text-xs font-semibold flex items-center gap-1">
+                      <span className="px-2.5 py-1 bg-neutral-100 text-neutral-800 border border-neutral-200 rounded-md text-xs font-semibold flex items-center gap-1">
                         <CheckCircle2 className="w-3.5 h-3.5" />
                         <span>{lang === 'en' ? 'Connected' : 'সংযুক্ত'}</span>
                       </span>
                     ) : (
                       <button
                         onClick={() => connectProvider('google')}
-                        className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold transition cursor-pointer flex items-center gap-1"
+                        className="px-3 py-1.5 bg-neutral-900 hover:bg-neutral-800 text-white rounded-lg text-xs font-semibold transition cursor-pointer flex items-center gap-1"
                       >
                         <Link className="w-3.5 h-3.5" />
                         <span>{lang === 'en' ? 'Connect' : 'যুক্ত করুন'}</span>
@@ -492,7 +492,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     </div>
 
                     {hasGithub ? (
-                      <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-md text-xs font-semibold flex items-center gap-1">
+                      <span className="px-2.5 py-1 bg-neutral-100 text-neutral-800 border border-neutral-200 rounded-md text-xs font-semibold flex items-center gap-1">
                         <CheckCircle2 className="w-3.5 h-3.5" />
                         <span>{lang === 'en' ? 'Connected' : 'সংযুক্ত'}</span>
                       </span>
@@ -519,11 +519,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   disabled={actionLoading}
                   className="w-full py-2.5 px-4 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-semibold text-xs rounded-xl shadow-xs flex items-center justify-center gap-3 transition cursor-pointer"
                 >
-                  <svg className="w-4 h-4" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                  <svg className="w-4 h-4 fill-neutral-900" viewBox="0 0 24 24">
+                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" opacity="0.85" />
+                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" opacity="0.65" />
+                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" opacity="0.75" />
                   </svg>
                   <span>{lang === 'en' ? 'Continue with Google Account' : 'গুগল একাউন্ট দিয়ে এগিয়ে যান'}</span>
                 </button>
@@ -584,7 +584,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                         value={displayName}
                         onChange={e => setDisplayName(e.target.value)}
                         placeholder="John Doe"
-                        className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                        className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-neutral-400"
                       />
                     </div>
                   </div>
@@ -602,7 +602,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       value={email}
                       onChange={e => setEmail(e.target.value)}
                       placeholder="user@garmentsfactory.com"
-                      className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-neutral-400"
                     />
                   </div>
                 </div>
@@ -619,7 +619,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       value={password}
                       onChange={e => setPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-neutral-400"
                     />
                   </div>
                 </div>
@@ -627,7 +627,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 <button
                   type="submit"
                   disabled={actionLoading}
-                  className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="w-full py-2.5 bg-neutral-900 hover:bg-neutral-800 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   <LogIn className="w-3.5 h-3.5" />
                   <span>
@@ -645,7 +645,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 <button
                   type="button"
                   onClick={handleGuestLogin}
-                  className="text-xs text-slate-500 hover:text-indigo-600 font-medium underline underline-offset-2 cursor-pointer transition"
+                  className="text-xs text-slate-500 hover:text-neutral-800 font-medium underline underline-offset-2 cursor-pointer transition"
                 >
                   {lang === 'en' ? 'Or continue as Guest (Instant Access)' : 'অথবা অতিথি হিসেবে ব্যবহার করুন (গেস্ট মোড)'}
                 </button>

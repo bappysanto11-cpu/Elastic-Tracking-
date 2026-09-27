@@ -1012,7 +1012,7 @@ export const CartonTable: React.FC<CartonTableProps> = ({
       {/* Table Toolbar */}
       <div className="p-3.5 sm:p-4 bg-slate-950/60 backdrop-blur-md border-b border-white/[0.06] flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2.5 flex-wrap">
-          <div className="w-7 h-7 rounded-lg bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shadow-[0_0_10px_rgba(99,102,241,0.2)]">
+          <div className="w-7 h-7 rounded-lg bg-neutral-800/15 border border-neutral-400/30 flex items-center justify-center text-neutral-400 shadow-[0_0_10px_rgba(99,102,241,0.2)]">
             <Layers className="w-4 h-4" />
           </div>
           <h3 className="text-sm font-bold text-white tracking-tight">
@@ -1028,7 +1028,7 @@ export const CartonTable: React.FC<CartonTableProps> = ({
             <button
               onClick={() => setViewMode('table')}
               className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition cursor-pointer ${
-                viewMode === 'table' ? 'bg-indigo-600 text-white font-bold shadow-[0_0_10px_rgba(99,102,241,0.3)]' : 'text-slate-300 hover:text-white'
+                viewMode === 'table' ? 'bg-neutral-900 text-white font-bold shadow-[0_0_10px_rgba(99,102,241,0.3)]' : 'text-slate-300 hover:text-white'
               }`}
               title={lang === 'en' ? 'Table View (Virtual Scroll)' : 'টেবিল ভিউ'}
             >
@@ -1038,7 +1038,7 @@ export const CartonTable: React.FC<CartonTableProps> = ({
             <button
               onClick={() => setViewMode('cards')}
               className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition cursor-pointer ${
-                viewMode === 'cards' ? 'bg-indigo-600 text-white font-bold shadow-[0_0_10px_rgba(99,102,241,0.3)]' : 'text-slate-300 hover:text-white'
+                viewMode === 'cards' ? 'bg-neutral-900 text-white font-bold shadow-[0_0_10px_rgba(99,102,241,0.3)]' : 'text-slate-300 hover:text-white'
               }`}
               title={lang === 'en' ? 'Card View (Mobile Optimized)' : 'কার্ড ভিউ (মোবাইল)'}
             >
@@ -1050,10 +1050,10 @@ export const CartonTable: React.FC<CartonTableProps> = ({
           {/* Virtual Scroll Fast Performance Badge */}
           {isVirtualActive && (
             <span 
-              className="inline-flex items-center gap-1 text-[11px] bg-emerald-500/15 text-emerald-300 font-bold px-2.5 py-0.5 rounded-full border border-emerald-500/30 shadow-[0_0_10px_rgba(16,185,129,0.15)]"
+              className="inline-flex items-center gap-1 text-[11px] bg-neutral-800/15 text-neutral-300 font-bold px-2.5 py-0.5 rounded-full border border-neutral-400/30 shadow-[0_0_10px_rgba(16,185,129,0.15)]"
               title={lang === 'en' ? `Virtual Scrolling active: Visible rows ${startIndex + 1}–${endIndex} of ${displayedCount}` : `ভার্চুয়াল স্ক্রোল সক্রিয়: দৃশ্যমান ${startIndex + 1}–${endIndex}`}
             >
-              <Zap className="w-3 h-3 text-emerald-400" />
+              <Zap className="w-3 h-3 text-neutral-400" />
               <span>{lang === 'en' ? `Fast: ${startIndex + 1}–${endIndex}` : `সক্রিয়: ${startIndex + 1}–${endIndex}`}</span>
             </span>
           )}
@@ -1062,22 +1062,22 @@ export const CartonTable: React.FC<CartonTableProps> = ({
           {activeEditingCarton && (
             <button
               onClick={() => scrollToActiveRow(activeEditingCarton.id)}
-              className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold transition cursor-pointer bg-blue-500/15 hover:bg-blue-500/25 text-blue-200 border border-blue-500/30 shadow-[0_0_10px_rgba(59,130,246,0.15)] group"
+              className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold transition cursor-pointer bg-neutral-800/15 hover:bg-neutral-800/25 text-neutral-200 border border-neutral-400/30 shadow-[0_0_10px_rgba(59,130,246,0.15)] group"
               title={lang === 'en' ? `Click to jump to currently active Carton #${activeEditingCarton.cartonNo}` : `বর্তমান সক্রিয় কার্টন #${activeEditingCarton.cartonNo}-এ স্ক্রল করুন`}
             >
               <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-neutral-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-neutral-800"></span>
               </span>
               <span className="text-[11px] font-mono">
                 {lang === 'en' ? 'Editing:' : 'সক্রিয়:'} <strong className="text-white font-black">CTN #{activeEditingCarton.cartonNo}</strong>
               </span>
-              <LocateFixed className="w-3.5 h-3.5 text-blue-400 group-hover:scale-110 transition-transform" />
+              <LocateFixed className="w-3.5 h-3.5 text-neutral-400 group-hover:scale-110 transition-transform" />
             </button>
           )}
 
           {filterOnlyDeviations && (
-            <span className="text-xs bg-amber-500 text-slate-950 font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
+            <span className="text-xs bg-neutral-800 text-slate-950 font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
               <Filter className="w-3 h-3" />
               <span>{lang === 'en' ? 'Filtered: Errors Only' : 'শুধু ত্রুটি ফিল্টার'}</span>
               <button 
@@ -1098,7 +1098,7 @@ export const CartonTable: React.FC<CartonTableProps> = ({
               placeholder={lang === 'en' ? 'Search carton or notes...' : 'কার্টন বা নোট খুঁজুন...'}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-8 pr-7 py-1.5 bg-slate-900/80 border border-white/[0.1] text-white placeholder-slate-400 rounded-xl text-xs w-48 sm:w-56 focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 transition-all shadow-inner"
+              className="pl-8 pr-7 py-1.5 bg-slate-900/80 border border-white/[0.1] text-white placeholder-slate-400 rounded-xl text-xs w-48 sm:w-56 focus:outline-none focus:border-neutral-300 focus:ring-1 focus:ring-neutral-400 transition-all shadow-inner"
             />
             {searchQuery && (
               <button 
@@ -1113,7 +1113,7 @@ export const CartonTable: React.FC<CartonTableProps> = ({
           {/* Virtual Scroll Threshold */}
           <div className="flex items-center gap-2">
             <label className="text-[11px] font-bold text-slate-400 flex items-center gap-1">
-              <Zap className="w-3.5 h-3.5 text-amber-400" />
+              <Zap className="w-3.5 h-3.5 text-neutral-400" />
               <span>Virtual Scroll:</span>
             </label>
             <select
@@ -1123,7 +1123,7 @@ export const CartonTable: React.FC<CartonTableProps> = ({
                 setVirtualThreshold(val);
                 localStorage.setItem('garment_virtual_threshold', String(val));
               }}
-              className="bg-slate-900/80 border border-white/[0.1] text-slate-200 text-xs font-bold px-2 py-1 rounded-xl focus:outline-none focus:border-indigo-400"
+              className="bg-slate-900/80 border border-white/[0.1] text-slate-200 text-xs font-bold px-2 py-1 rounded-xl focus:outline-none focus:border-neutral-300"
             >
               <option value="10">10 (Light)</option>
               <option value="25">25 (Default)</option>
@@ -1142,7 +1142,7 @@ export const CartonTable: React.FC<CartonTableProps> = ({
             }}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer border ${
               isBatchMode || selectedCount > 0
-                ? 'bg-indigo-600 text-white border-indigo-400/50 shadow-[0_0_15px_rgba(99,102,241,0.35)]'
+                ? 'bg-neutral-900 text-white border-neutral-300/50 shadow-[0_0_15px_rgba(99,102,241,0.35)]'
                 : 'bg-white/[0.05] text-slate-300 border-white/[0.1] hover:bg-white/[0.08] hover:text-white'
             }`}
             title="Toggle Batch Multi-Row Selection & Global Attribute Editor"
@@ -1150,15 +1150,15 @@ export const CartonTable: React.FC<CartonTableProps> = ({
             <CheckSquare className="w-3.5 h-3.5" />
             <span>{lang === 'en' ? 'Batch Edit Mode' : 'ব্যাচ এডিট মোড'}</span>
             {selectedCount > 0 && (
-              <span className="px-1.5 py-0.2 bg-white text-indigo-700 rounded-full text-[10px] font-black font-mono">
+              <span className="px-1.5 py-0.2 bg-white text-neutral-800 rounded-full text-[10px] font-black font-mono">
                 {selectedCount}
               </span>
             )}
           </button>
 
           {hasErrors && (
-            <span className="flex items-center gap-1 text-xs bg-red-100 text-red-700 font-bold px-2.5 py-0.5 rounded-full border border-red-200">
-              <AlertTriangle className="w-3.5 h-3.5 text-red-600" />
+            <span className="flex items-center gap-1 text-xs bg-neutral-100 text-neutral-800 font-bold px-2.5 py-0.5 rounded-full border border-neutral-200">
+              <AlertTriangle className="w-3.5 h-3.5 text-neutral-800" />
               {invalidCartons.length} {lang === 'en' ? 'Error(s)' : 'ত্রুটি'}
             </span>
           )}
@@ -1188,12 +1188,12 @@ export const CartonTable: React.FC<CartonTableProps> = ({
               shouldFocusNewRow.current = true;
               onAddCarton();
             }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-xs transition cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-semibold shadow-xs transition cursor-pointer"
             title="Add 1 Carton Row (Shortcut: Ctrl + Enter)"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>{t.addCarton}</span>
-            <kbd className="hidden md:inline-block ml-1 px-1.5 py-0.2 text-[9.5px] bg-indigo-700 text-indigo-100 rounded font-mono">
+            <kbd className="hidden md:inline-block ml-1 px-1.5 py-0.2 text-[9.5px] bg-neutral-900 text-neutral-100 rounded font-mono">
               Ctrl+↵
             </kbd>
           </button>
@@ -1205,7 +1205,7 @@ export const CartonTable: React.FC<CartonTableProps> = ({
             </span>
             <button
               onClick={() => onAddBulk(bulkCount)}
-              className="px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition cursor-pointer"
+              className="px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-neutral-800 transition cursor-pointer"
             >
               {lang === 'en' ? 'Add Bulk' : 'বাল্ক যোগ'}
             </button>
@@ -1224,12 +1224,12 @@ export const CartonTable: React.FC<CartonTableProps> = ({
           {/* Direct Paste Raw Weights from Clipboard */}
           <button
             onClick={() => handleOpenPasteModal('')}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold shadow-xs transition cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-100 hover:bg-neutral-100 text-neutral-800 border border-neutral-200 text-xs font-bold shadow-xs transition cursor-pointer"
             title={lang === 'en' ? 'Paste raw weight data from Clipboard or Excel to auto-generate carton rows' : 'এক্সেল বা ক্লিপবোর্ড থেকে কাঁচা ওজন পেস্ট করে কার্টন তৈরি করুন'}
           >
-            <ClipboardPaste className="w-3.5 h-3.5 text-indigo-600" />
+            <ClipboardPaste className="w-3.5 h-3.5 text-neutral-800" />
             <span>{t.pasteWeights}</span>
-            <kbd className="hidden lg:inline-block ml-0.5 px-1.5 py-0.2 text-[9.5px] bg-white text-indigo-900 border border-indigo-300 rounded font-mono font-bold">
+            <kbd className="hidden lg:inline-block ml-0.5 px-1.5 py-0.2 text-[9.5px] bg-white text-neutral-900 border border-neutral-300 rounded font-mono font-bold">
               Paste
             </kbd>
           </button>
@@ -1238,12 +1238,12 @@ export const CartonTable: React.FC<CartonTableProps> = ({
           {onOpenAiPhotoScanner && (
             <button
               onClick={onOpenAiPhotoScanner}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold shadow-xs transition cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-neutral-900 to-neutral-900 hover:from-neutral-800 hover:to-neutral-800 text-white text-xs font-bold shadow-xs transition cursor-pointer"
               title={lang === 'en' ? 'Scan photos of cartons or weighing scale to auto-detect gross weights' : 'কার্টনের ছবি থেকে ওজন স্ক্যান করে অটো বসান'}
             >
               <Camera className="w-3.5 h-3.5 text-white" />
               <span>{lang === 'en' ? 'AI Photo Scan' : '📷 AI ছবি স্ক্যান'}</span>
-              <span className="hidden sm:inline-block px-1 py-0.2 text-[9px] bg-emerald-800 text-emerald-100 rounded font-semibold uppercase">
+              <span className="hidden sm:inline-block px-1 py-0.2 text-[9px] bg-neutral-900 text-neutral-100 rounded font-semibold uppercase">
                 AI
               </span>
             </button>
@@ -1267,8 +1267,8 @@ export const CartonTable: React.FC<CartonTableProps> = ({
           {/* Header & Quick Selector Controls */}
           <div className="flex flex-wrap items-center justify-between gap-2.5">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="flex items-center gap-1.5 bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 px-2.5 py-1 rounded-lg text-xs font-bold font-mono">
-                <CheckSquare className="w-3.5 h-3.5 text-indigo-400" />
+              <span className="flex items-center gap-1.5 bg-neutral-800/20 text-neutral-300 border border-neutral-400/40 px-2.5 py-1 rounded-lg text-xs font-bold font-mono">
+                <CheckSquare className="w-3.5 h-3.5 text-neutral-400" />
                 <span>
                   {selectedCount} / {totalCount} {lang === 'en' ? 'Cartons Selected' : 'কার্টন নির্বাচিত'}
                 </span>
@@ -1285,7 +1285,7 @@ export const CartonTable: React.FC<CartonTableProps> = ({
                 </button>
                 <button
                   onClick={selectNonEmpty}
-                  className="px-2 py-0.5 rounded hover:bg-slate-700 text-emerald-300 transition cursor-pointer"
+                  className="px-2 py-0.5 rounded hover:bg-slate-700 text-neutral-300 transition cursor-pointer"
                   title="Select rows with weights"
                 >
                   {lang === 'en' ? 'Active' : 'ওজনযুক্ত'}
@@ -1300,7 +1300,7 @@ export const CartonTable: React.FC<CartonTableProps> = ({
                 {hasErrors && (
                   <button
                     onClick={selectWithErrors}
-                    className="px-2 py-0.5 rounded hover:bg-slate-700 text-rose-300 transition cursor-pointer"
+                    className="px-2 py-0.5 rounded hover:bg-slate-700 text-neutral-300 transition cursor-pointer"
                     title="Select invalid rows"
                   >
                     {lang === 'en' ? 'Errors' : 'ত্রুটি'}
@@ -1316,7 +1316,7 @@ export const CartonTable: React.FC<CartonTableProps> = ({
                 {selectedCount > 0 && (
                   <button
                     onClick={selectNone}
-                    className="px-2 py-0.5 rounded hover:bg-rose-900/60 text-rose-300 transition cursor-pointer"
+                    className="px-2 py-0.5 rounded hover:bg-neutral-950/60 text-neutral-300 transition cursor-pointer"
                     title="Clear selection (Esc)"
                   >
                     {lang === 'en' ? 'Clear' : 'মুছুন'}
@@ -1347,10 +1347,10 @@ export const CartonTable: React.FC<CartonTableProps> = ({
           {batchFeedback && (
             <div className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 animate-in fade-in ${
               batchFeedback.type === 'success' 
-                ? 'bg-emerald-950 text-emerald-200 border border-emerald-700' 
-                : 'bg-indigo-950 text-indigo-200 border border-indigo-700'
+                ? 'bg-neutral-950 text-neutral-200 border border-neutral-700' 
+                : 'bg-neutral-950 text-neutral-200 border border-neutral-700'
             }`}>
-              <Check className="w-3.5 h-3.5 text-emerald-400" />
+              <Check className="w-3.5 h-3.5 text-neutral-400" />
               <span>{batchFeedback.message}</span>
             </div>
           )}
@@ -1358,7 +1358,7 @@ export const CartonTable: React.FC<CartonTableProps> = ({
           {/* Global Attribute Applicator Controls */}
           <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2.5">
             <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-              <Sliders className="w-3.5 h-3.5 text-indigo-400" />
+              <Sliders className="w-3.5 h-3.5 text-neutral-400" />
               <span>{lang === 'en' ? 'Apply Global Attribute Changes to Selected Rows' : 'সিলেক্টেড সারিতে একসাথে মান পরিবর্তন করুন'}</span>
             </div>
 
@@ -1369,7 +1369,7 @@ export const CartonTable: React.FC<CartonTableProps> = ({
                 <div>
                   <div className="flex items-center justify-between text-xs mb-1">
                     <span className="font-bold text-slate-200 flex items-center gap-1">
-                      <Scale className="w-3.5 h-3.5 text-amber-400" />
+                      <Scale className="w-3.5 h-3.5 text-neutral-400" />
                       {t.tareWeight}
                     </span>
                     <button
@@ -1378,7 +1378,7 @@ export const CartonTable: React.FC<CartonTableProps> = ({
                         handleApplyBatchTare(sheetData.defaultTare);
                       }}
                       disabled={selectedCount === 0}
-                      className="text-[10px] text-amber-400 hover:text-amber-300 font-mono underline disabled:opacity-40 cursor-pointer"
+                      className="text-[10px] text-neutral-400 hover:text-neutral-300 font-mono underline disabled:opacity-40 cursor-pointer"
                       title="Apply order default tare"
                     >
                       {lang === 'en' ? `Use Default (${sheetData.defaultTare}kg)` : `ডিফল্ট (${sheetData.defaultTare}kg)`}
@@ -1392,12 +1392,12 @@ export const CartonTable: React.FC<CartonTableProps> = ({
                       value={batchTare}
                       onChange={e => setBatchTare(e.target.value)}
                       placeholder="e.g. 2.50"
-                      className="w-full px-2.5 py-1.5 bg-slate-950 border border-slate-700 rounded text-xs text-white font-mono focus:outline-none focus:border-amber-400"
+                      className="w-full px-2.5 py-1.5 bg-slate-950 border border-slate-700 rounded text-xs text-white font-mono focus:outline-none focus:border-neutral-300"
                     />
                     <button
                       onClick={() => handleApplyBatchTare()}
                       disabled={selectedCount === 0}
-                      className="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-xs rounded transition shrink-0 cursor-pointer shadow-xs"
+                      className="px-3 py-1.5 bg-neutral-900 hover:bg-neutral-800 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-xs rounded transition shrink-0 cursor-pointer shadow-xs"
                       title="Apply tare to selected rows"
                     >
                       {lang === 'en' ? 'Set Tare' : 'ট্যার দিন'}
@@ -1414,7 +1414,7 @@ export const CartonTable: React.FC<CartonTableProps> = ({
                 <div>
                   <div className="flex items-center justify-between text-xs mb-1">
                     <span className="font-bold text-slate-200 flex items-center gap-1">
-                      <Hash className="w-3.5 h-3.5 text-indigo-400" />
+                      <Hash className="w-3.5 h-3.5 text-neutral-400" />
                       {t.wtPerUnit}
                     </span>
                     <button
@@ -1423,7 +1423,7 @@ export const CartonTable: React.FC<CartonTableProps> = ({
                         handleApplyBatchWtPerUnit(sheetData.defaultWtPerUnit);
                       }}
                       disabled={selectedCount === 0}
-                      className="text-[10px] text-indigo-400 hover:text-indigo-300 font-mono underline disabled:opacity-40 cursor-pointer"
+                      className="text-[10px] text-neutral-400 hover:text-neutral-300 font-mono underline disabled:opacity-40 cursor-pointer"
                       title="Apply order default unit weight"
                     >
                       {lang === 'en' ? `Use Default (${sheetData.defaultWtPerUnit}gm)` : `ডিফল্ট (${sheetData.defaultWtPerUnit}gm)`}
@@ -1437,12 +1437,12 @@ export const CartonTable: React.FC<CartonTableProps> = ({
                       value={batchWtPerUnit}
                       onChange={e => setBatchWtPerUnit(e.target.value)}
                       placeholder="e.g. 12.80"
-                      className="w-full px-2.5 py-1.5 bg-slate-950 border border-slate-700 rounded text-xs text-white font-mono focus:outline-none focus:border-indigo-400"
+                      className="w-full px-2.5 py-1.5 bg-slate-950 border border-slate-700 rounded text-xs text-white font-mono focus:outline-none focus:border-neutral-300"
                     />
                     <button
                       onClick={() => handleApplyBatchWtPerUnit()}
                       disabled={selectedCount === 0}
-                      className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-xs rounded transition shrink-0 cursor-pointer shadow-xs"
+                      className="px-3 py-1.5 bg-neutral-900 hover:bg-neutral-800 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-xs rounded transition shrink-0 cursor-pointer shadow-xs"
                       title="Apply unit weight to selected rows"
                     >
                       {lang === 'en' ? 'Set Wt/Unit' : 'ইউনিট ওজন দিন'}
@@ -1459,7 +1459,7 @@ export const CartonTable: React.FC<CartonTableProps> = ({
                 <div>
                   <div className="flex items-center justify-between text-xs mb-1">
                     <span className="font-bold text-slate-200 flex items-center gap-1">
-                      <Scale className="w-3.5 h-3.5 text-emerald-400" />
+                      <Scale className="w-3.5 h-3.5 text-neutral-400" />
                       {t.grossWeight}
                     </span>
                     <span className="text-[10px] text-slate-400 font-mono">{wUnit}</span>
@@ -1472,12 +1472,12 @@ export const CartonTable: React.FC<CartonTableProps> = ({
                       value={batchGross}
                       onChange={e => setBatchGross(e.target.value)}
                       placeholder="e.g. 24.50"
-                      className="w-full px-2.5 py-1.5 bg-slate-950 border border-slate-700 rounded text-xs text-white font-mono focus:outline-none focus:border-emerald-400"
+                      className="w-full px-2.5 py-1.5 bg-slate-950 border border-slate-700 rounded text-xs text-white font-mono focus:outline-none focus:border-neutral-300"
                     />
                     <button
                       onClick={handleApplyBatchGross}
                       disabled={selectedCount === 0 || !batchGross}
-                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-xs rounded transition shrink-0 cursor-pointer shadow-xs"
+                      className="px-3 py-1.5 bg-neutral-900 hover:bg-neutral-800 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-xs rounded transition shrink-0 cursor-pointer shadow-xs"
                       title="Apply gross weight to selected rows"
                     >
                       {lang === 'en' ? 'Set Gross' : 'গ্রস দিন'}
@@ -1494,7 +1494,7 @@ export const CartonTable: React.FC<CartonTableProps> = ({
                 <div>
                   <div className="flex items-center justify-between text-xs mb-1">
                     <span className="font-bold text-slate-200 flex items-center gap-1">
-                      <FileText className="w-3.5 h-3.5 text-purple-400" />
+                      <FileText className="w-3.5 h-3.5 text-neutral-400" />
                       {lang === 'en' ? 'Notes / Remarks' : 'নোট / মন্তব্য'}
                     </span>
                   </div>
@@ -1504,12 +1504,12 @@ export const CartonTable: React.FC<CartonTableProps> = ({
                       value={batchNotes}
                       onChange={e => setBatchNotes(e.target.value)}
                       placeholder="e.g. Grade A, Roll 2"
-                      className="w-full px-2.5 py-1.5 bg-slate-950 border border-slate-700 rounded text-xs text-white font-sans focus:outline-none focus:border-purple-400"
+                      className="w-full px-2.5 py-1.5 bg-slate-950 border border-slate-700 rounded text-xs text-white font-sans focus:outline-none focus:border-neutral-300"
                     />
                     <button
                       onClick={handleApplyBatchNotes}
                       disabled={selectedCount === 0}
-                      className="px-3 py-1.5 bg-purple-600 hover:bg-purple-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-xs rounded transition shrink-0 cursor-pointer shadow-xs"
+                      className="px-3 py-1.5 bg-neutral-900 hover:bg-neutral-800 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-xs rounded transition shrink-0 cursor-pointer shadow-xs"
                       title="Apply notes to selected rows"
                     >
                       {lang === 'en' ? 'Set Note' : 'নোট দিন'}
@@ -1532,7 +1532,7 @@ export const CartonTable: React.FC<CartonTableProps> = ({
                   className="flex items-center gap-1.5 px-3 py-1 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-slate-200 text-xs font-semibold rounded-lg border border-slate-700 transition cursor-pointer"
                   title="Reset Tare & Unit Weight of selected rows to Order Defaults"
                 >
-                  <RotateCcw className="w-3.5 h-3.5 text-indigo-400" />
+                  <RotateCcw className="w-3.5 h-3.5 text-neutral-400" />
                   <span>{lang === 'en' ? 'Reset to Order Defaults' : 'অর্ডারের ডিফল্টে রিসেট'}</span>
                 </button>
 
@@ -1542,7 +1542,7 @@ export const CartonTable: React.FC<CartonTableProps> = ({
                   className="flex items-center gap-1.5 px-3 py-1 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-slate-200 text-xs font-semibold rounded-lg border border-slate-700 transition cursor-pointer"
                   title="Duplicate all selected cartons (Ctrl+D)"
                 >
-                  <Copy className="w-3.5 h-3.5 text-amber-400" />
+                  <Copy className="w-3.5 h-3.5 text-neutral-400" />
                   <span>{lang === 'en' ? `Duplicate Selected (${selectedCount})` : `ডুপ্লিকেট (${selectedCount})`}</span>
                 </button>
               </div>
@@ -1550,10 +1550,10 @@ export const CartonTable: React.FC<CartonTableProps> = ({
               <button
                 onClick={handleBatchDelete}
                 disabled={selectedCount === 0}
-                className="flex items-center gap-1.5 px-3.5 py-1 bg-rose-950 hover:bg-rose-900 disabled:opacity-40 text-rose-200 text-xs font-bold rounded-lg border border-rose-800 transition cursor-pointer ml-auto"
+                className="flex items-center gap-1.5 px-3.5 py-1 bg-neutral-950 hover:bg-neutral-950 disabled:opacity-40 text-neutral-200 text-xs font-bold rounded-lg border border-neutral-700 transition cursor-pointer ml-auto"
                 title="Delete all selected cartons (Ctrl+Delete)"
               >
-                <Trash2 className="w-3.5 h-3.5 text-rose-400" />
+                <Trash2 className="w-3.5 h-3.5 text-neutral-400" />
                 <span>{lang === 'en' ? `Delete Selected (${selectedCount})` : `মুছুন (${selectedCount})`}</span>
               </button>
             </div>
@@ -1588,9 +1588,9 @@ export const CartonTable: React.FC<CartonTableProps> = ({
 
       {/* Validation Warning Alert Banner */}
       {hasErrors && (
-        <div className="p-3 bg-red-50 border-b border-red-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-red-900 text-xs">
+        <div className="p-3 bg-neutral-100 border-b border-neutral-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-neutral-900 text-xs">
           <div className="flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 text-red-600 shrink-0" />
+            <AlertTriangle className="w-4 h-4 text-neutral-800 shrink-0" />
             <span className="font-semibold">
               {lang === 'en' 
                 ? `Input Error: Carton #${invalidCartons.map(c => c.cartonNo).join(', ')} has a negative Net Weight because Gross Weight is less than Tare Weight.`
@@ -1599,7 +1599,7 @@ export const CartonTable: React.FC<CartonTableProps> = ({
           </div>
           <button
             onClick={selectWithErrors}
-            className="text-[11px] font-bold bg-red-200 hover:bg-red-300 text-red-900 px-2.5 py-0.5 rounded-md shrink-0 cursor-pointer transition"
+            className="text-[11px] font-bold bg-neutral-200 hover:bg-neutral-300 text-neutral-900 px-2.5 py-0.5 rounded-md shrink-0 cursor-pointer transition"
           >
             {lang === 'en' ? 'Select Invalid Rows' : 'ত্রুটিযুক্ত সারি সিলেক্ট করুন'}
           </button>
@@ -1608,12 +1608,12 @@ export const CartonTable: React.FC<CartonTableProps> = ({
 
       {/* Auto-Generated Pasted Weights Notification Toast */}
       {pastedSuccessToast && (
-        <div className="p-2.5 bg-indigo-50 border-b border-indigo-300 text-indigo-950 text-xs font-bold flex items-center justify-between animate-in fade-in slide-in-from-top-1 duration-200">
+        <div className="p-2.5 bg-neutral-100 border-b border-neutral-300 text-neutral-900 text-xs font-bold flex items-center justify-between animate-in fade-in slide-in-from-top-1 duration-200">
           <div className="flex items-center gap-2">
-            <ClipboardPaste className="w-4 h-4 text-indigo-600" />
+            <ClipboardPaste className="w-4 h-4 text-neutral-800" />
             <span>{pastedSuccessToast}</span>
           </div>
-          <span className="text-[11px] text-indigo-700 font-normal">
+          <span className="text-[11px] text-neutral-800 font-normal">
             {lang === 'en' ? 'Gross, Tare, Net, Meters & GRY calculated automatically' : 'গ্রস, ট্যার, নেট, মিটার ও জিআরওয়াই অটোমেটিক ক্যালকুলেট হয়েছে'}
           </span>
         </div>
@@ -1621,19 +1621,19 @@ export const CartonTable: React.FC<CartonTableProps> = ({
 
       {/* Active Order Packing Header Banner */}
       {activeScheduleItem && (
-        <div className="px-4 py-2.5 bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white flex flex-wrap items-center justify-between gap-2 border-b border-indigo-700/60 shadow-sm animate-in fade-in">
+        <div className="px-4 py-2.5 bg-gradient-to-r from-neutral-950 via-neutral-950 to-slate-900 text-white flex flex-wrap items-center justify-between gap-2 border-b border-neutral-700/60 shadow-sm animate-in fade-in">
           <div className="flex items-center gap-2.5">
             <span className="relative flex h-3 w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-neutral-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-neutral-800"></span>
             </span>
-            <span className="text-xs font-bold text-emerald-300">
+            <span className="text-xs font-bold text-neutral-300">
               {lang === 'en' ? 'ACTIVE ORDER PACKING:' : 'চলমান অর্ডার প্যাকিং:'}
             </span>
             <span className="text-xs font-mono font-semibold bg-white/10 px-2 py-0.5 rounded text-white">
               {activeScheduleItem.buyer} • PO: {activeScheduleItem.customerRefPO || activeScheduleItem.jobNo || 'N/A'}
             </span>
-            <span className="text-xs text-indigo-200 hidden sm:inline">
+            <span className="text-xs text-neutral-200 hidden sm:inline">
               ({lang === 'en' ? 'Target Demand:' : 'টার্গেট চাহিদা:'} {activeScheduleItem.demandQty} {activeScheduleItem.unit})
             </span>
           </div>
@@ -1649,7 +1649,7 @@ export const CartonTable: React.FC<CartonTableProps> = ({
             </button>
             <button
               onClick={() => onCompletePackingAndReturn?.(tableSummary.totalMtr || tableSummary.totalGrossWt)}
-              className="px-3.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shadow-sm ring-1 ring-emerald-400"
+              className="px-3.5 py-1 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shadow-sm ring-1 ring-neutral-400"
               title={lang === 'en' ? 'Complete packing and return to schedule' : 'প্যাকিং সম্পূর্ণ করুন ও শিডিউলে ফিরে যান'}
             >
               <CheckCircle2 className="w-3.5 h-3.5 text-white" />
@@ -1740,7 +1740,7 @@ export const CartonTable: React.FC<CartonTableProps> = ({
           {/* Cards View Bottom Summary Strip */}
           <div className="mt-4 p-3.5 bg-slate-900 text-white rounded-xl shadow-md border border-slate-700">
             <div className="flex items-center justify-between pb-2 border-b border-slate-800 text-xs">
-              <span className="font-bold text-amber-400">★ {lang === 'en' ? 'GRAND TOTAL' : 'সর্বমোট সামারি'} ★</span>
+              <span className="font-bold text-neutral-400">★ {lang === 'en' ? 'GRAND TOTAL' : 'সর্বমোট সামারি'} ★</span>
               <span className="font-mono font-bold text-slate-300">
                 {tableSummary.totalCtn} CTN ({tableSummary.activeNetCartonCount} {lang === 'en' ? 'Active' : 'সক্রিয়'})
               </span>
@@ -1750,13 +1750,13 @@ export const CartonTable: React.FC<CartonTableProps> = ({
                 <div className="text-[10px] text-slate-400">{lang === 'en' ? 'Gross' : 'গ্রস'}</div>
                 <div className="font-black text-white">{tableSummary.totalGrossWt.toFixed(2)} {wUnit}</div>
               </div>
-              <div className="bg-emerald-950/80 p-1.5 rounded border border-emerald-800">
-                <div className="text-[10px] text-emerald-300">{lang === 'en' ? 'Net' : 'নেট'}</div>
-                <div className="font-black text-emerald-400">{tableSummary.totalNetWt.toFixed(2)} {wUnit}</div>
+              <div className="bg-neutral-950/80 p-1.5 rounded border border-neutral-700">
+                <div className="text-[10px] text-neutral-300">{lang === 'en' ? 'Net' : 'নেট'}</div>
+                <div className="font-black text-neutral-400">{tableSummary.totalNetWt.toFixed(2)} {wUnit}</div>
               </div>
-              <div className="bg-indigo-950/80 p-1.5 rounded border border-indigo-800">
-                <div className="text-[10px] text-indigo-300">{lang === 'en' ? 'Meters' : 'মিটার'}</div>
-                <div className="font-black text-indigo-300">{tableSummary.totalMtr.toFixed(1)} m</div>
+              <div className="bg-neutral-950/80 p-1.5 rounded border border-neutral-700">
+                <div className="text-[10px] text-neutral-300">{lang === 'en' ? 'Meters' : 'মিটার'}</div>
+                <div className="font-black text-neutral-300">{tableSummary.totalMtr.toFixed(1)} m</div>
               </div>
             </div>
           </div>
@@ -1780,7 +1780,7 @@ export const CartonTable: React.FC<CartonTableProps> = ({
                       checked={totalCount > 0 && selectedCount === totalCount}
                       onChange={handleToggleSelectAll}
                       title={lang === 'en' ? 'Select/Deselect All Rows' : 'সব সারি সিলেক্ট/আনসিলেক্ট করুন'}
-                      className="w-4 h-4 rounded text-indigo-600 bg-slate-800 border-slate-600 focus:ring-indigo-500 focus:ring-offset-slate-900 cursor-pointer"
+                      className="w-4 h-4 rounded text-neutral-800 bg-slate-800 border-slate-600 focus:ring-neutral-400 focus:ring-offset-slate-900 cursor-pointer"
                     />
                   </div>
                 </th>
@@ -1794,16 +1794,16 @@ export const CartonTable: React.FC<CartonTableProps> = ({
                 <th className="py-2.5 px-3 text-right border-r border-slate-800">
                   {t.tareWeight}
                 </th>
-                <th className="py-2.5 px-3 text-right border-r border-slate-800 bg-emerald-950/70 text-emerald-300">
+                <th className="py-2.5 px-3 text-right border-r border-slate-800 bg-neutral-950/70 text-neutral-300">
                   {t.netWeight}
                 </th>
                 <th className="py-2.5 px-3 text-right border-r border-slate-800">
                   {t.wtPerUnit}
                 </th>
-                <th className="py-2.5 px-3 text-right border-r border-slate-800 bg-indigo-950/70 text-indigo-300">
+                <th className="py-2.5 px-3 text-right border-r border-slate-800 bg-neutral-950/70 text-neutral-300">
                   {t.lengthMtr}
                 </th>
-                <th className="py-2.5 px-3 text-right border-r border-slate-800 bg-purple-950/70 text-purple-300">
+                <th className="py-2.5 px-3 text-right border-r border-slate-800 bg-neutral-950/70 text-neutral-300">
                   {t.lengthGry}
                 </th>
                 <th className="py-2.5 px-3 text-right border-r border-slate-800 text-slate-400">
@@ -1906,7 +1906,7 @@ export const CartonTable: React.FC<CartonTableProps> = ({
             <tr className="divide-x divide-slate-800 text-xs">
               {/* Checkbox Col / Sum Badge */}
               <td className="py-2.5 px-2 text-center bg-slate-950 font-sans">
-                <div className="flex items-center justify-center gap-1 font-black text-amber-400 text-xs">
+                <div className="flex items-center justify-center gap-1 font-black text-neutral-400 text-xs">
                   <span>Σ</span>
                 </div>
               </td>
@@ -1916,7 +1916,7 @@ export const CartonTable: React.FC<CartonTableProps> = ({
                 <div className="font-black text-white text-xs">
                   {tableSummary.totalCtn} <span className="text-[10px] text-slate-400 uppercase font-sans">CTN</span>
                 </div>
-                <div className="text-[9.5px] text-emerald-400 font-sans font-bold">
+                <div className="text-[9.5px] text-neutral-400 font-sans font-bold">
                   {tableSummary.activeNetCartonCount} {lang === 'en' ? 'Active' : 'সক্রিয়'}
                 </div>
               </td>
@@ -1942,11 +1942,11 @@ export const CartonTable: React.FC<CartonTableProps> = ({
               </td>
 
               {/* Grand Total Net Wt (Highlighted Emerald) */}
-              <td className="py-2.5 px-2 text-right bg-emerald-950 text-emerald-200 border-x border-emerald-700">
-                <div className="font-black text-emerald-300 text-xs sm:text-sm">
+              <td className="py-2.5 px-2 text-right bg-neutral-950 text-neutral-200 border-x border-neutral-700">
+                <div className="font-black text-neutral-300 text-xs sm:text-sm">
                   {tableSummary.totalNetWt.toFixed(2)} {wUnit}
                 </div>
-                <div className="text-[9.5px] text-emerald-400/90 font-sans font-semibold flex items-center justify-end gap-1">
+                <div className="text-[9.5px] text-neutral-400/90 font-sans font-semibold flex items-center justify-end gap-1">
                   <span>{tableSummary.totalNetWtLbs.toFixed(1)} Lbs</span>
                 </div>
               </td>
@@ -1962,21 +1962,21 @@ export const CartonTable: React.FC<CartonTableProps> = ({
               </td>
 
               {/* Grand Total Length (Meters - Highlighted Indigo) */}
-              <td className="py-2.5 px-2 text-right bg-indigo-950 text-indigo-200 border-x border-indigo-700">
-                <div className="font-black text-indigo-300 text-xs sm:text-sm">
+              <td className="py-2.5 px-2 text-right bg-neutral-950 text-neutral-200 border-x border-neutral-700">
+                <div className="font-black text-neutral-300 text-xs sm:text-sm">
                   {tableSummary.totalMtr.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </div>
-                <div className="text-[9.5px] text-indigo-400 font-sans font-semibold">
+                <div className="text-[9.5px] text-neutral-400 font-sans font-semibold">
                   Meters
                 </div>
               </td>
 
               {/* Grand Total Length (Gry - Highlighted Purple) */}
-              <td className="py-2.5 px-2 text-right bg-purple-950 text-purple-200 border-x border-purple-700">
-                <div className="font-black text-purple-300 text-xs sm:text-sm">
+              <td className="py-2.5 px-2 text-right bg-neutral-950 text-neutral-200 border-x border-neutral-700">
+                <div className="font-black text-neutral-300 text-xs sm:text-sm">
                   {tableSummary.totalGry.toFixed(2)}
                 </div>
-                <div className="text-[9.5px] text-purple-400 font-sans font-semibold">
+                <div className="text-[9.5px] text-neutral-400 font-sans font-semibold">
                   Gry (144Y)
                 </div>
               </td>
@@ -1993,7 +1993,7 @@ export const CartonTable: React.FC<CartonTableProps> = ({
 
               {/* Grand Total Label / Status */}
               <td className="py-2.5 px-2 text-center bg-slate-900 font-sans">
-                <div className="text-[10.5px] font-black text-amber-400 uppercase tracking-wider">
+                <div className="text-[10.5px] font-black text-neutral-400 uppercase tracking-wider">
                   {lang === 'en' ? '★ GRAND TOTAL ★' : '★ সর্বমোট সামারি ★'}
                 </div>
                 <div className="text-[9px] text-slate-400">
@@ -2003,8 +2003,8 @@ export const CartonTable: React.FC<CartonTableProps> = ({
 
               {/* Footer Action / Status badge */}
               <td className="py-2.5 px-2 text-center bg-slate-950 font-sans">
-                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-900/60 text-emerald-300 text-[10px] font-bold">
-                  <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-neutral-950/60 text-neutral-300 text-[10px] font-bold">
+                  <CheckCircle2 className="w-3 h-3 text-neutral-400" />
                   <span>Live</span>
                 </span>
               </td>
@@ -2020,18 +2020,18 @@ export const CartonTable: React.FC<CartonTableProps> = ({
       )}
 
       {/* PACKING COMPLETION & RETURN ACTION BAR */}
-      <div className="bg-slate-900 text-white border-t-2 border-emerald-500/80 p-3.5 sm:p-4 flex flex-col md:flex-row items-center justify-between gap-3 shadow-lg">
+      <div className="bg-slate-900 text-white border-t-2 border-neutral-400/80 p-3.5 sm:p-4 flex flex-col md:flex-row items-center justify-between gap-3 shadow-lg">
         <div className="flex items-center gap-3 w-full md:w-auto">
-          <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center shrink-0">
-            <CheckCircle2 className="w-6 h-6 text-emerald-400" />
+          <div className="w-10 h-10 rounded-xl bg-neutral-800/20 border border-neutral-300/40 flex items-center justify-center shrink-0">
+            <CheckCircle2 className="w-6 h-6 text-neutral-400" />
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-bold text-sm text-emerald-300">
+              <span className="font-bold text-sm text-neutral-300">
                 {lang === 'en' ? 'Packing Summary & Status' : 'প্যাকিং সামারি ও সমাপ্তিকরণ'}
               </span>
               {activeScheduleItem ? (
-                <span className="px-2 py-0.5 rounded text-[11px] font-mono bg-indigo-950 text-indigo-300 border border-indigo-700 font-semibold">
+                <span className="px-2 py-0.5 rounded text-[11px] font-mono bg-neutral-950 text-neutral-300 border border-neutral-700 font-semibold">
                   {activeScheduleItem.buyer} • {activeScheduleItem.customerRefPO || activeScheduleItem.jobNo}
                 </span>
               ) : (
@@ -2047,11 +2047,11 @@ export const CartonTable: React.FC<CartonTableProps> = ({
                   : `প্যাক হয়েছে: ${tableSummary.activeNetCartonCount}টি কার্টন`}
               </span>
               <span>•</span>
-              <span className="font-bold text-indigo-300">
+              <span className="font-bold text-neutral-300">
                 {tableSummary.totalMtr.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} Meters
               </span>
               <span>•</span>
-              <span className="text-emerald-300">
+              <span className="text-neutral-300">
                 {tableSummary.totalGrossWt.toFixed(2)} {wUnit} Gross
               </span>
             </div>
@@ -2074,7 +2074,7 @@ export const CartonTable: React.FC<CartonTableProps> = ({
           <button
             type="button"
             onClick={() => onCompletePackingAndReturn?.(tableSummary.totalMtr || tableSummary.totalGrossWt)}
-            className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm flex items-center gap-2 shadow-lg shadow-emerald-950/60 ring-2 ring-emerald-400 hover:scale-102 transition cursor-pointer"
+            className="px-4 py-2 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-white font-bold text-xs sm:text-sm flex items-center gap-2 shadow-lg shadow-emerald-950/60 ring-2 ring-neutral-400 hover:scale-102 transition cursor-pointer"
             title={lang === 'en' ? 'Mark packing 100% complete and return to schedule' : 'প্যাকিং সম্পূর্ণ হিসেবে চিহ্নিত করুন এবং শিডিউলে ফিরে যান (স্টিকার ডাউনলোড আনলক হবে)'}
           >
             <CheckCircle2 className="w-4 h-4 text-white" />
@@ -2086,7 +2086,7 @@ export const CartonTable: React.FC<CartonTableProps> = ({
       {/* Table Footer Prompt */}
       <div className="p-3 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-2">
         <div className="flex items-center gap-1.5 flex-wrap">
-          <Calculator className="w-4 h-4 text-emerald-600 shrink-0" />
+          <Calculator className="w-4 h-4 text-neutral-800 shrink-0" />
           <span>
             {lang === 'en'
               ? 'Press Ctrl+Enter to add rows quickly, and Ctrl+Delete to remove selected rows.'
@@ -2098,7 +2098,7 @@ export const CartonTable: React.FC<CartonTableProps> = ({
             shouldFocusNewRow.current = true;
             onAddCarton();
           }}
-          className="text-indigo-600 hover:text-indigo-800 font-semibold flex items-center gap-1 cursor-pointer"
+          className="text-neutral-800 hover:text-neutral-900 font-semibold flex items-center gap-1 cursor-pointer"
         >
           <Plus className="w-3.5 h-3.5" />
           <span>{t.addCarton}</span>
@@ -2120,7 +2120,7 @@ export const CartonTable: React.FC<CartonTableProps> = ({
               {/* Modal Header */}
               <div className="p-4 bg-slate-900 text-white flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <div className={`p-2 rounded-lg ${devs.some(d => d.severity === 'critical') ? 'bg-red-500/20 text-red-400' : 'bg-amber-500/20 text-amber-400'}`}>
+                  <div className={`p-2 rounded-lg ${devs.some(d => d.severity === 'critical') ? 'bg-neutral-800/20 text-neutral-400' : 'bg-neutral-800/20 text-neutral-400'}`}>
                     <ShieldAlert className="w-5 h-5" />
                   </div>
                   <div>
@@ -2150,8 +2150,8 @@ export const CartonTable: React.FC<CartonTableProps> = ({
                     {lang === 'en' ? 'Detected Deviations & Alerts' : 'শনাক্তকৃত ত্রুটি ও সতর্কতা'}
                   </h4>
                   {devs.length === 0 ? (
-                    <div className="p-3 bg-emerald-50 text-emerald-800 rounded-xl border border-emerald-200 text-xs flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <div className="p-3 bg-neutral-100 text-neutral-900 rounded-xl border border-neutral-200 text-xs flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-neutral-800 shrink-0" />
                       <span>{lang === 'en' ? 'This carton complies with all specifications!' : 'এই কার্টনটি সকল স্পেসিফিকেশনের সাথে সামঞ্জস্যপূর্ণ!'}</span>
                     </div>
                   ) : (
@@ -2160,20 +2160,20 @@ export const CartonTable: React.FC<CartonTableProps> = ({
                         key={`${dev.cartonId}-${dev.type}-${dIdx}`}
                         className={`p-3 rounded-xl border text-xs flex items-start gap-2.5 ${
                           dev.severity === 'critical'
-                            ? 'bg-red-50/80 border-red-200 text-red-950'
-                            : 'bg-amber-50/80 border-amber-200 text-amber-950'
+                            ? 'bg-neutral-100/80 border-neutral-200 text-neutral-900'
+                            : 'bg-neutral-100/80 border-neutral-200 text-neutral-900'
                         }`}
                       >
                         {dev.severity === 'critical' ? (
-                          <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                          <AlertTriangle className="w-4 h-4 text-neutral-800 shrink-0 mt-0.5" />
                         ) : (
-                          <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                          <Info className="w-4 h-4 text-neutral-800 shrink-0 mt-0.5" />
                         )}
                         <div className="flex-1">
                           <div className="font-bold flex items-center justify-between">
                             <span>{dev.message}</span>
                             <span className={`px-1.5 py-0.2 rounded text-[10px] uppercase font-mono ${
-                              dev.severity === 'critical' ? 'bg-red-200 text-red-900' : 'bg-amber-200 text-amber-900'
+                              dev.severity === 'critical' ? 'bg-neutral-200 text-neutral-900' : 'bg-neutral-200 text-neutral-900'
                             }`}>
                               {dev.severity}
                             </span>
@@ -2184,7 +2184,7 @@ export const CartonTable: React.FC<CartonTableProps> = ({
                               <span>•</span>
                               <span>Expected: <strong className="font-mono text-slate-900">{dev.expectedValue}</strong></span>
                               {dev.percentDiff !== undefined && (
-                                <span className="font-bold text-red-600">
+                                <span className="font-bold text-neutral-800">
                                   ({dev.percentDiff > 0 ? '+' : ''}{dev.percentDiff.toFixed(1)}%)
                                 </span>
                               )}
@@ -2201,7 +2201,7 @@ export const CartonTable: React.FC<CartonTableProps> = ({
                   <div className="bg-slate-50 rounded-xl p-3.5 border border-slate-200">
                     <h4 className="text-xs font-bold text-slate-700 mb-2 flex items-center justify-between">
                       <span className="flex items-center gap-1.5">
-                        <Scale className="w-3.5 h-3.5 text-indigo-600" />
+                        <Scale className="w-3.5 h-3.5 text-neutral-800" />
                         {lang === 'en' ? 'Batch Weight Benchmark Comparison' : 'ব্যাচ গড় ওজনের সাপেক্ষে তুলনা'}
                       </span>
                       <span className="text-[10px] text-slate-400 font-mono">
@@ -2237,14 +2237,14 @@ export const CartonTable: React.FC<CartonTableProps> = ({
                       return (
                         <div className={`p-2 rounded-lg text-xs font-bold flex items-center justify-between ${
                           isDev 
-                            ? isOver ? 'bg-amber-100 text-amber-950 border border-amber-300' : 'bg-sky-100 text-sky-950 border border-sky-300'
-                            : 'bg-emerald-100 text-emerald-950 border border-emerald-300'
+                            ? isOver ? 'bg-neutral-100 text-neutral-900 border border-neutral-300' : 'bg-neutral-100 text-neutral-900 border border-neutral-300'
+                            : 'bg-neutral-100 text-neutral-900 border border-neutral-300'
                         }`}>
                           <span className="flex items-center gap-1">
                             {isDev ? (
-                              isOver ? <TrendingUp className="w-3.5 h-3.5 text-amber-800" /> : <TrendingDown className="w-3.5 h-3.5 text-sky-800" />
+                              isOver ? <TrendingUp className="w-3.5 h-3.5 text-neutral-900" /> : <TrendingDown className="w-3.5 h-3.5 text-neutral-900" />
                             ) : (
-                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" />
+                              <CheckCircle2 className="w-3.5 h-3.5 text-neutral-800" />
                             )}
                             <span>
                               {isDev
@@ -2279,7 +2279,7 @@ export const CartonTable: React.FC<CartonTableProps> = ({
                         {inspectedCarton.wtPerUnit !== activeDemand.unitWeightGm && (
                           <button
                             onClick={() => handleFixCartonField(inspectedCarton.id, 'wtPerUnit', activeDemand.unitWeightGm)}
-                            className="mt-2 w-full py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-[11px] rounded transition cursor-pointer flex items-center justify-center gap-1"
+                            className="mt-2 w-full py-1 bg-neutral-100 hover:bg-neutral-100 text-neutral-800 font-bold text-[11px] rounded transition cursor-pointer flex items-center justify-center gap-1"
                           >
                             <Zap className="w-3 h-3" />
                             <span>{lang === 'en' ? `Apply ${activeDemand.unitWeightGm} gm/m` : `${activeDemand.unitWeightGm} gm/m সেট করুন`}</span>
@@ -2298,7 +2298,7 @@ export const CartonTable: React.FC<CartonTableProps> = ({
                         {inspectedCarton.tareWt !== (activeDemand.defaultTare || 0.5) && (
                           <button
                             onClick={() => handleFixCartonField(inspectedCarton.id, 'tareWt', activeDemand.defaultTare || 0.5)}
-                            className="mt-2 w-full py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold text-[11px] rounded transition cursor-pointer flex items-center justify-center gap-1"
+                            className="mt-2 w-full py-1 bg-neutral-100 hover:bg-neutral-100 text-neutral-800 font-bold text-[11px] rounded transition cursor-pointer flex items-center justify-center gap-1"
                           >
                             <Zap className="w-3 h-3" />
                             <span>{lang === 'en' ? `Apply ${activeDemand.defaultTare || 0.5} {wUnit}` : `${activeDemand.defaultTare || 0.5} {wUnit} সেট করুন`}</span>
@@ -2325,7 +2325,7 @@ export const CartonTable: React.FC<CartonTableProps> = ({
                       handleFixCartonField(inspectedCarton.id, 'tareWt', activeDemand.defaultTare || 0.5);
                       setInspectedCartonId(null);
                     }}
-                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg shadow-sm transition cursor-pointer flex items-center gap-1.5"
+                    className="px-4 py-2 bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-bold rounded-lg shadow-sm transition cursor-pointer flex items-center gap-1.5"
                   >
                     <Check className="w-3.5 h-3.5" />
                     <span>{lang === 'en' ? 'Align All Fields to Demand' : 'চাহিদা অনুযায়ী সব ঠিক করুন'}</span>

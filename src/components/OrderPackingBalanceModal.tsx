@@ -294,7 +294,7 @@ export const OrderPackingBalanceModal: React.FC<OrderPackingBalanceModalProps> =
         {/* Header */}
         <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 border-b border-slate-800 bg-slate-900/90 shrink-0">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold border border-emerald-500/30 shrink-0">
+            <div className="w-9 h-9 rounded-xl bg-neutral-800/20 text-neutral-400 flex items-center justify-center font-bold border border-neutral-400/30 shrink-0">
               <Calendar className="w-5 h-5" />
             </div>
             <div className="min-w-0">
@@ -305,9 +305,9 @@ export const OrderPackingBalanceModal: React.FC<OrderPackingBalanceModalProps> =
                 <span
                   className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${
                     balanceRemaining === 0
-                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                      ? 'bg-neutral-800/20 text-neutral-300 border border-neutral-400/30'
                       : currentItem.status === 'in-progress' || totalCompleted > 0
-                      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                      ? 'bg-neutral-800/20 text-neutral-300 border border-neutral-400/30'
                       : 'bg-slate-700 text-slate-300 border border-slate-600'
                   }`}
                 >
@@ -327,7 +327,7 @@ export const OrderPackingBalanceModal: React.FC<OrderPackingBalanceModalProps> =
               <p className="text-xs text-slate-400 truncate">
                 {currentItem.itemDescription || 'Elastic Item'} • Color:{' '}
                 <span className="text-slate-200">{currentItem.color || 'Standard'}</span> • Size:{' '}
-                <span className="text-indigo-300 font-mono font-bold">{currentItem.size || '-'}</span>
+                <span className="text-neutral-300 font-mono font-bold">{currentItem.size || '-'}</span>
               </p>
             </div>
           </div>
@@ -346,15 +346,15 @@ export const OrderPackingBalanceModal: React.FC<OrderPackingBalanceModalProps> =
           <div
             className={`px-4 sm:px-6 py-2.5 text-xs sm:text-sm font-medium flex items-center justify-between border-b ${
               message.type === 'success'
-                ? 'bg-emerald-950/60 text-emerald-300 border-emerald-800/60'
-                : 'bg-rose-950/60 text-rose-300 border-rose-800/60'
+                ? 'bg-neutral-950/60 text-neutral-300 border-neutral-700/60'
+                : 'bg-neutral-950/60 text-neutral-300 border-neutral-700/60'
             }`}
           >
             <div className="flex items-center gap-2">
               {message.type === 'success' ? (
-                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <CheckCircle2 className="w-4 h-4 text-neutral-400 shrink-0" />
               ) : (
-                <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                <AlertCircle className="w-4 h-4 text-neutral-400 shrink-0" />
               )}
               <span>{message.text}</span>
             </div>
@@ -375,7 +375,7 @@ export const OrderPackingBalanceModal: React.FC<OrderPackingBalanceModalProps> =
             <div className="bg-slate-800/70 border border-slate-700/60 p-3.5 rounded-xl">
               <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
                 <span>{lang === 'en' ? 'Total Demand' : 'মোট চাহিদা'}</span>
-                <Package className="w-3.5 h-3.5 text-blue-400" />
+                <Package className="w-3.5 h-3.5 text-neutral-400" />
               </div>
               <div className="text-lg sm:text-xl font-mono font-bold text-white">
                 {targetDemand.toLocaleString()}{' '}
@@ -387,9 +387,9 @@ export const OrderPackingBalanceModal: React.FC<OrderPackingBalanceModalProps> =
             <div className="bg-slate-800/70 border border-slate-700/60 p-3.5 rounded-xl">
               <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
                 <span>{lang === 'en' ? 'Completed Packed' : 'মোট প্যাকড'}</span>
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                <CheckCircle2 className="w-3.5 h-3.5 text-neutral-400" />
               </div>
-              <div className="text-lg sm:text-xl font-mono font-bold text-emerald-400">
+              <div className="text-lg sm:text-xl font-mono font-bold text-neutral-400">
                 {totalCompleted.toLocaleString()}{' '}
                 <span className="text-xs font-normal text-slate-400">{currentItem.unit || 'Mtr'}</span>
               </div>
@@ -402,21 +402,21 @@ export const OrderPackingBalanceModal: React.FC<OrderPackingBalanceModalProps> =
             <div
               className={`p-3.5 rounded-xl border transition-all ${
                 balanceRemaining === 0
-                  ? 'bg-emerald-950/40 border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.15)]'
-                  : 'bg-amber-950/30 border-amber-500/40 shadow-[0_0_15px_rgba(245,158,11,0.1)]'
+                  ? 'bg-neutral-950/40 border-neutral-400/50 shadow-[0_0_15px_rgba(16,185,129,0.15)]'
+                  : 'bg-neutral-950/30 border-neutral-400/40 shadow-[0_0_15px_rgba(245,158,11,0.1)]'
               }`}
             >
               <div className="flex items-center justify-between text-xs font-semibold mb-1">
-                <span className={balanceRemaining === 0 ? 'text-emerald-400' : 'text-amber-400'}>
+                <span className={balanceRemaining === 0 ? 'text-neutral-400' : 'text-neutral-400'}>
                   {lang === 'en' ? 'Remaining Balance' : 'অবশিষ্ট ব্যালেন্স'}
                 </span>
                 <Clock
-                  className={`w-3.5 h-3.5 ${balanceRemaining === 0 ? 'text-emerald-400' : 'text-amber-400'}`}
+                  className={`w-3.5 h-3.5 ${balanceRemaining === 0 ? 'text-neutral-400' : 'text-neutral-400'}`}
                 />
               </div>
               <div
                 className={`text-lg sm:text-2xl font-mono font-black ${
-                  balanceRemaining === 0 ? 'text-emerald-300' : 'text-amber-300'
+                  balanceRemaining === 0 ? 'text-neutral-300' : 'text-neutral-300'
                 }`}
               >
                 {balanceRemaining.toLocaleString()}{' '}
@@ -437,9 +437,9 @@ export const OrderPackingBalanceModal: React.FC<OrderPackingBalanceModalProps> =
             <div className="bg-slate-800/70 border border-slate-700/60 p-3.5 rounded-xl">
               <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
                 <span>{lang === 'en' ? 'Total Cartons' : 'মোট কার্টন'}</span>
-                <Layers className="w-3.5 h-3.5 text-indigo-400" />
+                <Layers className="w-3.5 h-3.5 text-neutral-400" />
               </div>
-              <div className="text-lg sm:text-xl font-mono font-bold text-indigo-300">
+              <div className="text-lg sm:text-xl font-mono font-bold text-neutral-300">
                 {totalLoggedCartons}{' '}
                 <span className="text-xs font-normal text-slate-400">{lang === 'en' ? 'Ctns' : 'টি'}</span>
               </div>
@@ -465,8 +465,8 @@ export const OrderPackingBalanceModal: React.FC<OrderPackingBalanceModalProps> =
               <div
                 className={`h-full transition-all duration-500 rounded-full ${
                   progressPercent >= 100
-                    ? 'bg-gradient-to-r from-emerald-500 to-teal-400'
-                    : 'bg-gradient-to-r from-blue-500 to-emerald-400'
+                    ? 'bg-gradient-to-r from-neutral-800 to-neutral-800'
+                    : 'bg-gradient-to-r from-neutral-800 to-neutral-800'
                 }`}
                 style={{ width: `${progressPercent}%` }}
               />
@@ -479,7 +479,7 @@ export const OrderPackingBalanceModal: React.FC<OrderPackingBalanceModalProps> =
               <button
                 type="button"
                 onClick={handleOpenInCartonTable}
-                className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl flex items-center gap-2 shadow-sm transition cursor-pointer"
+                className="px-3.5 py-2 bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-bold rounded-xl flex items-center gap-2 shadow-sm transition cursor-pointer"
                 title={
                   lang === 'en'
                     ? 'Load this order into 3-in-1 Carton Table to pack physical cartons'
@@ -488,7 +488,7 @@ export const OrderPackingBalanceModal: React.FC<OrderPackingBalanceModalProps> =
               >
                 <Package className="w-3.5 h-3.5" />
                 <span>{lang === 'en' ? 'Pack in Carton Table' : 'কার্টন টেবিলে প্যাক করুন'}</span>
-                <ArrowRight className="w-3.5 h-3.5 text-indigo-200" />
+                <ArrowRight className="w-3.5 h-3.5 text-neutral-200" />
               </button>
 
               {currentSheetData && (
@@ -502,7 +502,7 @@ export const OrderPackingBalanceModal: React.FC<OrderPackingBalanceModalProps> =
                       : 'চলতি লাইভ কার্টন টেবিল থেকে ডাটা আমদানি করুন'
                   }
                 >
-                  <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
+                  <FileSpreadsheet className="w-3.5 h-3.5 text-neutral-400" />
                   <span>{lang === 'en' ? 'Import from Live Table' : 'লাইভ টেবিল থেকে আনুন'}</span>
                 </button>
               )}
@@ -511,7 +511,7 @@ export const OrderPackingBalanceModal: React.FC<OrderPackingBalanceModalProps> =
             <button
               type="button"
               onClick={() => setShowAddForm(!showAddForm)}
-              className="px-3.5 py-2 bg-emerald-600/90 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-sm transition cursor-pointer"
+              className="px-3.5 py-2 bg-neutral-900/90 hover:bg-neutral-800 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-sm transition cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>{lang === 'en' ? "Log Today's Packing" : 'আজকের প্যাকিং যোগ করুন'}</span>
@@ -527,7 +527,7 @@ export const OrderPackingBalanceModal: React.FC<OrderPackingBalanceModalProps> =
             >
               <div className="flex items-center justify-between pb-2 border-b border-slate-700/60">
                 <h4 className="text-xs sm:text-sm font-bold text-white flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-emerald-400" />
+                  <Calendar className="w-4 h-4 text-neutral-400" />
                   <span>
                     {lang === 'en'
                       ? "Record Daily Packing & Update Balance"
@@ -550,7 +550,7 @@ export const OrderPackingBalanceModal: React.FC<OrderPackingBalanceModalProps> =
                     value={packingDate}
                     onChange={(e) => setPackingDate(e.target.value)}
                     required
-                    className="w-full bg-slate-900 border border-slate-700 text-white rounded-lg px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-emerald-500 font-mono"
+                    className="w-full bg-slate-900 border border-slate-700 text-white rounded-lg px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-neutral-400 font-mono"
                   />
                 </div>
 
@@ -562,7 +562,7 @@ export const OrderPackingBalanceModal: React.FC<OrderPackingBalanceModalProps> =
                   <select
                     value={shift}
                     onChange={(e) => setShift(e.target.value as any)}
-                    className="w-full bg-slate-900 border border-slate-700 text-white rounded-lg px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-emerald-500"
+                    className="w-full bg-slate-900 border border-slate-700 text-white rounded-lg px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-neutral-400"
                   >
                     <option value="Day">Day Shift (ডে শিফট)</option>
                     <option value="Night">Night Shift (নাইট শিফট)</option>
@@ -581,7 +581,7 @@ export const OrderPackingBalanceModal: React.FC<OrderPackingBalanceModalProps> =
                     value={operator}
                     onChange={(e) => setOperator(e.target.value)}
                     placeholder="e.g. Bappy"
-                    className="w-full bg-slate-900 border border-slate-700 text-white rounded-lg px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-emerald-500"
+                    className="w-full bg-slate-900 border border-slate-700 text-white rounded-lg px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-neutral-400"
                   />
                 </div>
               </div>
@@ -589,7 +589,7 @@ export const OrderPackingBalanceModal: React.FC<OrderPackingBalanceModalProps> =
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {/* Packed Quantity */}
                 <div className="col-span-2 sm:col-span-1">
-                  <label className="block text-[11px] font-semibold text-emerald-400 mb-1">
+                  <label className="block text-[11px] font-semibold text-neutral-400 mb-1">
                     {lang === 'en' ? `Packed Qty (${currentItem.unit || 'Mtr'})` : `প্যাকড পরিমাণ (${currentItem.unit || 'মিটার'})`} *
                   </label>
                   <input
@@ -603,7 +603,7 @@ export const OrderPackingBalanceModal: React.FC<OrderPackingBalanceModalProps> =
                         : 'e.g. 5000'
                     }
                     required
-                    className="w-full bg-slate-900 border border-emerald-500/60 text-emerald-300 font-mono font-bold rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-emerald-500"
+                    className="w-full bg-slate-900 border border-neutral-400/60 text-neutral-300 font-mono font-bold rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-neutral-400"
                   />
                 </div>
 
@@ -617,7 +617,7 @@ export const OrderPackingBalanceModal: React.FC<OrderPackingBalanceModalProps> =
                     min="1"
                     value={cartonsCount}
                     onChange={(e) => handleCartonsCountChange(e.target.value)}
-                    className="w-full bg-slate-900 border border-slate-700 text-white font-mono rounded-lg px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-emerald-500"
+                    className="w-full bg-slate-900 border border-slate-700 text-white font-mono rounded-lg px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-neutral-400"
                   />
                 </div>
 
@@ -632,7 +632,7 @@ export const OrderPackingBalanceModal: React.FC<OrderPackingBalanceModalProps> =
                       min="1"
                       value={startCartonNo}
                       onChange={(e) => handleStartCartonChange(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-700 text-white font-mono rounded-lg px-2 py-1.5 text-xs text-center focus:ring-1 focus:ring-emerald-500"
+                      className="w-full bg-slate-900 border border-slate-700 text-white font-mono rounded-lg px-2 py-1.5 text-xs text-center focus:ring-1 focus:ring-neutral-400"
                       title="Start Carton No"
                     />
                     <span className="text-slate-500 text-xs">-</span>
@@ -641,7 +641,7 @@ export const OrderPackingBalanceModal: React.FC<OrderPackingBalanceModalProps> =
                       min="1"
                       value={endCartonNo}
                       onChange={(e) => setEndCartonNo(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-700 text-white font-mono rounded-lg px-2 py-1.5 text-xs text-center focus:ring-1 focus:ring-emerald-500"
+                      className="w-full bg-slate-900 border border-slate-700 text-white font-mono rounded-lg px-2 py-1.5 text-xs text-center focus:ring-1 focus:ring-neutral-400"
                       title="End Carton No"
                     />
                   </div>
@@ -658,7 +658,7 @@ export const OrderPackingBalanceModal: React.FC<OrderPackingBalanceModalProps> =
                     value={netWeightKg}
                     onChange={(e) => setNetWeightKg(e.target.value)}
                     placeholder="e.g. 42.50"
-                    className="w-full bg-slate-900 border border-slate-700 text-white font-mono rounded-lg px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-emerald-500"
+                    className="w-full bg-slate-900 border border-slate-700 text-white font-mono rounded-lg px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-neutral-400"
                   />
                 </div>
               </div>
@@ -677,7 +677,7 @@ export const OrderPackingBalanceModal: React.FC<OrderPackingBalanceModalProps> =
                       ? 'Optional note, e.g. Challan #CH-902, Lot #2'
                       : 'ঐচ্ছিক নোট, যেমন: চালান #CH-902, লট #২'
                   }
-                  className="w-full bg-slate-900 border border-slate-700 text-white rounded-lg px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-emerald-500"
+                  className="w-full bg-slate-900 border border-slate-700 text-white rounded-lg px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-neutral-400"
                 />
               </div>
 
@@ -693,7 +693,7 @@ export const OrderPackingBalanceModal: React.FC<OrderPackingBalanceModalProps> =
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 shadow-md transition cursor-pointer disabled:opacity-50"
+                  className="px-4 py-2 bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 shadow-md transition cursor-pointer disabled:opacity-50"
                 >
                   <CheckCircle2 className="w-4 h-4" />
                   <span>
@@ -714,7 +714,7 @@ export const OrderPackingBalanceModal: React.FC<OrderPackingBalanceModalProps> =
           <div className="space-y-2.5">
             <div className="flex items-center justify-between">
               <h4 className="text-xs sm:text-sm font-bold text-white flex items-center gap-2">
-                <Layers className="w-4 h-4 text-indigo-400" />
+                <Layers className="w-4 h-4 text-neutral-400" />
                 <span>
                   {lang === 'en'
                     ? 'Daily Packing Log History for this Order'
@@ -775,13 +775,13 @@ export const OrderPackingBalanceModal: React.FC<OrderPackingBalanceModalProps> =
                             </span>
                             <span className="text-slate-300 text-[11px]">{log.operator || '-'}</span>
                           </td>
-                          <td className="px-3 py-2.5 text-indigo-300 whitespace-nowrap">
+                          <td className="px-3 py-2.5 text-neutral-300 whitespace-nowrap">
                             <span className="font-bold">{log.cartonsCount} Ctns</span>{' '}
                             <span className="text-slate-400 text-[11px]">
                               (#{log.startCartonNo || 1} - #{log.endCartonNo || log.cartonsCount})
                             </span>
                           </td>
-                          <td className="px-3 py-2.5 text-right font-bold text-emerald-400 whitespace-nowrap">
+                          <td className="px-3 py-2.5 text-right font-bold text-neutral-400 whitespace-nowrap">
                             +{Number(log.packedQty || 0).toLocaleString()} {log.unit || currentItem.unit || 'Mtr'}
                           </td>
                           <td className="px-3 py-2.5 text-right text-slate-300 whitespace-nowrap">
@@ -794,7 +794,7 @@ export const OrderPackingBalanceModal: React.FC<OrderPackingBalanceModalProps> =
                             <button
                               type="button"
                               onClick={() => handleDeleteLog(log.id, log.packingDate, log.packedQty)}
-                              className="p-1 rounded text-slate-400 hover:text-rose-400 hover:bg-rose-950/40 transition cursor-pointer"
+                              className="p-1 rounded text-slate-400 hover:text-neutral-400 hover:bg-neutral-950/40 transition cursor-pointer"
                               title={
                                 lang === 'en'
                                   ? 'Delete this log entry and restore balance'
@@ -820,7 +820,7 @@ export const OrderPackingBalanceModal: React.FC<OrderPackingBalanceModalProps> =
             {lang === 'en' ? 'Remaining Balance:' : 'অবশিষ্ট ব্যালেন্স:'}{' '}
             <span
               className={`font-mono font-bold ${
-                balanceRemaining === 0 ? 'text-emerald-400' : 'text-amber-400'
+                balanceRemaining === 0 ? 'text-neutral-400' : 'text-neutral-400'
               }`}
             >
               {balanceRemaining.toLocaleString()} {currentItem.unit || 'Mtr'}

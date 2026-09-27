@@ -167,13 +167,13 @@ export const RecentlyUsedStickers: React.FC<RecentlyUsedStickersProps> = ({
   const getThemeBadgeColor = (theme?: string) => {
     switch (theme) {
       case 'navy-industrial':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
+        return 'bg-neutral-100 text-neutral-900 border-neutral-200';
       case 'emerald-qc':
-        return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+        return 'bg-neutral-100 text-neutral-900 border-neutral-200';
       case 'crimson-export':
-        return 'bg-rose-100 text-rose-800 border-rose-200';
+        return 'bg-neutral-100 text-neutral-900 border-neutral-200';
       case 'amber-warehouse':
-        return 'bg-amber-100 text-amber-900 border-amber-300';
+        return 'bg-neutral-100 text-neutral-900 border-neutral-300';
       case 'slate-modern':
         return 'bg-slate-200 text-slate-800 border-slate-300';
       case 'classic-mono':
@@ -190,7 +190,7 @@ export const RecentlyUsedStickers: React.FC<RecentlyUsedStickersProps> = ({
       {/* Top Header Bar */}
       <div className="p-3 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2.5">
         <div className="flex items-center gap-2 min-w-0">
-          <div className="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center shadow-xs shrink-0">
+          <div className="w-7 h-7 rounded-lg bg-neutral-900 text-white flex items-center justify-center shadow-xs shrink-0">
             <History className="w-3.5 h-3.5" />
           </div>
           <div className="flex flex-col min-w-0">
@@ -198,7 +198,7 @@ export const RecentlyUsedStickers: React.FC<RecentlyUsedStickersProps> = ({
               <h4 className="text-xs font-bold text-slate-900 truncate">
                 {lang === 'en' ? 'Recently Used Sticker Configurations' : 'পূর্বে ব্যবহৃত স্টিকার কনফিগারেশন'}
               </h4>
-              <span className="text-[10px] bg-indigo-100 text-indigo-800 font-bold px-1.5 py-0.2 rounded-full border border-indigo-200 shrink-0">
+              <span className="text-[10px] bg-neutral-100 text-neutral-900 font-bold px-1.5 py-0.2 rounded-full border border-neutral-200 shrink-0">
                 {configs.length}
               </span>
             </div>
@@ -216,10 +216,10 @@ export const RecentlyUsedStickers: React.FC<RecentlyUsedStickersProps> = ({
           <button
             type="button"
             onClick={() => setIsSavingCustom(!isSavingCustom)}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-semibold shadow-2xs transition cursor-pointer"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-neutral-100 hover:bg-neutral-100 text-neutral-800 border border-neutral-200 text-xs font-semibold shadow-2xs transition cursor-pointer"
             title={lang === 'en' ? 'Save current active sticker settings as a recent preset' : 'বর্তমান সক্রিয় স্টিকার সেটআপ সংরক্ষণ করুন'}
           >
-            <BookmarkPlus className="w-3.5 h-3.5 text-indigo-600" />
+            <BookmarkPlus className="w-3.5 h-3.5 text-neutral-800" />
             <span className="hidden xs:inline">{lang === 'en' ? '+ Save Current' : '+ বর্তমানটি সেভ করুন'}</span>
           </button>
 
@@ -238,9 +238,9 @@ export const RecentlyUsedStickers: React.FC<RecentlyUsedStickersProps> = ({
 
       {/* Save Current Inline Prompt Modal / Bar */}
       {isSavingCustom && (
-        <div className="p-3 bg-indigo-50/70 border-b border-indigo-200 flex flex-wrap items-center gap-2 text-xs animate-in slide-in-from-top-1 duration-150">
-          <span className="font-bold text-indigo-950 flex items-center gap-1">
-            <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+        <div className="p-3 bg-neutral-100/70 border-b border-neutral-200 flex flex-wrap items-center gap-2 text-xs animate-in slide-in-from-top-1 duration-150">
+          <span className="font-bold text-neutral-900 flex items-center gap-1">
+            <Sparkles className="w-3.5 h-3.5 text-neutral-800" />
             <span>{lang === 'en' ? 'Snapshot Active Sticker Details:' : 'বর্তমান সক্রিয় স্টিকার সংরক্ষণ:'}</span>
           </span>
           <input
@@ -252,12 +252,12 @@ export const RecentlyUsedStickers: React.FC<RecentlyUsedStickersProps> = ({
                 ? `e.g. ${sheetData.buyer || 'Buyer'} · ${sheetData.ref || 'Ref'} (${sheetData.size || '32MM'})`
                 : 'নাম দিন (ঐচ্ছিক)'
             }
-            className="px-2.5 py-1 bg-white border border-indigo-300 rounded text-xs text-slate-900 font-medium focus:outline-none focus:ring-1 focus:ring-indigo-500 flex-1 min-w-[180px] max-w-sm"
+            className="px-2.5 py-1 bg-white border border-neutral-300 rounded text-xs text-slate-900 font-medium focus:outline-none focus:ring-1 focus:ring-neutral-400 flex-1 min-w-[180px] max-w-sm"
           />
           <button
             type="button"
             onClick={handleSaveCurrent}
-            className="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded font-bold text-xs shadow-xs transition cursor-pointer"
+            className="px-3 py-1 bg-neutral-900 hover:bg-neutral-800 text-white rounded font-bold text-xs shadow-xs transition cursor-pointer"
           >
             {lang === 'en' ? 'Save Setup' : 'সংরক্ষণ করুন'}
           </button>
@@ -287,7 +287,7 @@ export const RecentlyUsedStickers: React.FC<RecentlyUsedStickersProps> = ({
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder={lang === 'en' ? 'Filter by Buyer, Ref, Size, Color...' : 'বায়ার, রেফারেন্স, সাইজ দিয়ে খুঁজুন...'}
-                  className="w-full pl-8 pr-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:bg-white transition"
+                  className="w-full pl-8 pr-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-neutral-400 focus:bg-white transition"
                 />
               </div>
 
@@ -295,7 +295,7 @@ export const RecentlyUsedStickers: React.FC<RecentlyUsedStickersProps> = ({
                 <button
                   type="button"
                   onClick={handleClearAll}
-                  className="text-[11px] text-slate-400 hover:text-rose-600 transition flex items-center gap-1 cursor-pointer ml-auto"
+                  className="text-[11px] text-slate-400 hover:text-neutral-800 transition flex items-center gap-1 cursor-pointer ml-auto"
                   title="Clear all saved configurations"
                 >
                   <RotateCcw className="w-3 h-3" />
@@ -331,8 +331,8 @@ export const RecentlyUsedStickers: React.FC<RecentlyUsedStickersProps> = ({
                     key={cfg.id}
                     className={`rounded-lg border p-2.5 flex flex-col justify-between gap-2 transition-all relative group shadow-2xs ${
                       isApplied
-                        ? 'bg-emerald-50/70 border-emerald-500 ring-2 ring-emerald-300'
-                        : 'bg-white hover:bg-slate-50/90 border-slate-200 hover:border-indigo-300'
+                        ? 'bg-neutral-100/70 border-neutral-400 ring-2 ring-neutral-300'
+                        : 'bg-white hover:bg-slate-50/90 border-slate-200 hover:border-neutral-300'
                     }`}
                   >
                     {/* Top Row: Item Emoji & Type, Theme Preset & Time */}
@@ -369,7 +369,7 @@ export const RecentlyUsedStickers: React.FC<RecentlyUsedStickersProps> = ({
                         <button
                           type="button"
                           onClick={(e) => handleDelete(cfg.id, e)}
-                          className="text-slate-300 hover:text-rose-600 p-0.5 rounded transition cursor-pointer opacity-0 group-hover:opacity-100"
+                          className="text-slate-300 hover:text-neutral-800 p-0.5 rounded transition cursor-pointer opacity-0 group-hover:opacity-100"
                           title="Remove from recently used"
                         >
                           <Trash2 className="w-3 h-3" />
@@ -395,7 +395,7 @@ export const RecentlyUsedStickers: React.FC<RecentlyUsedStickersProps> = ({
                           </span>
                         )}
                         {cfg.deliveryUnit && (
-                          <span className="text-[9.5px] text-indigo-600 font-semibold uppercase">
+                          <span className="text-[9.5px] text-neutral-800 font-semibold uppercase">
                             ({cfg.deliveryUnit === 'pcs' ? 'Pieces' : 'Meters'})
                           </span>
                         )}
@@ -417,8 +417,8 @@ export const RecentlyUsedStickers: React.FC<RecentlyUsedStickersProps> = ({
                         onClick={() => handleApply(cfg, 'all')}
                         className={`flex-1 flex items-center justify-center gap-1 py-1.5 px-2 rounded-lg font-bold text-xs transition cursor-pointer shadow-2xs ${
                           isApplied
-                            ? 'bg-emerald-600 text-white shadow-xs'
-                            : 'bg-indigo-600 hover:bg-indigo-500 text-white'
+                            ? 'bg-neutral-900 text-white shadow-xs'
+                            : 'bg-neutral-900 hover:bg-neutral-800 text-white'
                         }`}
                         title={lang === 'en' ? 'Re-apply all order details, specs, and sticker styling' : 'সব তথ্য ও স্টিকার স্টাইল এক ক্লিকে লোড করুন'}
                       >
@@ -440,7 +440,7 @@ export const RecentlyUsedStickers: React.FC<RecentlyUsedStickersProps> = ({
                         <button
                           type="button"
                           onClick={() => handleApply(cfg, 'specs')}
-                          className="px-1.5 py-1 text-[10px] font-semibold text-slate-600 hover:text-indigo-700 bg-slate-100 hover:bg-indigo-50 rounded border border-slate-200 transition cursor-pointer"
+                          className="px-1.5 py-1 text-[10px] font-semibold text-slate-600 hover:text-neutral-800 bg-slate-100 hover:bg-neutral-100 rounded border border-slate-200 transition cursor-pointer"
                           title={lang === 'en' ? 'Re-apply order specs only (keep current sticker theme)' : 'শুধু বায়ার ও স্পেক্স লোড করুন'}
                         >
                           <Layers className="w-2.5 h-2.5 inline mr-0.5" />
@@ -449,7 +449,7 @@ export const RecentlyUsedStickers: React.FC<RecentlyUsedStickersProps> = ({
                         <button
                           type="button"
                           onClick={() => handleApply(cfg, 'style')}
-                          className="px-1.5 py-1 text-[10px] font-semibold text-slate-600 hover:text-purple-700 bg-slate-100 hover:bg-purple-50 rounded border border-slate-200 transition cursor-pointer"
+                          className="px-1.5 py-1 text-[10px] font-semibold text-slate-600 hover:text-neutral-800 bg-slate-100 hover:bg-neutral-100 rounded border border-slate-200 transition cursor-pointer"
                           title={lang === 'en' ? 'Re-apply styling & colors only (keep current order details)' : 'শুধু স্টিকার স্টাইল লোড করুন'}
                         >
                           <Palette className="w-2.5 h-2.5 inline mr-0.5" />

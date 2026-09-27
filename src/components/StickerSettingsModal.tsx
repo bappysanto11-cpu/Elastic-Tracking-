@@ -117,13 +117,13 @@ export const StickerSettingsModal: React.FC<StickerSettingsModalProps> = ({
         {/* Header */}
         <div className="px-5 py-3.5 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 flex items-center justify-center text-white shadow-md">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-neutral-900 to-neutral-900 flex items-center justify-center text-white shadow-md">
               <Palette className="w-5 h-5" />
             </div>
             <div>
               <h2 className="text-base font-bold text-white flex items-center gap-2">
                 <span>{t.stickerSettings}</span>
-                <span className="text-[10px] bg-indigo-900/80 text-indigo-300 border border-indigo-700/60 px-2 py-0.5 rounded-full font-mono">
+                <span className="text-[10px] bg-neutral-950/80 text-neutral-300 border border-neutral-700/60 px-2 py-0.5 rounded-full font-mono">
                   PRO STYLER
                 </span>
               </h2>
@@ -158,7 +158,7 @@ export const StickerSettingsModal: React.FC<StickerSettingsModalProps> = ({
             onClick={() => setActiveTab('theme')}
             className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer shrink-0 ${
               activeTab === 'theme'
-                ? 'bg-indigo-600 text-white shadow-sm'
+                ? 'bg-neutral-900 text-white shadow-sm'
                 : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
             }`}
           >
@@ -170,7 +170,7 @@ export const StickerSettingsModal: React.FC<StickerSettingsModalProps> = ({
             onClick={() => setActiveTab('font')}
             className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer shrink-0 ${
               activeTab === 'font'
-                ? 'bg-indigo-600 text-white shadow-sm'
+                ? 'bg-neutral-900 text-white shadow-sm'
                 : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
             }`}
           >
@@ -182,7 +182,7 @@ export const StickerSettingsModal: React.FC<StickerSettingsModalProps> = ({
             onClick={() => setActiveTab('branding')}
             className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer shrink-0 ${
               activeTab === 'branding'
-                ? 'bg-indigo-600 text-white shadow-sm'
+                ? 'bg-neutral-900 text-white shadow-sm'
                 : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
             }`}
           >
@@ -194,7 +194,7 @@ export const StickerSettingsModal: React.FC<StickerSettingsModalProps> = ({
             onClick={() => setActiveTab('layout')}
             className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer shrink-0 ${
               activeTab === 'layout'
-                ? 'bg-indigo-600 text-white shadow-sm'
+                ? 'bg-neutral-900 text-white shadow-sm'
                 : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
             }`}
           >
@@ -217,12 +217,12 @@ export const StickerSettingsModal: React.FC<StickerSettingsModalProps> = ({
                   </label>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                     {[
-                      { id: 'classic-mono', label: 'Factory Mono', bg: '#0f172a', border: '#0f172a', text: '#fff' },
-                      { id: 'navy-industrial', label: 'Navy Industrial', bg: '#1e3a8a', border: '#1e3a8a', text: '#fff' },
-                      { id: 'emerald-qc', label: 'Emerald QC', bg: '#065f46', border: '#065f46', text: '#fff' },
-                      { id: 'crimson-export', label: 'Crimson Export', bg: '#881337', border: '#881337', text: '#fff' },
-                      { id: 'amber-warehouse', label: 'Amber Warehouse', bg: '#78350f', border: '#78350f', text: '#fff' },
-                      { id: 'slate-modern', label: 'Modern Slate', bg: '#334155', border: '#334155', text: '#fff' },
+                      { id: 'classic-mono', label: 'Factory Mono', bg: '#171717', border: '#171717', text: '#fff' },
+                      { id: 'navy-industrial', label: 'Dark Charcoal', bg: '#262626', border: '#262626', text: '#fff' },
+                      { id: 'emerald-qc', label: 'Pure Black', bg: '#0a0a0a', border: '#0a0a0a', text: '#fff' },
+                      { id: 'crimson-export', label: 'Onyx Industrial', bg: '#18181b', border: '#18181b', text: '#fff' },
+                      { id: 'amber-warehouse', label: 'Stark Mono', bg: '#000000', border: '#000000', text: '#fff' },
+                      { id: 'slate-modern', label: 'Modern Slate', bg: '#3f3f46', border: '#3f3f46', text: '#fff' },
                     ].map((item) => (
                       <button
                         key={item.id}
@@ -230,7 +230,7 @@ export const StickerSettingsModal: React.FC<StickerSettingsModalProps> = ({
                         onClick={() => handleSelectPreset(item.id as StickerThemePreset)}
                         className={`p-2.5 rounded-xl border text-left flex items-center justify-between transition cursor-pointer ${
                           settings.themePreset === item.id
-                            ? 'bg-slate-800 border-indigo-500 ring-2 ring-indigo-500/40 text-white'
+                            ? 'bg-slate-800 border-neutral-400 ring-2 ring-neutral-400/40 text-white'
                             : 'bg-slate-950/70 border-slate-800 hover:border-slate-700 text-slate-300'
                         }`}
                       >
@@ -242,7 +242,7 @@ export const StickerSettingsModal: React.FC<StickerSettingsModalProps> = ({
                           <span className="text-xs font-semibold">{item.label}</span>
                         </div>
                         {settings.themePreset === item.id && (
-                          <Check className="w-3.5 h-3.5 text-indigo-400" />
+                          <Check className="w-3.5 h-3.5 text-neutral-400" />
                         )}
                       </button>
                     ))}
@@ -252,7 +252,7 @@ export const StickerSettingsModal: React.FC<StickerSettingsModalProps> = ({
                 {/* Custom Color Overrides */}
                 <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-3.5">
                   <h4 className="text-xs font-bold text-slate-200 flex items-center gap-2">
-                    <Sliders className="w-3.5 h-3.5 text-indigo-400" />
+                    <Sliders className="w-3.5 h-3.5 text-neutral-400" />
                     <span>Custom Color Palette Controls</span>
                   </h4>
 
@@ -292,7 +292,7 @@ export const StickerSettingsModal: React.FC<StickerSettingsModalProps> = ({
                       <select
                         value={settings.borderWidth}
                         onChange={(e) => handleChange('borderWidth', e.target.value as any)}
-                        className="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white font-medium focus:ring-1 focus:ring-indigo-500"
+                        className="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white font-medium focus:ring-1 focus:ring-neutral-400"
                       >
                         <option value="1px">1px (Thin)</option>
                         <option value="2px">2px (Standard Heavy)</option>
@@ -430,14 +430,14 @@ export const StickerSettingsModal: React.FC<StickerSettingsModalProps> = ({
                           onClick={() => handleChange('fontFamily', fontKey)}
                           className={`p-3 rounded-xl border text-left transition cursor-pointer ${
                             settings.fontFamily === fontKey
-                              ? 'bg-slate-800 border-indigo-500 ring-2 ring-indigo-500/40 text-white'
+                              ? 'bg-slate-800 border-neutral-400 ring-2 ring-neutral-400/40 text-white'
                               : 'bg-slate-950/70 border-slate-800 hover:border-slate-700 text-slate-300'
                           }`}
                         >
                           <div className="flex items-center justify-between mb-1">
-                            <span className="text-xs font-bold text-indigo-300">{f.name}</span>
+                            <span className="text-xs font-bold text-neutral-300">{f.name}</span>
                             {settings.fontFamily === fontKey && (
-                              <Check className="w-3.5 h-3.5 text-indigo-400" />
+                              <Check className="w-3.5 h-3.5 text-neutral-400" />
                             )}
                           </div>
                           <p className={`text-sm text-slate-200 font-bold ${f.cssClass}`}>
@@ -453,7 +453,7 @@ export const StickerSettingsModal: React.FC<StickerSettingsModalProps> = ({
                 {/* Typography Controls */}
                 <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-3.5">
                   <h4 className="text-xs font-bold text-slate-200 flex items-center gap-2">
-                    <Type className="w-3.5 h-3.5 text-indigo-400" />
+                    <Type className="w-3.5 h-3.5 text-neutral-400" />
                     <span>Weights & Scale Adjustments</span>
                   </h4>
 
@@ -495,7 +495,7 @@ export const StickerSettingsModal: React.FC<StickerSettingsModalProps> = ({
                       type="button"
                       onClick={() => handleChange('uppercaseHeaders', !settings.uppercaseHeaders)}
                       className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-                        settings.uppercaseHeaders ? 'bg-indigo-600' : 'bg-slate-700'
+                        settings.uppercaseHeaders ? 'bg-neutral-900' : 'bg-slate-700'
                       }`}
                     >
                       <span
@@ -515,7 +515,7 @@ export const StickerSettingsModal: React.FC<StickerSettingsModalProps> = ({
                       type="button"
                       onClick={() => handleChange('autoScaleLongText', settings.autoScaleLongText === false ? true : false)}
                       className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-                        settings.autoScaleLongText !== false ? 'bg-indigo-600' : 'bg-slate-700'
+                        settings.autoScaleLongText !== false ? 'bg-neutral-900' : 'bg-slate-700'
                       }`}
                     >
                       <span
@@ -536,14 +536,14 @@ export const StickerSettingsModal: React.FC<StickerSettingsModalProps> = ({
                 <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-3">
                   <div className="flex items-center justify-between">
                     <label className="block text-xs font-bold text-slate-200 flex items-center gap-1.5">
-                      <ImageIcon className="w-3.5 h-3.5 text-indigo-400" />
+                      <ImageIcon className="w-3.5 h-3.5 text-neutral-400" />
                       <span>{t.uploadLogo}</span>
                     </label>
                     {settings.logoUrl && (
                       <button
                         type="button"
                         onClick={() => handleChange('logoUrl', null)}
-                        className="text-[11px] text-rose-400 hover:text-rose-300 font-semibold flex items-center gap-1 cursor-pointer"
+                        className="text-[11px] text-neutral-400 hover:text-neutral-300 font-semibold flex items-center gap-1 cursor-pointer"
                       >
                         <Trash2 className="w-3 h-3" />
                         <span>{t.removeLogo}</span>
@@ -561,7 +561,7 @@ export const StickerSettingsModal: React.FC<StickerSettingsModalProps> = ({
                         />
                       </div>
                       <div className="flex-1 text-xs">
-                        <span className="font-semibold text-emerald-400 flex items-center gap-1">
+                        <span className="font-semibold text-neutral-400 flex items-center gap-1">
                           <CheckCircle2 className="w-3.5 h-3.5" />
                           Custom Logo Active
                         </span>
@@ -585,8 +585,8 @@ export const StickerSettingsModal: React.FC<StickerSettingsModalProps> = ({
                       onClick={() => fileInputRef.current?.click()}
                       className={`p-6 border-2 border-dashed rounded-xl text-center cursor-pointer transition flex flex-col items-center justify-center gap-2 ${
                         isDraggingLogo
-                          ? 'border-indigo-500 bg-indigo-950/30'
-                          : 'border-slate-700 hover:border-indigo-400 hover:bg-slate-900/60'
+                          ? 'border-neutral-400 bg-neutral-950/30'
+                          : 'border-slate-700 hover:border-neutral-300 hover:bg-slate-900/60'
                       }`}
                     >
                       <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400">
@@ -661,7 +661,7 @@ export const StickerSettingsModal: React.FC<StickerSettingsModalProps> = ({
                       placeholder={sheetData.companyName || 'e.g., GOOD & FAST Pa. Co. Ltd'}
                       value={settings.customCompanyName}
                       onChange={(e) => handleChange('customCompanyName', e.target.value)}
-                      className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white placeholder-slate-500 focus:ring-1 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white placeholder-slate-500 focus:ring-1 focus:ring-neutral-400"
                     />
                     <p className="text-[10px] text-slate-500 mt-1">
                       Leave blank to automatically use the sheet's company name: <span className="font-semibold text-slate-300">{sheetData.companyName || 'N/A'}</span>
@@ -677,7 +677,7 @@ export const StickerSettingsModal: React.FC<StickerSettingsModalProps> = ({
                       placeholder="GARMENT ACCESSORIES & PACKING SPECIFICATION"
                       value={settings.customSubtitle}
                       onChange={(e) => handleChange('customSubtitle', e.target.value)}
-                      className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white placeholder-slate-500 focus:ring-1 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white placeholder-slate-500 focus:ring-1 focus:ring-neutral-400"
                     />
                   </div>
 
@@ -690,7 +690,7 @@ export const StickerSettingsModal: React.FC<StickerSettingsModalProps> = ({
                       placeholder="QC INSPECTED · EXPORT STANDARD PACKING"
                       value={settings.footerBrandingText}
                       onChange={(e) => handleChange('footerBrandingText', e.target.value)}
-                      className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white placeholder-slate-500 focus:ring-1 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white placeholder-slate-500 focus:ring-1 focus:ring-neutral-400"
                     />
                   </div>
                 </div>
@@ -725,7 +725,7 @@ export const StickerSettingsModal: React.FC<StickerSettingsModalProps> = ({
                       type="button"
                       onClick={() => handleChange(item.key as any, !settings[item.key as keyof StickerCustomizationSettings])}
                       className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer shrink-0 ${
-                        settings[item.key as keyof StickerCustomizationSettings] ? 'bg-indigo-600' : 'bg-slate-700'
+                        settings[item.key as keyof StickerCustomizationSettings] ? 'bg-neutral-900' : 'bg-slate-700'
                       }`}
                     >
                       <span
@@ -744,7 +744,7 @@ export const StickerSettingsModal: React.FC<StickerSettingsModalProps> = ({
           <div className="lg:col-span-5 flex flex-col">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-                <Eye className="w-3.5 h-3.5 text-emerald-400" />
+                <Eye className="w-3.5 h-3.5 text-neutral-400" />
                 <span>Live Sticker Preview (Carton #1)</span>
               </span>
               <span className="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded font-mono">
@@ -763,13 +763,13 @@ export const StickerSettingsModal: React.FC<StickerSettingsModalProps> = ({
                 {/* Crop Marks on Live Preview Modal */}
                 {settings.showCropMarks && (
                   <>
-                    <div className="absolute -inset-2 border-2 border-dashed border-emerald-500/80 pointer-events-none z-20" />
-                    <span className="absolute -top-3.5 -left-3.5 w-3 h-3 border-t-2 border-l-2 border-emerald-400 pointer-events-none z-20" />
-                    <span className="absolute -top-3.5 -right-3.5 w-3 h-3 border-t-2 border-r-2 border-emerald-400 pointer-events-none z-20" />
-                    <span className="absolute -bottom-3.5 -left-3.5 w-3 h-3 border-b-2 border-l-2 border-emerald-400 pointer-events-none z-20" />
-                    <span className="absolute -bottom-3.5 -right-3.5 w-3 h-3 border-b-2 border-r-2 border-emerald-400 pointer-events-none z-20" />
-                    <div className="absolute -top-3 left-2 px-1 bg-slate-900 border border-emerald-500/60 text-[8px] font-mono font-bold text-emerald-400 flex items-center gap-1 z-20 rounded-xs">
-                      <Scissors className="w-2.5 h-2.5 text-emerald-400" />
+                    <div className="absolute -inset-2 border-2 border-dashed border-neutral-400/80 pointer-events-none z-20" />
+                    <span className="absolute -top-3.5 -left-3.5 w-3 h-3 border-t-2 border-l-2 border-neutral-300 pointer-events-none z-20" />
+                    <span className="absolute -top-3.5 -right-3.5 w-3 h-3 border-t-2 border-r-2 border-neutral-300 pointer-events-none z-20" />
+                    <span className="absolute -bottom-3.5 -left-3.5 w-3 h-3 border-b-2 border-l-2 border-neutral-300 pointer-events-none z-20" />
+                    <span className="absolute -bottom-3.5 -right-3.5 w-3 h-3 border-b-2 border-r-2 border-neutral-300 pointer-events-none z-20" />
+                    <div className="absolute -top-3 left-2 px-1 bg-slate-900 border border-neutral-400/60 text-[8px] font-mono font-bold text-neutral-400 flex items-center gap-1 z-20 rounded-xs">
+                      <Scissors className="w-2.5 h-2.5 text-neutral-400" />
                       <span>CROP MARK</span>
                     </div>
                   </>
@@ -908,9 +908,9 @@ export const StickerSettingsModal: React.FC<StickerSettingsModalProps> = ({
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center justify-between bg-amber-50 px-1 py-0.5 border border-amber-200 rounded-xs">
-                        <span className="text-[8px] font-black text-amber-950 uppercase">QUANTITY:</span>
-                        <span className="font-mono font-black text-amber-950 text-[10.5px]">
+                      <div className="flex items-center justify-between bg-neutral-100 px-1 py-0.5 border border-neutral-200 rounded-xs">
+                        <span className="text-[8px] font-black text-neutral-900 uppercase">QUANTITY:</span>
+                        <span className="font-mono font-black text-neutral-900 text-[10.5px]">
                           2,000 PCS
                         </span>
                       </div>
@@ -1025,8 +1025,8 @@ export const StickerSettingsModal: React.FC<StickerSettingsModalProps> = ({
                         <div className="col-span-2 pt-0.5 border-t border-slate-200 grid grid-cols-2 gap-x-1.5 gap-y-0.5 min-w-0">
                           {technicalRows.map((row) => (
                             <React.Fragment key={row.id}>
-                              <div className="flex items-center justify-between bg-indigo-50/70 px-1 py-0.2 rounded border border-indigo-100 min-w-0 gap-1">
-                                <span className="text-[7px] font-bold text-indigo-900 uppercase shrink-0">
+                              <div className="flex items-center justify-between bg-neutral-100/70 px-1 py-0.2 rounded border border-neutral-200 min-w-0 gap-1">
+                                <span className="text-[7px] font-bold text-neutral-900 uppercase shrink-0">
                                   {row.item1.label}
                                 </span>
                                 <div className="min-w-0 flex-1 flex justify-end">
@@ -1036,13 +1036,13 @@ export const StickerSettingsModal: React.FC<StickerSettingsModalProps> = ({
                                     minFontSize={6}
                                     align="right"
                                     enabled={settings.autoScaleLongText !== false}
-                                    className="font-black text-indigo-950"
+                                    className="font-black text-neutral-900"
                                   />
                                 </div>
                               </div>
                               {row.item2 && (
-                                <div className="flex items-center justify-between bg-emerald-50/70 px-1 py-0.2 rounded border border-emerald-100 min-w-0 gap-1">
-                                  <span className="text-[7px] font-bold text-emerald-900 uppercase shrink-0">
+                                <div className="flex items-center justify-between bg-neutral-100/70 px-1 py-0.2 rounded border border-neutral-200 min-w-0 gap-1">
+                                  <span className="text-[7px] font-bold text-neutral-900 uppercase shrink-0">
                                     {row.item2.label}
                                   </span>
                                   <div className="min-w-0 flex-1 flex justify-end">
@@ -1052,7 +1052,7 @@ export const StickerSettingsModal: React.FC<StickerSettingsModalProps> = ({
                                       minFontSize={6}
                                       align="right"
                                       enabled={settings.autoScaleLongText !== false}
-                                      className="font-black text-emerald-950"
+                                      className="font-black text-neutral-900"
                                     />
                                   </div>
                                 </div>
@@ -1090,12 +1090,12 @@ export const StickerSettingsModal: React.FC<StickerSettingsModalProps> = ({
                         style={{ backgroundColor: settings.lengthBoxBg }}
                       >
                         <span className="text-[7px] font-bold uppercase block text-slate-700">QTY</span>
-                        <span className="font-black text-xs text-amber-900">2,000</span>
+                        <span className="font-black text-xs text-neutral-900">2,000</span>
                         <span className="text-[7px] text-slate-600 block">Pcs</span>
                       </div>
                       <div className="bg-slate-50">
                         <span className="text-[7px] font-bold text-slate-700 uppercase block">PKTS</span>
-                        <span className="font-black text-xs text-purple-900">20</span>
+                        <span className="font-black text-xs text-neutral-900">20</span>
                         <span className="text-[7px] text-slate-600 block">Pkt</span>
                       </div>
                     </>
@@ -1175,7 +1175,7 @@ export const StickerSettingsModal: React.FC<StickerSettingsModalProps> = ({
         <div className="px-5 py-3 bg-slate-950 border-t border-slate-800 flex items-center justify-end gap-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl shadow-md transition cursor-pointer flex items-center gap-1.5"
+            className="px-4 py-2 bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-bold rounded-xl shadow-md transition cursor-pointer flex items-center gap-1.5"
           >
             <Check className="w-4 h-4" />
             <span>{t.saveStickerSettings}</span>

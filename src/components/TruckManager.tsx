@@ -105,7 +105,7 @@ export const TruckManager: React.FC = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-96">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-neutral-800" />
       </div>
     );
   }
@@ -120,19 +120,19 @@ export const TruckManager: React.FC = () => {
 
       {/* Summary */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white p-4 rounded-lg">
+        <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 text-white p-4 rounded-lg">
           <p className="text-sm opacity-90">Total Trucks</p>
           <p className="text-3xl font-bold">{trucks.length}</p>
         </div>
-        <div className="bg-gradient-to-br from-yellow-500 to-yellow-600 text-white p-4 rounded-lg">
+        <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 text-white p-4 rounded-lg">
           <p className="text-sm opacity-90">Waiting</p>
           <p className="text-3xl font-bold">{trucks.filter((t) => t.status === 'waiting').length}</p>
         </div>
-        <div className="bg-gradient-to-br from-orange-500 to-orange-600 text-white p-4 rounded-lg">
+        <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 text-white p-4 rounded-lg">
           <p className="text-sm opacity-90">In Transit</p>
           <p className="text-3xl font-bold">{trucks.filter((t) => t.status === 'in_transit').length}</p>
         </div>
-        <div className="bg-gradient-to-br from-green-500 to-green-600 text-white p-4 rounded-lg">
+        <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 text-white p-4 rounded-lg">
           <p className="text-sm opacity-90">Delivered</p>
           <p className="text-3xl font-bold">{totalDelivered}</p>
         </div>
@@ -145,7 +145,7 @@ export const TruckManager: React.FC = () => {
           <select
             value={selectedChallan}
             onChange={(e) => setSelectedChallan(e.target.value)}
-            className="w-full md:w-64 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+            className="w-full md:w-64 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-neutral-400"
           >
             <option value="">All Challans</option>
             {challans.map((challan) => (
@@ -165,12 +165,12 @@ export const TruckManager: React.FC = () => {
           </div>
         ) : (
           filteredTrucks.map((truck) => (
-            <div key={truck.id} className="bg-white rounded-lg shadow-lg p-6 border-l-4 border-blue-500">
+            <div key={truck.id} className="bg-white rounded-lg shadow-lg p-6 border-l-4 border-neutral-400">
               {/* Truck Info */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 <div>
                   <p className="text-sm text-gray-600">Truck #</p>
-                  <p className="text-2xl font-bold text-blue-600">#{truck.truckNo}</p>
+                  <p className="text-2xl font-bold text-neutral-800">#{truck.truckNo}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Cartons</p>
@@ -199,10 +199,10 @@ export const TruckManager: React.FC = () => {
                       <p
                         className={`font-semibold ${
                           truck.status === 'delivered'
-                            ? 'text-green-600'
+                            ? 'text-neutral-800'
                             : truck.status === 'in_transit'
-                            ? 'text-orange-600'
-                            : 'text-blue-600'
+                            ? 'text-neutral-800'
+                            : 'text-neutral-800'
                         }`}
                       >
                         {truck.status.replace('_', ' ').toUpperCase()}
@@ -224,7 +224,7 @@ export const TruckManager: React.FC = () => {
                           },
                         })
                       }
-                      className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                      className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-neutral-400"
                     />
                     <input
                       type="tel"
@@ -239,11 +239,11 @@ export const TruckManager: React.FC = () => {
                           },
                         })
                       }
-                      className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                      className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-neutral-400"
                     />
                     <button
                       onClick={() => handleAddDriver(truck.id)}
-                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition"
+                      className="px-4 py-2 bg-neutral-900 hover:bg-neutral-800 text-white rounded-lg font-semibold transition"
                     >
                       Assign Driver
                     </button>
@@ -257,7 +257,7 @@ export const TruckManager: React.FC = () => {
                   {truck.status === 'waiting' && (
                     <button
                       onClick={() => handleUpdateTruckStatus(truck.id, 'loading')}
-                      className="flex items-center gap-2 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-semibold transition"
+                      className="flex items-center gap-2 px-4 py-2 bg-neutral-800 hover:bg-neutral-800 text-white rounded-lg font-semibold transition"
                     >
                       <Plus className="w-4 h-4" />
                       Load Truck
@@ -266,7 +266,7 @@ export const TruckManager: React.FC = () => {
                   {truck.status === 'loading' && (
                     <button
                       onClick={() => handleUpdateTruckStatus(truck.id, 'loaded')}
-                      className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition"
+                      className="flex items-center gap-2 px-4 py-2 bg-neutral-800 hover:bg-neutral-800 text-white rounded-lg font-semibold transition"
                     >
                       <Check className="w-4 h-4" />
                       Mark Loaded
@@ -275,7 +275,7 @@ export const TruckManager: React.FC = () => {
                   {truck.status === 'loaded' && (
                     <button
                       onClick={() => handleUpdateTruckStatus(truck.id, 'in_transit')}
-                      className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-semibold transition"
+                      className="flex items-center gap-2 px-4 py-2 bg-neutral-800 hover:bg-neutral-800 text-white rounded-lg font-semibold transition"
                     >
                       <MapPin className="w-4 h-4" />
                       In Transit
@@ -284,14 +284,14 @@ export const TruckManager: React.FC = () => {
                   {truck.status === 'in_transit' && (
                     <button
                       onClick={() => handleUpdateTruckStatus(truck.id, 'delivered')}
-                      className="flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold transition"
+                      className="flex items-center gap-2 px-4 py-2 bg-neutral-800 hover:bg-neutral-800 text-white rounded-lg font-semibold transition"
                     >
                       <Check className="w-4 h-4" />
                       Delivered
                     </button>
                   )}
                   {truck.status === 'delivered' && (
-                    <span className="px-4 py-2 bg-green-100 text-green-700 rounded-lg font-semibold">
+                    <span className="px-4 py-2 bg-neutral-100 text-neutral-800 rounded-lg font-semibold">
                       ✅ Delivered
                     </span>
                   )}

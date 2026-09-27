@@ -146,7 +146,7 @@ export const IndexedDbBackupModal: React.FC<IndexedDbBackupModalProps> = ({
         {/* Modal Header */}
         <div className="p-4 sm:p-5 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+            <div className="w-10 h-10 rounded-xl bg-neutral-800/10 border border-neutral-400/30 flex items-center justify-center text-neutral-400">
               <Database className="w-5 h-5" />
             </div>
             <div>
@@ -154,7 +154,7 @@ export const IndexedDbBackupModal: React.FC<IndexedDbBackupModalProps> = ({
                 <h3 className="text-base font-bold text-white">
                   {lang === 'en' ? 'IndexedDB Robust Persistence & Auto-Backups' : 'IndexedDB অটো ব্যাকআপ ও রিস্টোর'}
                 </h3>
-                <span className="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-mono">
+                <span className="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-neutral-800/20 text-neutral-300 border border-neutral-400/30 font-mono">
                   IndexedDB v1
                 </span>
               </div>
@@ -178,8 +178,8 @@ export const IndexedDbBackupModal: React.FC<IndexedDbBackupModalProps> = ({
         <div className="bg-slate-950 px-5 py-3 text-xs text-slate-300 flex flex-wrap items-center justify-between gap-3 border-b border-slate-800">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-1.5">
-              <ShieldCheck className="w-4 h-4 text-emerald-400" />
-              <span className="font-semibold text-emerald-300">
+              <ShieldCheck className="w-4 h-4 text-neutral-400" />
+              <span className="font-semibold text-neutral-300">
                 {lang === 'en' ? 'Auto-Backup Active' : 'অটো ব্যাকআপ সক্রিয়'}
               </span>
             </div>
@@ -202,7 +202,7 @@ export const IndexedDbBackupModal: React.FC<IndexedDbBackupModalProps> = ({
             {backups.length > 0 && (
               <button
                 onClick={handleClearAll}
-                className="flex items-center gap-1 px-2.5 py-1 bg-rose-950/70 hover:bg-rose-900 text-rose-300 text-xs rounded border border-rose-800 transition cursor-pointer"
+                className="flex items-center gap-1 px-2.5 py-1 bg-neutral-950/70 hover:bg-neutral-950 text-neutral-300 text-xs rounded border border-neutral-700 transition cursor-pointer"
                 title="Clear all backup snapshots"
               >
                 <Trash2 className="w-3.5 h-3.5" />
@@ -214,8 +214,8 @@ export const IndexedDbBackupModal: React.FC<IndexedDbBackupModalProps> = ({
 
         {/* Feedback Alert */}
         {actionSuccess && (
-          <div className="px-5 py-2.5 bg-emerald-50 border-b border-emerald-200 text-emerald-900 text-xs font-semibold flex items-center gap-2 animate-in fade-in">
-            <Check className="w-4 h-4 text-emerald-600" />
+          <div className="px-5 py-2.5 bg-neutral-100 border-b border-neutral-200 text-neutral-900 text-xs font-semibold flex items-center gap-2 animate-in fade-in">
+            <Check className="w-4 h-4 text-neutral-800" />
             <span>{actionSuccess}</span>
           </div>
         )}
@@ -224,13 +224,13 @@ export const IndexedDbBackupModal: React.FC<IndexedDbBackupModalProps> = ({
         <div className="p-4 sm:p-6 overflow-y-auto space-y-5 flex-1">
           
           {/* Manual Snapshot Trigger Box */}
-          <div className="p-3.5 bg-emerald-50/70 border border-emerald-200 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="p-3.5 bg-neutral-100/70 border border-neutral-200 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="space-y-0.5 text-center sm:text-left">
-              <h4 className="text-xs font-bold text-emerald-950 uppercase tracking-wider flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+              <h4 className="text-xs font-bold text-neutral-900 uppercase tracking-wider flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-neutral-800" />
                 {lang === 'en' ? 'Create Instant Snapshot Point' : 'ম্যানুয়াল স্ন্যাপশট ব্যাকআপ নিন'}
               </h4>
-              <p className="text-xs text-emerald-800">
+              <p className="text-xs text-neutral-900">
                 {lang === 'en'
                   ? 'Capture the exact current sheet state into IndexedDB with an optional custom label.'
                   : 'বর্তমান প্যাকিং শিটের সঠিক ডাটা IndexedDB তে আলাদা পয়েন্ট হিসেবে সেভ করুন।'}
@@ -243,11 +243,11 @@ export const IndexedDbBackupModal: React.FC<IndexedDbBackupModalProps> = ({
                 value={snapshotLabel}
                 onChange={e => setSnapshotLabel(e.target.value)}
                 placeholder={lang === 'en' ? 'Label (e.g. Before Buyer Edit)...' : 'লেবেল (যেমন: এডিটের আগে)...'}
-                className="px-3 py-1.5 text-xs bg-white border border-emerald-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 w-full sm:w-56"
+                className="px-3 py-1.5 text-xs bg-white border border-neutral-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-neutral-400 w-full sm:w-56"
               />
               <button
                 onClick={handleCreateSnapshot}
-                className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-lg shadow-sm shrink-0 flex items-center gap-1.5 transition cursor-pointer"
+                className="px-3.5 py-1.5 bg-neutral-900 hover:bg-neutral-800 text-white font-bold text-xs rounded-lg shadow-sm shrink-0 flex items-center gap-1.5 transition cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>{lang === 'en' ? 'Save Snapshot' : 'স্ন্যাপশট নিন'}</span>
@@ -259,7 +259,7 @@ export const IndexedDbBackupModal: React.FC<IndexedDbBackupModalProps> = ({
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 text-indigo-600" />
+                <Clock className="w-3.5 h-3.5 text-neutral-800" />
                 {lang === 'en' ? 'IndexedDB Backup History' : 'স্বয়ংক্রিয় ব্যাকআপের তালিকা'}
               </h4>
               <span className="text-xs text-slate-500">
@@ -296,14 +296,14 @@ export const IndexedDbBackupModal: React.FC<IndexedDbBackupModalProps> = ({
                         <div className="flex items-center gap-2">
                           <span className={`px-2 py-0.5 rounded text-[10px] font-bold font-mono ${
                             record.source === 'manual' 
-                              ? 'bg-amber-100 text-amber-800 border border-amber-200' 
-                              : 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+                              ? 'bg-neutral-100 text-neutral-900 border border-neutral-200' 
+                              : 'bg-neutral-100 text-neutral-800 border border-neutral-200'
                           }`}>
                             {record.source === 'manual' ? 'MANUAL' : 'AUTO-SAVE'}
                           </span>
 
                           {isLatest && (
-                            <span className="px-1.5 py-0.5 rounded text-[9.5px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                            <span className="px-1.5 py-0.5 rounded text-[9.5px] font-bold bg-neutral-100 text-neutral-900 border border-neutral-200">
                               LATEST
                             </span>
                           )}
@@ -324,18 +324,18 @@ export const IndexedDbBackupModal: React.FC<IndexedDbBackupModalProps> = ({
                           <span>•</span>
                           <span>Buyer: <strong className="text-slate-800">{record.buyer || 'N/A'}</strong></span>
                           <span>•</span>
-                          <span>Cartons: <strong className="text-emerald-700">{record.totalCtn} CTN</strong></span>
+                          <span>Cartons: <strong className="text-neutral-800">{record.totalCtn} CTN</strong></span>
                           <span>•</span>
-                          <span>Net: <strong className="text-indigo-700">{record.totalNetWt.toFixed(2)} Kg</strong></span>
+                          <span>Net: <strong className="text-neutral-800">{record.totalNetWt.toFixed(2)} Kg</strong></span>
                           <span>•</span>
-                          <span>Mtr: <strong className="text-purple-700">{record.totalMtr.toFixed(2)} m</strong></span>
+                          <span>Mtr: <strong className="text-neutral-800">{record.totalMtr.toFixed(2)} m</strong></span>
                         </div>
                       </div>
 
                       <div className="flex items-center gap-1.5 self-end sm:self-center shrink-0">
                         <button
                           onClick={() => handleRestore(record)}
-                          className="flex items-center gap-1 px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs rounded-lg shadow-xs transition cursor-pointer"
+                          className="flex items-center gap-1 px-3 py-1 bg-neutral-900 hover:bg-neutral-800 text-white font-semibold text-xs rounded-lg shadow-xs transition cursor-pointer"
                           title="Restore this backup data into the active editor"
                         >
                           <RotateCcw className="w-3.5 h-3.5" />
@@ -343,7 +343,7 @@ export const IndexedDbBackupModal: React.FC<IndexedDbBackupModalProps> = ({
                         </button>
                         <button
                           onClick={() => handleDelete(record.id)}
-                          className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
+                          className="p-1.5 text-slate-400 hover:text-neutral-800 hover:bg-neutral-100 rounded-lg transition cursor-pointer"
                           title="Delete this snapshot"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -359,7 +359,7 @@ export const IndexedDbBackupModal: React.FC<IndexedDbBackupModalProps> = ({
           {/* Storage Architecture Info */}
           <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-600 space-y-1.5">
             <h5 className="font-bold text-slate-800 flex items-center gap-1.5">
-              <ShieldCheck className="w-4 h-4 text-emerald-600" />
+              <ShieldCheck className="w-4 h-4 text-neutral-800" />
               {lang === 'en' ? 'Why IndexedDB Persistence?' : 'IndexedDB ব্যাকআপের সুবিধা কী?'}
             </h5>
             <p className="text-[11.5px] leading-relaxed text-slate-600">

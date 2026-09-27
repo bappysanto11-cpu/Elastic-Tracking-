@@ -120,13 +120,26 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
     };
   }, [isViewsDropdownOpen, isHubDropdownOpen]);
 
-  // View Mode: Table vs Card (Cards are super fast and touch-friendly on mobile phones)
+  // View Mode: Table vs Card (remembered across sessions)
   const [viewMode, setViewMode] = useState<'table' | 'cards'>(() => {
-    if (typeof window !== 'undefined' && window.innerWidth < 768) {
-      return 'cards';
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('schedule_view_mode');
+      if (saved === 'table' || saved === 'cards') return saved;
+      if (window.innerWidth < 768) return 'cards';
     }
     return 'table';
   });
+
+  const handleSetViewMode = (mode: 'table' | 'cards') => {
+    setViewMode(mode);
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('schedule_view_mode', mode);
+      } catch {
+        // ignore
+      }
+    }
+  };
 
   // Pagination State - CRITICAL to prevent mobile browser freeze / DOM overloading!
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -792,14 +805,14 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                 }}
                 className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer shadow-xs ${
                   activeTab === 'upload'
-                    ? 'bg-blue-600 text-white border border-blue-400/50 shadow-md shadow-blue-950/40'
+                    ? 'bg-neutral-900 text-white border border-neutral-300/50 shadow-md shadow-blue-950/40'
                     : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700'
                 }`}
                 title={lang === 'en' ? 'Click to open Hub & Schedule Actions' : 'শিডিউল হাব ও ফাইল অপশন খুলতে ক্লিক করুন'}
               >
-                <FileSpreadsheet className="w-4 h-4 text-emerald-300" />
+                <FileSpreadsheet className="w-4 h-4 text-neutral-300" />
                 <span>{lang === 'en' ? 'Schedule & Output Hub' : 'শিডিউল ও আউটপুট হাব'}</span>
-                <span className="text-[10px] bg-blue-900/90 text-blue-200 px-1.5 py-0.2 rounded font-mono font-bold border border-blue-400/30">
+                <span className="text-[10px] bg-neutral-950/90 text-neutral-200 px-1.5 py-0.2 rounded font-mono font-bold border border-neutral-300/30">
                   Hub
                 </span>
                 <ChevronDown className={`w-3.5 h-3.5 text-slate-300 transition-transform duration-200 ${isHubDropdownOpen ? 'rotate-180' : ''}`} />
@@ -810,7 +823,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                 <div className="absolute left-0 mt-2 w-72 sm:w-84 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-150 space-y-1.5">
                   <div className="px-2.5 py-1.5 border-b border-slate-800 flex items-center justify-between text-[11px] text-slate-400 font-semibold">
                     <span>{lang === 'en' ? 'Schedule & File Actions' : 'শিডিউল হাব ও ফাইল অপশন'}</span>
-                    <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/70 px-1.5 py-0.5 rounded border border-emerald-500/30">
+                    <span className="text-[10px] font-mono text-neutral-400 bg-neutral-950/70 px-1.5 py-0.5 rounded border border-neutral-400/30">
                       Hub Menu
                     </span>
                   </div>
@@ -818,7 +831,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                   {/* 1. Upload Excel File */}
                   <label className="w-full flex items-center justify-between p-2.5 rounded-lg text-xs transition cursor-pointer text-slate-200 hover:bg-slate-800 hover:text-white group">
                     <div className="flex items-center gap-2.5">
-                      <span className="p-1.5 rounded-lg bg-blue-600/20 text-blue-400 border border-blue-500/30 group-hover:bg-blue-600 group-hover:text-white transition">
+                      <span className="p-1.5 rounded-lg bg-neutral-900/20 text-neutral-400 border border-neutral-400/30 group-hover:bg-neutral-800 group-hover:text-white transition">
                         {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
                       </span>
                       <div>
@@ -852,7 +865,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                     className="w-full flex items-center justify-between p-2.5 rounded-lg text-xs transition cursor-pointer text-slate-200 hover:bg-slate-800 hover:text-white group text-left"
                   >
                     <div className="flex items-center gap-2.5">
-                      <span className="p-1.5 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/30 group-hover:bg-amber-600 group-hover:text-white transition">
+                      <span className="p-1.5 rounded-lg bg-neutral-800/20 text-neutral-400 border border-neutral-400/30 group-hover:bg-neutral-800 group-hover:text-white transition">
                         <Sparkles className="w-4 h-4" />
                       </span>
                       <div>
@@ -881,7 +894,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                     }`}
                   >
                     <div className="flex items-center gap-2.5">
-                      <span className={`p-1.5 rounded-lg ${activeFile ? 'bg-sky-500/20 text-sky-400 border border-sky-500/30 group-hover:bg-sky-600 group-hover:text-white transition' : 'bg-slate-800 text-slate-600 border border-slate-700'}`}>
+                      <span className={`p-1.5 rounded-lg ${activeFile ? 'bg-neutral-800/20 text-neutral-400 border border-neutral-400/30 group-hover:bg-neutral-800 group-hover:text-white transition' : 'bg-slate-800 text-slate-600 border border-slate-700'}`}>
                         <Download className="w-4 h-4" />
                       </span>
                       <div>
@@ -912,7 +925,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                     }`}
                   >
                     <div className="flex items-center gap-2.5">
-                      <span className={`p-1.5 rounded-lg ${activeFile ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 group-hover:bg-emerald-600 group-hover:text-white transition' : 'bg-slate-800 text-slate-600 border border-slate-700'}`}>
+                      <span className={`p-1.5 rounded-lg ${activeFile ? 'bg-neutral-800/20 text-neutral-400 border border-neutral-400/30 group-hover:bg-neutral-800 group-hover:text-white transition' : 'bg-slate-800 text-slate-600 border border-slate-700'}`}>
                         {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                       </span>
                       <div>
@@ -936,14 +949,14 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                 onClick={() => setIsViewsDropdownOpen(prev => !prev)}
                 className={`flex items-center gap-2 px-3.5 py-2.5 text-xs rounded-xl transition cursor-pointer font-bold border ${
                   activeTab === 'table' || activeTab === 'sheet' || activeTab === 'stickers'
-                    ? 'bg-blue-600 text-white shadow-md shadow-blue-950/40 border-blue-400/50'
+                    ? 'bg-neutral-900 text-white shadow-md shadow-blue-950/40 border-neutral-300/50'
                     : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'
                 }`}
                 title={lang === 'en' ? 'Choose from 1. Live Table, 2. Factory Sheet, 3. Carton Stickers' : '১. লাইভ টেবিল, ২. ফ্যাক্টরি শিট, বা ৩. কার্টন স্টিকার নির্বাচন করুন'}
               >
-                <Layers className="w-4 h-4 text-sky-400" />
+                <Layers className="w-4 h-4 text-neutral-400" />
                 <span>{lang === 'en' ? 'Table, Sheet & Stickers' : 'টেবিল, শিট ও স্টিকার'}</span>
-                <span className="text-[10px] bg-slate-900 text-sky-200 px-1.5 py-0.5 rounded font-mono font-bold border border-slate-700">
+                <span className="text-[10px] bg-slate-900 text-neutral-200 px-1.5 py-0.5 rounded font-mono font-bold border border-slate-700">
                   3-in-1
                 </span>
                 <ChevronDown className={`w-3.5 h-3.5 text-slate-300 transition-transform duration-200 ${isViewsDropdownOpen ? 'rotate-180' : ''}`} />
@@ -954,7 +967,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                 <div className="absolute left-0 mt-2 w-72 sm:w-80 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-150 space-y-1.5">
                   <div className="px-2.5 py-1.5 border-b border-slate-800 flex items-center justify-between text-[11px] text-slate-400 font-semibold">
                     <span>{lang === 'en' ? 'Select Production View' : 'প্রোডাকশন ভিউ অপশন নির্বাচন করুন'}</span>
-                    <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/70 px-1.5 py-0.5 rounded border border-emerald-500/30">
+                    <span className="text-[10px] font-mono text-neutral-400 bg-neutral-950/70 px-1.5 py-0.5 rounded border border-neutral-400/30">
                       3 Options
                     </span>
                   </div>
@@ -969,20 +982,20 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                     }}
                     className={`w-full flex items-center justify-between p-2.5 rounded-lg text-xs transition cursor-pointer text-left ${
                       activeTab === 'table'
-                        ? 'bg-blue-600 text-white font-bold shadow-xs'
+                        ? 'bg-neutral-900 text-white font-bold shadow-xs'
                         : 'text-slate-200 hover:bg-slate-800 hover:text-white'
                     }`}
                   >
                     <div className="flex items-center gap-2.5">
-                      <span className={`p-1.5 rounded-lg ${activeTab === 'table' ? 'bg-blue-700 text-white' : 'bg-slate-800 text-blue-400 border border-slate-700'}`}>
+                      <span className={`p-1.5 rounded-lg ${activeTab === 'table' ? 'bg-neutral-900 text-white' : 'bg-slate-800 text-neutral-400 border border-slate-700'}`}>
                         <Table className="w-4 h-4" />
                       </span>
                       <div>
                         <div className="flex items-center gap-1.5">
-                          <span className="text-xs font-mono font-bold text-amber-400">1.</span>
+                          <span className="text-xs font-mono font-bold text-neutral-400">1.</span>
                           <span className="font-semibold text-xs">{lang === 'en' ? 'Live Calculation Table' : 'লাইভ ক্যালকুলেশন টেবিল'}</span>
                         </div>
-                        <p className={`text-[10px] leading-tight mt-0.5 ${activeTab === 'table' ? 'text-blue-100' : 'text-slate-400'}`}>
+                        <p className={`text-[10px] leading-tight mt-0.5 ${activeTab === 'table' ? 'text-neutral-100' : 'text-slate-400'}`}>
                           {lang === 'en' ? 'Live data entry, tare/gross weight & meters' : 'লাইভ ডাটা এন্ট্রি ও মিটার হিসাব টেবিল'}
                         </p>
                       </div>
@@ -1004,20 +1017,20 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                     }}
                     className={`w-full flex items-center justify-between p-2.5 rounded-lg text-xs transition cursor-pointer text-left ${
                       activeTab === 'sheet'
-                        ? 'bg-blue-600 text-white font-bold shadow-xs'
+                        ? 'bg-neutral-900 text-white font-bold shadow-xs'
                         : 'text-slate-200 hover:bg-slate-800 hover:text-white'
                     }`}
                   >
                     <div className="flex items-center gap-2.5">
-                      <span className={`p-1.5 rounded-lg ${activeTab === 'sheet' ? 'bg-blue-700 text-white' : 'bg-slate-800 text-emerald-400 border border-slate-700'}`}>
+                      <span className={`p-1.5 rounded-lg ${activeTab === 'sheet' ? 'bg-neutral-900 text-white' : 'bg-slate-800 text-neutral-400 border border-slate-700'}`}>
                         <LayoutGrid className="w-4 h-4" />
                       </span>
                       <div>
                         <div className="flex items-center gap-1.5">
-                          <span className="text-xs font-mono font-bold text-amber-400">2.</span>
+                          <span className="text-xs font-mono font-bold text-neutral-400">2.</span>
                           <span className="font-semibold text-xs">{lang === 'en' ? 'Factory Sheet Layout' : 'ফ্যাক্টরি শিট লেআউট (হুবহু প্রিন্ট)'}</span>
                         </div>
-                        <p className={`text-[10px] leading-tight mt-0.5 ${activeTab === 'sheet' ? 'text-blue-100' : 'text-slate-400'}`}>
+                        <p className={`text-[10px] leading-tight mt-0.5 ${activeTab === 'sheet' ? 'text-neutral-100' : 'text-slate-400'}`}>
                           {lang === 'en' ? 'Exact replica of factory printed packing sheet' : 'ফ্যাক্টরি পেপারের হুবহু প্রিন্ট ভিউ'}
                         </p>
                       </div>
@@ -1034,20 +1047,20 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                     }}
                     className={`w-full flex items-center justify-between p-2.5 rounded-lg text-xs transition cursor-pointer text-left ${
                       activeTab === 'stickers'
-                        ? 'bg-blue-600 text-white font-bold shadow-xs'
+                        ? 'bg-neutral-900 text-white font-bold shadow-xs'
                         : 'text-slate-200 hover:bg-slate-800 hover:text-white'
                     }`}
                   >
                     <div className="flex items-center gap-2.5">
-                      <span className={`p-1.5 rounded-lg ${activeTab === 'stickers' ? 'bg-blue-700 text-white' : 'bg-slate-800 text-indigo-400 border border-slate-700'}`}>
+                      <span className={`p-1.5 rounded-lg ${activeTab === 'stickers' ? 'bg-neutral-900 text-white' : 'bg-slate-800 text-neutral-400 border border-slate-700'}`}>
                         <Tag className="w-4 h-4" />
                       </span>
                       <div>
                         <div className="flex items-center gap-1.5">
-                          <span className="text-xs font-mono font-bold text-amber-400">3.</span>
+                          <span className="text-xs font-mono font-bold text-neutral-400">3.</span>
                           <span className="font-semibold text-xs">{lang === 'en' ? 'Print Carton Stickers' : 'কার্টন স্টিকার লেবেল'}</span>
                         </div>
-                        <p className={`text-[10px] leading-tight mt-0.5 ${activeTab === 'stickers' ? 'text-blue-100' : 'text-slate-400'}`}>
+                        <p className={`text-[10px] leading-tight mt-0.5 ${activeTab === 'stickers' ? 'text-neutral-100' : 'text-slate-400'}`}>
                           {lang === 'en' ? 'Carton sticker barcodes, QR & packing details' : 'কার্টনের গায়ে লাগানোর বারকোড ও কিউআর স্টিকার'}
                         </p>
                       </div>
@@ -1066,11 +1079,11 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
               }}
               className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer shadow-xs ${
                 activeTab === 'analytics'
-                  ? 'bg-blue-600 text-white border border-blue-400/50 shadow-md'
+                  ? 'bg-neutral-900 text-white border border-neutral-300/50 shadow-md'
                   : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700'
               }`}
             >
-              <BarChart3 className="w-4 h-4 text-rose-400" />
+              <BarChart3 className="w-4 h-4 text-neutral-400" />
               <span>{lang === 'en' ? 'Analytics' : 'অ্যানালিটিক্স'}</span>
             </button>
           </div>
@@ -1078,7 +1091,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
           {/* Right: Quick sync / file status indicator */}
           {activeFile && (
             <div className="hidden sm:flex items-center gap-2 text-xs text-slate-400 bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700/60 font-mono">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span className="w-2 h-2 rounded-full bg-neutral-400 animate-pulse"></span>
               <span className="truncate max-w-[160px] text-slate-300 font-semibold">{activeFile.fileName}</span>
             </div>
           )}
@@ -1089,15 +1102,15 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
           <div
             className={`mt-3 p-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all ${
               statusMessage.type === 'success'
-                ? 'bg-emerald-950/80 text-emerald-200 border border-emerald-700/60'
-                : 'bg-rose-950/80 text-rose-200 border border-rose-700/60'
+                ? 'bg-neutral-950/80 text-neutral-200 border border-neutral-700/60'
+                : 'bg-neutral-950/80 text-neutral-200 border border-neutral-700/60'
             }`}
           >
             <div className="flex items-center gap-2">
               {statusMessage.type === 'success' ? (
-                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <CheckCircle2 className="w-4 h-4 text-neutral-400 shrink-0" />
               ) : (
-                <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                <AlertCircle className="w-4 h-4 text-neutral-400 shrink-0" />
               )}
               <span>{statusMessage.text}</span>
             </div>
@@ -1115,22 +1128,22 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
       <div className="bg-white rounded-2xl shadow-xs border border-slate-200 p-3.5 sm:p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <FolderOpen className="w-4 h-4 text-indigo-600 shrink-0" />
+            <FolderOpen className="w-4 h-4 text-neutral-800 shrink-0" />
             <span className="text-xs font-bold text-slate-800">
               {lang === 'en' ? 'Tracked Files Shelf:' : 'ট্র্যাক করা ফাইলসমূহ:'}
             </span>
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-neutral-100 text-neutral-800 border border-neutral-200">
               {trackedFiles.length} {lang === 'en' ? 'Files' : 'ফাইল'}
             </span>
             {activeFile && (
-              <span className="text-xs font-bold text-blue-900 bg-blue-50 px-2.5 py-0.5 rounded-lg border border-blue-200 truncate max-w-[160px] sm:max-w-[280px]">
+              <span className="text-xs font-bold text-neutral-900 bg-neutral-100 px-2.5 py-0.5 rounded-lg border border-neutral-200 truncate max-w-[160px] sm:max-w-[280px]">
                 {activeFile.fileName}
               </span>
             )}
           </div>
           <button
             onClick={() => setShowFileDrawer(!showFileDrawer)}
-            className="text-xs font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1 cursor-pointer px-2 py-1 rounded hover:bg-blue-50"
+            className="text-xs font-semibold text-neutral-800 hover:text-neutral-900 flex items-center gap-1 cursor-pointer px-2 py-1 rounded hover:bg-neutral-100"
           >
             <span>{showFileDrawer ? (lang === 'en' ? 'Hide Files' : 'লুকান') : (lang === 'en' ? 'Switch File' : 'ফাইল পরিবর্তন')}</span>
             <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showFileDrawer ? 'rotate-180' : ''}`} />
@@ -1147,7 +1160,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                   onClick={() => handleSelectFile(file.id)}
                   className={`p-3 rounded-xl border transition-all cursor-pointer relative group flex flex-col justify-between ${
                     isSelected
-                      ? 'bg-blue-50/90 border-blue-500 shadow-xs ring-2 ring-blue-500/20'
+                      ? 'bg-neutral-100/90 border-neutral-400 shadow-xs ring-2 ring-neutral-400/20'
                       : 'bg-slate-50 hover:bg-slate-100/80 border-slate-200 text-slate-700'
                   }`}
                 >
@@ -1155,11 +1168,11 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                     <div className="flex items-start justify-between gap-2 mb-1">
                       <div className="flex items-center gap-2 overflow-hidden">
                         <FileSpreadsheet
-                          className={`w-4 h-4 shrink-0 ${isSelected ? 'text-blue-600' : 'text-slate-500'}`}
+                          className={`w-4 h-4 shrink-0 ${isSelected ? 'text-neutral-800' : 'text-slate-500'}`}
                         />
                         <span
                           className={`text-xs font-bold truncate max-w-[160px] ${
-                            isSelected ? 'text-blue-950' : 'text-slate-800'
+                            isSelected ? 'text-neutral-900' : 'text-slate-800'
                           }`}
                           title={file.fileName}
                         >
@@ -1169,10 +1182,10 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                       <span
                         className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider ${
                           file.status === 'completed'
-                            ? 'bg-emerald-100 text-emerald-800'
+                            ? 'bg-neutral-100 text-neutral-900'
                             : file.status === 'in-progress'
-                            ? 'bg-amber-100 text-amber-800'
-                            : 'bg-blue-100 text-blue-800'
+                            ? 'bg-neutral-100 text-neutral-900'
+                            : 'bg-neutral-100 text-neutral-900'
                         }`}
                       >
                         {file.status}
@@ -1202,7 +1215,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                     </span>
                     <button
                       onClick={e => handleDeleteFile(file.id, file.fileName, e)}
-                      className="p-1 text-slate-400 hover:text-rose-600 rounded transition cursor-pointer"
+                      className="p-1 text-slate-400 hover:text-neutral-800 rounded transition cursor-pointer"
                       title="Delete file tracking"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -1222,7 +1235,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
           <div className="p-3 sm:p-4 border-b border-slate-200 bg-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700 bg-blue-100 px-2 py-0.5 rounded">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-800 bg-neutral-100 px-2 py-0.5 rounded">
                   {lang === 'en' ? 'Active File' : 'সক্রিয় ফাইল'}
                 </span>
                 <h3 className="text-sm sm:text-base font-black text-slate-900 truncate max-w-[220px] sm:max-w-md">
@@ -1238,32 +1251,38 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
 
             <div className="flex flex-wrap items-center gap-2">
               {/* View Mode Toggle (Table vs Mobile Cards) */}
-              <div className="flex items-center bg-slate-200/80 p-0.5 rounded-lg border border-slate-300">
+              <div className="flex items-center bg-slate-200/90 p-1 rounded-xl border border-slate-300 shadow-2xs">
                 <button
-                  onClick={() => setViewMode('table')}
-                  className={`px-2.5 py-1 rounded text-xs font-semibold flex items-center gap-1 cursor-pointer transition ${
-                    viewMode === 'table' ? 'bg-white text-blue-700 shadow-2xs font-bold' : 'text-slate-600 hover:text-slate-900'
+                  type="button"
+                  onClick={() => handleSetViewMode('table')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all ${
+                    viewMode === 'table'
+                      ? 'bg-white text-neutral-800 shadow-xs border border-slate-200/90'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/60'
                   }`}
-                  title="Table View"
+                  title={lang === 'en' ? 'Table View' : 'টেবিল ভিউ'}
                 >
-                  <List className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">{lang === 'en' ? 'Table' : 'টেবিল'}</span>
+                  <Table className="w-3.5 h-3.5 text-neutral-800" />
+                  <span>{lang === 'en' ? 'Table' : 'টেবিল'}</span>
                 </button>
                 <button
-                  onClick={() => setViewMode('cards')}
-                  className={`px-2.5 py-1 rounded text-xs font-semibold flex items-center gap-1 cursor-pointer transition ${
-                    viewMode === 'cards' ? 'bg-white text-blue-700 shadow-2xs font-bold' : 'text-slate-600 hover:text-slate-900'
+                  type="button"
+                  onClick={() => handleSetViewMode('cards')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all ${
+                    viewMode === 'cards'
+                      ? 'bg-white text-neutral-800 shadow-xs border border-slate-200/90'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/60'
                   }`}
-                  title="Mobile Card View"
+                  title={lang === 'en' ? 'Mobile Card View' : 'কার্ড ভিউ'}
                 >
-                  <LayoutGrid className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">{lang === 'en' ? 'Cards' : 'কার্ড'}</span>
+                  <LayoutGrid className="w-3.5 h-3.5 text-neutral-800" />
+                  <span>{lang === 'en' ? 'Cards' : 'কার্ড'}</span>
                 </button>
               </div>
 
               <button
                 onClick={() => setIsAddRowModalOpen(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs transition cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-bold shadow-xs transition cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>{lang === 'en' ? 'Add Order' : 'অর্ডার যোগ'}</span>
@@ -1292,7 +1311,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                 <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                   {lang === 'en' ? 'Total Demand' : 'মোট চাহিদা'}
                 </span>
-                <span className="w-6 h-6 rounded-md bg-blue-50 flex items-center justify-center text-blue-600">
+                <span className="w-6 h-6 rounded-md bg-neutral-100 flex items-center justify-center text-neutral-800">
                   <Ruler className="w-3.5 h-3.5" />
                 </span>
               </div>
@@ -1307,13 +1326,13 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                 <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                   {lang === 'en' ? 'Completed Qty' : 'সম্পন্ন পরিমাণ'}
                 </span>
-                <span className="w-6 h-6 rounded-md bg-emerald-50 flex items-center justify-center text-emerald-600">
+                <span className="w-6 h-6 rounded-md bg-neutral-100 flex items-center justify-center text-neutral-800">
                   <CheckCircle2 className="w-3.5 h-3.5" />
                 </span>
               </div>
               <p className="text-xl sm:text-2xl font-bold font-mono text-slate-900 tabular-nums tracking-tight">
                 {metrics.totalCompleted.toLocaleString()}
-                <span className="text-xs font-semibold text-emerald-600 ml-1">({metrics.pct}%)</span>
+                <span className="text-xs font-semibold text-neutral-800 ml-1">({metrics.pct}%)</span>
               </p>
             </div>
 
@@ -1322,7 +1341,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                 <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                   {lang === 'en' ? 'Unique Buyers' : 'বায়ার সংখ্যা'}
                 </span>
-                <span className="w-6 h-6 rounded-md bg-purple-50 flex items-center justify-center text-purple-600">
+                <span className="w-6 h-6 rounded-md bg-neutral-100 flex items-center justify-center text-neutral-800">
                   <Users className="w-3.5 h-3.5" />
                 </span>
               </div>
@@ -1333,19 +1352,49 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
           </div>
 
           {/* Search, Filter & Pagination Bar */}
-          <div className="p-3 bg-slate-50/80 border-b border-slate-200 flex flex-col sm:flex-row gap-2.5 items-center justify-between">
-            <div className="relative w-full sm:w-72">
+          <div className="p-3 bg-slate-50/80 border-b border-slate-200 flex flex-col md:flex-row gap-2.5 items-center justify-between">
+            <div className="relative w-full md:w-72">
               <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
                 placeholder={lang === 'en' ? 'Search Buyer, PO#, Style, Color, Challan...' : 'বায়ার, PO#, স্টাইল, কালার খুঁজুন...'}
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                className="w-full pl-8 pr-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-hidden text-slate-800"
+                className="w-full pl-8 pr-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-neutral-400 focus:outline-hidden text-slate-800"
               />
             </div>
 
-            <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+            <div className="flex flex-wrap items-center gap-2 w-full md:w-auto justify-between md:justify-end">
+              {/* Prominent View Mode Switcher Toggle */}
+              <div className="flex items-center bg-slate-200/90 p-1 rounded-xl border border-slate-300/80 shadow-2xs">
+                <button
+                  type="button"
+                  onClick={() => handleSetViewMode('table')}
+                  className={`px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all ${
+                    viewMode === 'table'
+                      ? 'bg-white text-neutral-800 shadow-xs border border-slate-200/90'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/60'
+                  }`}
+                  title={lang === 'en' ? 'Switch to Table View' : 'টেবিল ভিউতে দেখুন'}
+                >
+                  <Table className="w-3.5 h-3.5 text-neutral-800" />
+                  <span>{lang === 'en' ? 'Table' : 'টেবিল'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSetViewMode('cards')}
+                  className={`px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all ${
+                    viewMode === 'cards'
+                      ? 'bg-white text-neutral-800 shadow-xs border border-slate-200/90'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/60'
+                  }`}
+                  title={lang === 'en' ? 'Switch to Card View' : 'কার্ড ভিউতে দেখুন'}
+                >
+                  <LayoutGrid className="w-3.5 h-3.5 text-neutral-800" />
+                  <span>{lang === 'en' ? 'Cards' : 'কার্ড'}</span>
+                </button>
+              </div>
+
               {/* Status Filter */}
               <div className="flex items-center gap-1 bg-white border border-slate-300 rounded-lg p-0.5 text-xs">
                 {['all', 'pending', 'in-progress', 'completed'].map(st => (
@@ -1354,7 +1403,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                     onClick={() => setStatusFilter(st)}
                     className={`px-2 py-0.5 rounded font-medium text-[11px] transition cursor-pointer capitalize ${
                       statusFilter === st
-                        ? 'bg-blue-600 text-white font-bold'
+                        ? 'bg-neutral-900 text-white font-bold'
                         : 'text-slate-600 hover:bg-slate-100'
                     }`}
                   >
@@ -1387,7 +1436,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
           {selectedItemIds.length > 0 && (
             <div className="p-2.5 sm:p-3 bg-slate-900 text-white border-y border-slate-800 flex flex-wrap items-center justify-between gap-2 animate-in fade-in">
               <div className="flex items-center gap-2">
-                <span className="px-2.5 py-1 rounded-md bg-blue-600 text-white font-bold text-xs flex items-center gap-1.5 shadow-2xs">
+                <span className="px-2.5 py-1 rounded-md bg-neutral-900 text-white font-bold text-xs flex items-center gap-1.5 shadow-2xs">
                   <Zap className="w-3.5 h-3.5" />
                   <span>
                     {selectedItemIds.length}{' '}
@@ -1413,7 +1462,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                   <button
                     onClick={handleApplyBulkStatus}
                     disabled={isBulkApplying}
-                    className="px-2.5 py-0.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium rounded transition cursor-pointer"
+                    className="px-2.5 py-0.5 bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-medium rounded transition cursor-pointer"
                   >
                     {lang === 'en' ? 'Set Status' : 'স্ট্যাটাস দিন'}
                   </button>
@@ -1431,7 +1480,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                   <button
                     onClick={handleApplyBulkChallanRef}
                     disabled={isBulkApplying}
-                    className="px-2.5 py-0.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium rounded transition cursor-pointer"
+                    className="px-2.5 py-0.5 bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-medium rounded transition cursor-pointer"
                   >
                     {lang === 'en' ? 'Set Challan' : 'চালান দিন'}
                   </button>
@@ -1440,7 +1489,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                 {/* 3. Quick 100% Done */}
                 <button
                   onClick={handleBulkComplete100}
-                  className="px-2.5 py-1 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium transition cursor-pointer flex items-center gap-1 shadow-2xs"
+                  className="px-2.5 py-1 rounded-md bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-medium transition cursor-pointer flex items-center gap-1 shadow-2xs"
                   title="Mark 100% completed"
                 >
                   <CheckCircle2 className="w-3.5 h-3.5" />
@@ -1460,7 +1509,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                 {/* 4. Bulk Delete */}
                 <button
                   onClick={handleBulkDeleteSelected}
-                  className="px-2.5 py-1 rounded-md bg-rose-600 hover:bg-rose-500 text-white text-xs font-medium transition cursor-pointer flex items-center gap-1 shadow-2xs"
+                  className="px-2.5 py-1 rounded-md bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-medium transition cursor-pointer flex items-center gap-1 shadow-2xs"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                   <span>{lang === 'en' ? 'Delete' : 'মুছুন'}</span>
@@ -1492,7 +1541,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                         type="checkbox"
                         checked={isAllVisibleSelected}
                         onChange={handleToggleSelectAllVisible}
-                        className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                        className="w-4 h-4 rounded border-slate-300 text-neutral-800 focus:ring-neutral-400 cursor-pointer"
                         title="Select visible rows"
                       />
                     </th>
@@ -1501,7 +1550,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                     {/* Direct Outputs header */}
                     <th className="px-3 py-2.5 min-w-[210px] text-center bg-slate-100 text-slate-800 border-x border-slate-200">
                       <span className="font-bold flex items-center justify-center gap-1.5">
-                        <Zap className="w-3.5 h-3.5 text-blue-600" />
+                        <Zap className="w-3.5 h-3.5 text-neutral-800" />
                         <span>{lang === 'en' ? 'Direct Outputs' : 'আউটপুট হাব'}</span>
                       </span>
                     </th>
@@ -1518,7 +1567,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                     {/* Status column */}
                     <th className="px-3 py-2.5 min-w-[220px] text-center bg-slate-100 text-slate-800 border-l border-slate-200">
                       <span className="font-bold flex items-center justify-center gap-1">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                        <CheckCircle2 className="w-3.5 h-3.5 text-neutral-800" />
                         <span>{lang === 'en' ? 'Status & Download' : 'স্ট্যাটাস ও ডাউনলোড'}</span>
                       </span>
                     </th>
@@ -1545,7 +1594,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                           key={item.id}
                           className={`transition-colors group ${
                             isSelected
-                              ? 'bg-blue-50/90 hover:bg-blue-100/80 ring-1 ring-blue-300/50'
+                              ? 'bg-neutral-100/90 hover:bg-neutral-100/80 ring-1 ring-neutral-300/50'
                               : 'hover:bg-slate-50'
                           }`}
                         >
@@ -1555,7 +1604,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                               type="checkbox"
                               checked={isSelected}
                               onChange={() => handleToggleSelectRow(item.id)}
-                              className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                              className="w-4 h-4 rounded border-slate-300 text-neutral-800 focus:ring-neutral-400 cursor-pointer"
                             />
                           </td>
 
@@ -1571,7 +1620,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                               <button
                                 onClick={() => handleTriggerOutput('table', item)}
                                 className={`px-2.5 py-1 rounded-md text-white font-medium text-xs flex items-center gap-1 shadow-2xs transition cursor-pointer ${
-                                  isPackCompleted ? 'bg-slate-700 hover:bg-slate-800' : 'bg-blue-600 hover:bg-blue-700'
+                                  isPackCompleted ? 'bg-slate-700 hover:bg-slate-800' : 'bg-neutral-900 hover:bg-neutral-800'
                                 }`}
                                 title={lang === 'en' ? 'Load this order into live Packing Table' : 'এই অর্ডারটি দিয়ে প্যাকিং টেবিল ও ক্যালকুলেশন শুরু করুন'}
                               >
@@ -1580,16 +1629,14 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                               </button>
 
                               {/* 2. Print/Download Stickers Output */}
-                              {isPackCompleted && (
-                                <button
-                                  onClick={() => handleTriggerOutput('stickers', item)}
-                                  className="px-2 py-1 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs flex items-center gap-1 shadow-2xs transition cursor-pointer"
-                                  title={lang === 'en' ? 'Download / View Carton Stickers' : 'এই অর্ডারের কার্টন স্টিকার তৈরি ও ডাউনলোড করুন'}
-                                >
-                                  <Tag className="w-3 h-3" />
-                                  <span>{lang === 'en' ? 'Stickers' : 'স্টিকার'}</span>
-                                </button>
-                              )}
+                              <button
+                                onClick={() => handleTriggerOutput('stickers', item)}
+                                className="px-2 py-1 rounded-md bg-neutral-900 hover:bg-neutral-800 text-white font-medium text-xs flex items-center gap-1 shadow-2xs transition cursor-pointer"
+                                title={lang === 'en' ? 'Download / View Carton Stickers for this Order' : 'এই নির্দিষ্ট অর্ডারের কার্টন স্টিকার তৈরি ও ভিউ করুন'}
+                              >
+                                <Tag className="w-3 h-3" />
+                                <span>{lang === 'en' ? 'Stickers' : 'স্টিকার'}</span>
+                              </button>
 
                               {/* 3. Factory Sheet View Output */}
                               <button
@@ -1597,17 +1644,17 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                                 className="px-2 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-medium text-xs flex items-center gap-1 shadow-2xs transition cursor-pointer"
                                 title={lang === 'en' ? 'View Exact Factory Packing Sheet' : 'ফ্যাক্টরি প্যাকিং শিট ভিউ দেখুন'}
                               >
-                                <FileText className="w-3 h-3 text-emerald-400" />
+                                <FileText className="w-3 h-3 text-neutral-400" />
                                 <span>{lang === 'en' ? 'Sheet' : 'শিট'}</span>
                               </button>
 
                               {/* 4. Daily Packing & Balance */}
                               <button
                                 onClick={() => setSelectedDailyPackingItem(item)}
-                                className="px-2 py-1 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs flex items-center gap-1 shadow-2xs transition cursor-pointer"
+                                className="px-2 py-1 rounded-md bg-neutral-900 hover:bg-neutral-800 text-white font-medium text-xs flex items-center gap-1 shadow-2xs transition cursor-pointer"
                                 title={lang === 'en' ? 'Open Daily Packing & Balance for this order' : 'এই অর্ডারের দৈনিক প্যাকিং ও ব্যালেন্স ওপেন করুন'}
                               >
-                                <Calendar className="w-3 h-3 text-emerald-200" />
+                                <Calendar className="w-3 h-3 text-neutral-200" />
                                 <span>{lang === 'en' ? 'Daily' : 'দৈনিক'}</span>
                               </button>
 
@@ -1632,7 +1679,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                               {/* Delete */}
                               <button
                                 onClick={() => handleDeleteRow(item.id)}
-                                className="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                                className="p-1 rounded text-slate-400 hover:text-neutral-800 hover:bg-neutral-100 transition cursor-pointer"
                                 title="Delete order row"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
@@ -1681,7 +1728,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
 
                           {/* Demand Qty */}
                           <td className="px-3 py-2 text-right">
-                            <span className="font-bold text-blue-700 font-mono text-xs">
+                            <span className="font-bold text-neutral-800 font-mono text-xs">
                               {Number(item.demandQty || 0).toLocaleString()}
                             </span>
                             <span className="text-[10px] text-slate-400 ml-1">{item.unit || 'Mtr'}</span>
@@ -1689,7 +1736,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
 
                           {/* Completed Qty */}
                           <td className="px-3 py-2 text-right">
-                            <span className="font-semibold text-emerald-700 font-mono text-xs">
+                            <span className="font-semibold text-neutral-800 font-mono text-xs">
                               {Number(item.completedQty || 0).toLocaleString()}
                             </span>
                           </td>
@@ -1704,8 +1751,8 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                                   onClick={() => setSelectedDailyPackingItem(item)}
                                   className={`font-mono text-xs font-bold px-1.5 py-0.5 rounded cursor-pointer transition shadow-2xs hover:scale-105 ${
                                     bal === 0
-                                      ? 'text-emerald-700 bg-emerald-50 border border-emerald-300 hover:bg-emerald-100'
-                                      : 'text-amber-800 bg-amber-50 border border-amber-300 hover:bg-amber-100'
+                                      ? 'text-neutral-800 bg-neutral-100 border border-neutral-300 hover:bg-neutral-100'
+                                      : 'text-neutral-900 bg-neutral-100 border border-neutral-300 hover:bg-neutral-100'
                                   }`}
                                   title={lang === 'en' ? 'Click to view / manage packing balance and daily logs' : 'প্যাকিং ব্যালেন্স ও দৈনিক লগ দেখতে ক্লিক করুন'}
                                 >
@@ -1718,7 +1765,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                           {/* Challan Ref */}
                           <td className="px-3 py-2">
                             {item.challanRef ? (
-                              <span className="font-mono text-[10px] font-bold text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 truncate inline-block max-w-[95px]">
+                              <span className="font-mono text-[10px] font-bold text-neutral-900 bg-neutral-100 px-1.5 py-0.5 rounded border border-neutral-200 truncate inline-block max-w-[95px]">
                                 {item.challanRef}
                               </span>
                             ) : (
@@ -1734,14 +1781,14 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                                 onClick={e => handleToggleComplete(item, e)}
                                 className={`inline-flex items-center gap-1 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider cursor-pointer select-none transition shadow-2xs ${
                                   isPackCompleted
-                                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-300 hover:bg-emerald-200'
+                                    ? 'bg-neutral-100 text-neutral-900 border border-neutral-300 hover:bg-neutral-200'
                                     : item.status === 'in-progress'
-                                    ? 'bg-amber-100 text-amber-800 border border-amber-300 hover:bg-amber-200'
+                                    ? 'bg-neutral-100 text-neutral-900 border border-neutral-300 hover:bg-neutral-200'
                                     : 'bg-slate-200 text-slate-700 border border-slate-300 hover:bg-slate-300'
                                 }`}
                                 title={lang === 'en' ? 'Click to toggle Complete' : 'ক্লিক করে কমপ্লিট টগল করুন'}
                               >
-                                {isPackCompleted && <CheckCircle2 className="w-3 h-3 text-emerald-600" />}
+                                {isPackCompleted && <CheckCircle2 className="w-3 h-3 text-neutral-800" />}
                                 <span>{item.status}</span>
                               </span>
 
@@ -1750,8 +1797,8 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                                 onClick={e => handleToggleComplete(item, e)}
                                 className={`px-2.5 py-1 rounded text-[10px] font-bold flex items-center gap-1 shadow-2xs transition cursor-pointer ${
                                   isPackCompleted
-                                    ? 'bg-emerald-700 text-white hover:bg-emerald-800 ring-1 ring-emerald-500'
-                                    : 'bg-emerald-600 text-white hover:bg-emerald-500'
+                                    ? 'bg-neutral-900 text-white hover:bg-neutral-900 ring-1 ring-neutral-400'
+                                    : 'bg-neutral-900 text-white hover:bg-neutral-800'
                                 }`}
                                 title={isPackCompleted ? 'Click to mark In-Progress' : 'Mark 100% Completed'}
                               >
@@ -1763,7 +1810,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                               {isPackCompleted ? (
                                 <button
                                   onClick={() => handleTriggerOutput('stickers', item)}
-                                  className="px-2.5 py-1 rounded bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-bold flex items-center gap-1 shadow-2xs transition cursor-pointer border border-indigo-500 animate-in fade-in"
+                                  className="px-2.5 py-1 rounded bg-neutral-900 hover:bg-neutral-800 text-white text-[10px] font-bold flex items-center gap-1 shadow-2xs transition cursor-pointer border border-neutral-400 animate-in fade-in"
                                   title={lang === 'en' ? 'Download Carton Stickers for this order' : 'এই অর্ডারের কার্টন স্টিকার ডাউনলোড করুন'}
                                 >
                                   <Download className="w-3 h-3" />
@@ -1805,18 +1852,22 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                 paginatedRows.map((item, idx) => {
                   const isSelected = selectedItemIds.includes(item.id);
                   const globalIndex = (safeCurrentPage - 1) * pageSize + idx + 1;
+                  const demand = Number(item.demandQty || 0);
+                  const completed = Number(item.completedQty || 0);
+                  const progressPct = demand > 0 ? Math.min(100, Math.round((completed / demand) * 100)) : 0;
+                  const balance = Math.max(0, demand - completed);
                   // Pack is complete if status is completed or full demand has been completed
                   const isPackCompleted =
                     item.status === 'completed' ||
-                    (Number(item.demandQty) > 0 && Number(item.completedQty || 0) >= Number(item.demandQty));
+                    (demand > 0 && completed >= demand);
 
                   return (
                     <div
                       key={item.id}
                       className={`p-3.5 rounded-xl border transition-all flex flex-col justify-between ${
                         isSelected
-                          ? 'bg-blue-50/90 border-blue-500 shadow-sm ring-1 ring-blue-400'
-                          : 'bg-white hover:bg-slate-50/80 border-slate-200 shadow-2xs'
+                          ? 'bg-neutral-100/90 border-neutral-400 shadow-sm ring-1 ring-neutral-400'
+                          : 'bg-white hover:bg-slate-50/80 border-slate-200/90 hover:border-slate-300 shadow-2xs'
                       }`}
                     >
                       <div>
@@ -1827,7 +1878,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                               type="checkbox"
                               checked={isSelected}
                               onChange={() => handleToggleSelectRow(item.id)}
-                              className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                              className="w-4 h-4 rounded border-slate-300 text-neutral-800 focus:ring-neutral-400 cursor-pointer"
                             />
                             <span className="text-[11px] font-mono text-slate-400 font-bold">#{globalIndex}</span>
                             <span className="font-bold text-slate-900 text-sm truncate max-w-[150px]">
@@ -1842,7 +1893,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                             <button
                               onClick={() => handleTriggerOutput('table', item)}
                               className={`px-2.5 py-1 rounded-md text-white font-medium text-xs flex items-center gap-1 shadow-2xs transition cursor-pointer ${
-                                isPackCompleted ? 'bg-slate-700 hover:bg-slate-800' : 'bg-blue-600 hover:bg-blue-700'
+                                isPackCompleted ? 'bg-slate-700 hover:bg-slate-800' : 'bg-neutral-900 hover:bg-neutral-800'
                               }`}
                               title={lang === 'en' ? 'Pack & Calculate cartons' : 'প্যাকিং ও কার্টন ক্যালকুলেট করুন'}
                             >
@@ -1850,34 +1901,32 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                               <span>{isPackCompleted ? (lang === 'en' ? 'Re-Pack' : 'রি-প্যাক') : (lang === 'en' ? 'Pack' : 'প্যাক')}</span>
                             </button>
 
-                            {/* Sticker option if completed */}
-                            {isPackCompleted && (
-                              <button
-                                onClick={() => handleTriggerOutput('stickers', item)}
-                                className="px-2.5 py-1 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs flex items-center gap-1 shadow-2xs transition cursor-pointer"
-                                title={lang === 'en' ? 'Download / View Carton Stickers' : 'কার্টন স্টিকার ডাউনলোড ও প্রিন্ট করুন'}
-                              >
-                                <Tag className="w-3 h-3" />
-                                <span>{lang === 'en' ? 'Stickers' : 'স্টিকার'}</span>
-                              </button>
-                            )}
+                            {/* Sticker option */}
+                            <button
+                              onClick={() => handleTriggerOutput('stickers', item)}
+                              className="px-2.5 py-1 rounded-md bg-neutral-900 hover:bg-neutral-800 text-white font-medium text-xs flex items-center gap-1 shadow-2xs transition cursor-pointer"
+                              title={lang === 'en' ? 'Download / View Carton Stickers for this Order' : 'এই নির্দিষ্ট অর্ডারের কার্টন স্টিকার দেখুন ও প্রিন্ট করুন'}
+                            >
+                              <Tag className="w-3 h-3" />
+                              <span>{lang === 'en' ? 'Stickers' : 'স্টিকার'}</span>
+                            </button>
 
                             <button
                               onClick={() => handleTriggerOutput('sheet', item)}
                               className="px-2 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-medium text-xs flex items-center gap-1 shadow-2xs transition cursor-pointer"
                               title={lang === 'en' ? 'View Sheet' : 'শিট ভিউ'}
                             >
-                              <FileText className="w-3 h-3 text-emerald-400" />
+                              <FileText className="w-3 h-3 text-neutral-400" />
                               <span>{lang === 'en' ? 'Sheet' : 'শিট'}</span>
                             </button>
 
                             {/* Daily Packing & Balance */}
                             <button
                               onClick={() => setSelectedDailyPackingItem(item)}
-                              className="px-2 py-1 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs flex items-center gap-1 shadow-2xs transition cursor-pointer"
+                              className="px-2 py-1 rounded-md bg-neutral-900 hover:bg-neutral-800 text-white font-medium text-xs flex items-center gap-1 shadow-2xs transition cursor-pointer"
                               title={lang === 'en' ? 'Open Packing Balance & Daily Logs' : 'প্যাকিং ব্যালেন্স ও দৈনিক লগ'}
                             >
-                              <Calendar className="w-3 h-3 text-emerald-200" />
+                              <Calendar className="w-3 h-3 text-neutral-200" />
                               <span>{lang === 'en' ? 'Daily' : 'দৈনিক'}</span>
                             </button>
                           </div>
@@ -1899,7 +1948,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                             </button>
                             <button
                               onClick={() => handleDeleteRow(item.id)}
-                              className="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition"
+                              className="p-1 rounded text-slate-400 hover:text-neutral-800 hover:bg-neutral-100 transition"
                               title="Delete"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -1921,18 +1970,33 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                             <span>Color & Size:</span>
                             <span className="font-medium text-slate-800">
                               <span className="bg-slate-100 px-1.5 py-0.5 rounded text-[11px] mr-1">{item.color || '-'}</span>
-                              <span className="font-mono font-bold text-indigo-700">{item.size || '-'}</span>
+                              <span className="font-mono font-bold text-neutral-800">{item.size || '-'}</span>
                             </span>
                           </div>
                           <div className="flex items-center justify-between text-slate-600">
-                            <span>Demand / Done:</span>
-                            <span className="font-bold text-blue-900">
-                              {Number(item.demandQty || 0).toLocaleString()} {item.unit || 'Mtr'}{' '}
-                              <span className="text-emerald-600 font-normal">
-                                ({Number(item.completedQty || 0).toLocaleString()} done)
+                            <span>{lang === 'en' ? 'Demand / Done:' : 'চাহিদা / সম্পন্ন:'}</span>
+                            <span className="font-bold text-neutral-900 font-mono tabular-nums">
+                              {demand.toLocaleString()} {item.unit || 'Mtr'}{' '}
+                              <span className="text-neutral-800 font-semibold text-[11px] ml-1">
+                                ({completed.toLocaleString()} done • {progressPct}%)
                               </span>
                             </span>
                           </div>
+
+                          {/* Graphical Visual Progress Bar */}
+                          <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden my-1 border border-slate-200/80">
+                            <div
+                              className={`h-full rounded-full transition-all duration-300 ${
+                                progressPct >= 100
+                                  ? 'bg-neutral-800'
+                                  : progressPct > 0
+                                  ? 'bg-neutral-900'
+                                  : 'bg-slate-300'
+                              }`}
+                              style={{ width: `${progressPct}%` }}
+                            />
+                          </div>
+
                           <div
                             onClick={() => setSelectedDailyPackingItem(item)}
                             className="flex items-center justify-between text-slate-600 cursor-pointer hover:bg-slate-100/80 -mx-1 px-1 py-0.5 rounded transition"
@@ -1940,14 +2004,14 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                           >
                             <span className="font-semibold text-slate-700 flex items-center gap-1">
                               <span>{lang === 'en' ? 'Balance Remaining:' : 'অবশিষ্ট ব্যালেন্স:'}</span>
-                              <Calendar className="w-3 h-3 text-emerald-600" />
+                              <Calendar className="w-3 h-3 text-neutral-800" />
                             </span>
                             <span className={`font-mono font-bold text-xs px-1.5 py-0.5 rounded transition shadow-2xs ${
-                              Math.max(0, Number(item.demandQty || 0) - Number(item.completedQty || 0)) === 0
-                                ? 'text-emerald-700 bg-emerald-50 border border-emerald-300 hover:bg-emerald-100'
-                                : 'text-amber-800 bg-amber-50 border border-amber-300 hover:bg-amber-100'
+                              balance === 0
+                                ? 'text-neutral-800 bg-neutral-100 border border-neutral-300 hover:bg-neutral-100'
+                                : 'text-neutral-900 bg-neutral-100 border border-neutral-300 hover:bg-neutral-100'
                             }`}>
-                              {Math.max(0, Number(item.demandQty || 0) - Number(item.completedQty || 0)).toLocaleString()} {item.unit || 'Mtr'}
+                              {balance.toLocaleString()} {item.unit || 'Mtr'}
                             </span>
                           </div>
 
@@ -1955,13 +2019,13 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                           <button
                             type="button"
                             onClick={() => setSelectedDailyPackingItem(item)}
-                            className="w-full mt-1.5 py-1 px-2.5 rounded-lg bg-emerald-50/90 hover:bg-emerald-100 text-emerald-800 border border-emerald-200/80 text-[11px] font-medium flex items-center justify-between transition cursor-pointer shadow-2xs"
+                            className="w-full mt-1.5 py-1 px-2.5 rounded-lg bg-neutral-100/90 hover:bg-neutral-100 text-neutral-900 border border-neutral-200/80 text-[11px] font-medium flex items-center justify-between transition cursor-pointer shadow-2xs"
                           >
                             <span className="flex items-center gap-1.5">
-                              <Calendar className="w-3.5 h-3.5 text-emerald-600" />
+                              <Calendar className="w-3.5 h-3.5 text-neutral-800" />
                               <span>{lang === 'en' ? 'Packing Balance & Logs' : 'প্যাকিং ব্যালেন্স ও দৈনিক হিস্ট্রি'}</span>
                             </span>
-                            <span className="font-bold text-emerald-700 font-mono text-[10px]">
+                            <span className="font-bold text-neutral-800 font-mono text-[10px]">
                               {Number(item.completedQty || 0) > 0
                                 ? `${Number(item.completedQty).toLocaleString()} ${item.unit || 'Mtr'} done`
                                 : (lang === 'en' ? 'Log Packing →' : '+ লগ এন্ট্রি →')}
@@ -1971,7 +2035,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                           {item.challanRef && (
                             <div className="flex items-center justify-between text-slate-600">
                               <span>Challan Ref:</span>
-                              <span className="font-mono font-bold text-emerald-800 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">
+                              <span className="font-mono font-bold text-neutral-900 bg-neutral-100 px-1.5 py-0.2 rounded border border-neutral-200">
                                 {item.challanRef}
                               </span>
                             </div>
@@ -1985,9 +2049,9 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                           onClick={e => handleToggleComplete(item, e)}
                           className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider cursor-pointer ${
                             isPackCompleted
-                              ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                              ? 'bg-neutral-100 text-neutral-900 border border-neutral-300'
                               : item.status === 'in-progress'
-                              ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                              ? 'bg-neutral-100 text-neutral-900 border border-neutral-300'
                               : 'bg-slate-200 text-slate-700 border border-slate-300'
                           }`}
                         >
@@ -1999,8 +2063,8 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                             onClick={e => handleToggleComplete(item, e)}
                             className={`px-2.5 py-1 rounded text-[11px] font-bold flex items-center gap-1 shadow-2xs transition cursor-pointer ${
                               isPackCompleted
-                                ? 'bg-emerald-700 text-white hover:bg-emerald-800 ring-1 ring-emerald-500'
-                                : 'bg-emerald-600 text-white hover:bg-emerald-500'
+                                ? 'bg-neutral-900 text-white hover:bg-neutral-900 ring-1 ring-neutral-400'
+                                : 'bg-neutral-900 text-white hover:bg-neutral-800'
                             }`}
                           >
                             <CheckCircle2 className="w-3 h-3 text-white" />
@@ -2011,7 +2075,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                           {isPackCompleted ? (
                             <button
                               onClick={() => handleTriggerOutput('stickers', item)}
-                              className="px-2.5 py-1 rounded bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold flex items-center gap-1 shadow-2xs transition cursor-pointer animate-in fade-in"
+                              className="px-2.5 py-1 rounded bg-neutral-900 hover:bg-neutral-800 text-white text-[11px] font-bold flex items-center gap-1 shadow-2xs transition cursor-pointer animate-in fade-in"
                               title={lang === 'en' ? 'Download Carton Stickers' : 'কার্টন স্টিকার ডাউনলোড করুন'}
                             >
                               <Download className="w-3 h-3 text-white" />
@@ -2047,7 +2111,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                 ? `Showing ${paginatedRows.length} of ${filteredRows.length} orders (Page ${safeCurrentPage} of ${totalPages})`
                 : `${filteredRows.length}টি অর্ডারের মধ্যে ${paginatedRows.length}টি প্রদর্শিত (পেজ ${safeCurrentPage} / ${totalPages})`}
               {selectedItemIds.length > 0 && (
-                <span className="ml-2 font-bold text-blue-700">
+                <span className="ml-2 font-bold text-neutral-800">
                   • {selectedItemIds.length} {lang === 'en' ? 'selected' : 'সিলেক্টেড'}
                 </span>
               )}
@@ -2064,7 +2128,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                 <span>{lang === 'en' ? 'Prev' : 'পূর্ববর্তী'}</span>
               </button>
 
-              <span className="px-3 py-1 font-bold font-mono bg-white border border-slate-300 rounded text-xs text-blue-900">
+              <span className="px-3 py-1 font-bold font-mono bg-white border border-slate-300 rounded text-xs text-neutral-900">
                 {safeCurrentPage} / {totalPages}
               </span>
 
@@ -2092,7 +2156,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
               : 'বায়ার প্রোডাকশন শিডিউল (.xlsx) আপলোড করুন অথবা নমুনা শিডিউল লোড করে সরাসরি প্যাকিং ও স্টিকার প্রিন্ট করুন।'}
           </p>
           <div className="flex items-center justify-center gap-3 mt-5">
-            <label className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md transition cursor-pointer">
+            <label className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white font-bold text-xs shadow-md transition cursor-pointer">
               <Upload className="w-4 h-4" />
               <span>{lang === 'en' ? 'Upload Excel (.xlsx)' : 'এক্সেল আপলোড করুন'}</span>
               <input
@@ -2116,7 +2180,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
       {editingItem && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in">
           <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200">
-            <div className="p-3.5 bg-gradient-to-r from-blue-700 to-indigo-700 text-white flex items-center justify-between">
+            <div className="p-3.5 bg-gradient-to-r from-neutral-900 to-neutral-900 text-white flex items-center justify-between">
               <h3 className="text-xs sm:text-sm font-bold flex items-center gap-1.5">
                 <Edit3 className="w-4 h-4" />
                 <span>{lang === 'en' ? 'Edit Order Details' : 'অর্ডার এডিট করুন'}</span>
@@ -2145,7 +2209,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                     type="text"
                     value={editingItem.buyer}
                     onChange={e => setEditingItem({ ...editingItem, buyer: e.target.value })}
-                    className="w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-semibold"
+                    className="w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-neutral-400 font-semibold"
                     required
                   />
                 </div>
@@ -2157,7 +2221,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                     type="text"
                     value={editingItem.customerRefPO}
                     onChange={e => setEditingItem({ ...editingItem, customerRefPO: e.target.value })}
-                    className="w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-mono"
+                    className="w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-neutral-400 font-mono"
                     required
                   />
                 </div>
@@ -2172,7 +2236,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                     type="text"
                     value={editingItem.jobNo || ''}
                     onChange={e => setEditingItem({ ...editingItem, jobNo: e.target.value })}
-                    className="w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-neutral-400"
                   />
                 </div>
                 <div>
@@ -2183,7 +2247,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                     type="text"
                     value={editingItem.itemDescription}
                     onChange={e => setEditingItem({ ...editingItem, itemDescription: e.target.value })}
-                    className="w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-neutral-400"
                   />
                 </div>
               </div>
@@ -2197,7 +2261,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                     type="text"
                     value={editingItem.color}
                     onChange={e => setEditingItem({ ...editingItem, color: e.target.value })}
-                    className="w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-neutral-400"
                   />
                 </div>
                 <div>
@@ -2208,7 +2272,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                     type="text"
                     value={editingItem.size}
                     onChange={e => setEditingItem({ ...editingItem, size: e.target.value })}
-                    className="w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-mono"
+                    className="w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-neutral-400 font-mono"
                   />
                 </div>
                 <div>
@@ -2237,7 +2301,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                     type="number"
                     value={editingItem.demandQty}
                     onChange={e => setEditingItem({ ...editingItem, demandQty: Number(e.target.value) })}
-                    className="w-full px-2.5 py-1.5 text-xs border border-blue-400 bg-blue-50/40 rounded-lg font-bold text-blue-900"
+                    className="w-full px-2.5 py-1.5 text-xs border border-neutral-300 bg-neutral-100/40 rounded-lg font-bold text-neutral-900"
                     required
                   />
                 </div>
@@ -2249,7 +2313,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                     type="number"
                     value={editingItem.completedQty}
                     onChange={e => setEditingItem({ ...editingItem, completedQty: Number(e.target.value) })}
-                    className="w-full px-2.5 py-1.5 text-xs border border-emerald-400 bg-emerald-50/40 rounded-lg font-bold text-emerald-900"
+                    className="w-full px-2.5 py-1.5 text-xs border border-neutral-300 bg-neutral-100/40 rounded-lg font-bold text-neutral-900"
                   />
                 </div>
               </div>
@@ -2294,7 +2358,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-xs"
+                  className="px-4 py-1.5 text-xs font-bold text-white bg-neutral-900 hover:bg-neutral-800 rounded-lg shadow-xs"
                 >
                   {lang === 'en' ? 'Save Changes' : 'সংরক্ষণ করুন'}
                 </button>
@@ -2308,7 +2372,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
       {isAddRowModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in">
           <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200">
-            <div className="p-3.5 bg-gradient-to-r from-blue-700 to-indigo-700 text-white flex items-center justify-between">
+            <div className="p-3.5 bg-gradient-to-r from-neutral-900 to-neutral-900 text-white flex items-center justify-between">
               <h3 className="text-xs sm:text-sm font-bold flex items-center gap-1.5">
                 <Plus className="w-4 h-4" />
                 <span>{lang === 'en' ? 'Add Order to Schedule' : 'শিডিউলে নতুন অর্ডার যোগ'}</span>
@@ -2431,7 +2495,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                     required
                     value={newRowData.demandQty}
                     onChange={e => setNewRowData({ ...newRowData, demandQty: Number(e.target.value) })}
-                    className="w-full px-2.5 py-1.5 text-xs border border-blue-400 bg-blue-50/50 rounded-lg font-bold text-blue-900"
+                    className="w-full px-2.5 py-1.5 text-xs border border-neutral-300 bg-neutral-100/50 rounded-lg font-bold text-neutral-900"
                   />
                 </div>
                 <div>
@@ -2458,7 +2522,7 @@ export const ExcelScheduleManager: React.FC<ExcelScheduleManagerProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-xs cursor-pointer"
+                  className="px-4 py-1.5 text-xs font-bold text-white bg-neutral-900 hover:bg-neutral-800 rounded-lg shadow-xs cursor-pointer"
                 >
                   {lang === 'en' ? 'Add to Schedule' : 'যুক্ত করুন'}
                 </button>

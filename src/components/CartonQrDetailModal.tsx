@@ -98,16 +98,18 @@ export const CartonQrDetailModal: React.FC<CartonQrDetailModalProps> = ({
 ━━━━━━━━━━━━━━━━━━━━━━━
 🏢 Company: ${companyName}
 📋 REF/PO: ${refPo || 'N/A'}
-👤 Buyer: ${buyer || 'N/A'} | Customer: ${customer || 'N/A'}
-📏 Size/Color: ${size || 'N/A'} | ${color || 'N/A'}
+🏷️ Buyer: ${buyer || 'N/A'}
+👤 Customer: ${customer || 'N/A'}
+🎨 Size/Color: ${size || 'N/A'} | ${color || 'N/A'}
 ━━━━━━━━━━━━━━━━━━━━━━━
-⚖️ Gross Weight: ${grossWt.toFixed(2)} Kg
-⚖️ Tare Weight: ${tareWt.toFixed(2)} Kg
-✨ NET WEIGHT: ${netWt.toFixed(2)} Kg (${netWtLbs} Lbs / ${netWtGm.toLocaleString()} gm)
-📐 Total Length: ${lengthMtr.toFixed(2)} Mtr (${lengthGry.toFixed(2)} Gry / ${lengthYds.toFixed(1)} Yds)
-⚙️ Unit Weight: ${wtPerUnit.toFixed(2)} gm/m (Yield: ${netGrossRatio}%)
-🔗 Live QR Verification: ${previewUrl}`;
-
+⚖️ Gross Wt: ${grossWt.toFixed(2)} kg
+📦 Tare Wt: ${tareWt.toFixed(2)} kg
+✅ NET WT: ${netWt.toFixed(2)} kg (${netWtLbs} lbs / ${netWtGm} gm)
+📏 Length (Mtr): ${lengthMtr.toFixed(2)} M
+📐 Length (Gry): ${lengthGry.toFixed(2)} Gross Yds
+📊 Unit Wt: ${wtPerUnit.toFixed(2)} gm/m
+🔗 Live Inspection Link: ${previewUrl}
+`;
     navigator.clipboard.writeText(summaryText);
     setCopiedSummary(true);
     setTimeout(() => setCopiedSummary(false), 2500);
@@ -115,7 +117,7 @@ export const CartonQrDetailModal: React.FC<CartonQrDetailModalProps> = ({
 
   const handleShareWhatsApp = () => {
     const text = encodeURIComponent(
-      `📦 Carton Inspection #CTN-${ctnNo}/${totalCount} (${buyer || 'Packing'} | Net: ${netWt.toFixed(2)} Kg / ${lengthMtr.toFixed(1)} Mtr)\nCheck full carton details: ${previewUrl}`
+      `📦 Carton Inspection #${ctnNo}/${totalCount} (${companyName}) - Net Wt: ${netWt.toFixed(2)}kg, Length: ${lengthMtr.toFixed(2)}m. View Details: ${previewUrl}`
     );
     window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
   };
@@ -125,26 +127,26 @@ export const CartonQrDetailModal: React.FC<CartonQrDetailModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-sm overflow-y-auto print:p-0 print:bg-white print:static">
-      <div className="bg-slate-900 border border-slate-700 w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden text-slate-100 animate-in fade-in zoom-in-95 duration-150 my-auto print:border-none print:shadow-none print:text-black print:bg-white print:w-full">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs overflow-y-auto print:p-0 print:bg-white print:static">
+      <div className="bg-white border border-neutral-300 w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden text-neutral-900 animate-in fade-in zoom-in-95 duration-150 my-auto print:border-none print:shadow-none print:text-black print:bg-white print:w-full">
         
         {/* Modal Header */}
-        <div className="px-5 py-4 border-b border-slate-800 bg-slate-950/60 flex items-center justify-between print:hidden">
+        <div className="px-5 py-4 border-b border-neutral-200 bg-white flex items-center justify-between print:hidden">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
-              <QrCode className="w-5 h-5" />
+            <div className="w-10 h-10 rounded-xl bg-neutral-900 text-white flex items-center justify-center">
+              <QrCode className="w-5 h-5 text-white" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-base font-bold text-white">
+                <h3 className="text-base font-bold text-neutral-900">
                   {lang === 'en' ? 'Carton QR Inspection & Live Preview' : 'কার্টন কিউআর কোড ও লাইভ বিবরণ'}
                 </h3>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1 font-mono">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-neutral-100 text-neutral-800 border border-neutral-300 flex items-center gap-1 font-mono">
                   <ShieldCheck className="w-3 h-3" />
                   Verified
                 </span>
               </div>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-neutral-500">
                 {lang === 'en' 
                   ? 'Scan with phone camera to view full carton specifications' 
                   : 'ফোনের ক্যামেরা দিয়ে স্ক্যান করলেই এই কার্টনের বিস্তারিত দেখা যাবে'}
@@ -154,22 +156,22 @@ export const CartonQrDetailModal: React.FC<CartonQrDetailModalProps> = ({
 
           <div className="flex items-center gap-1.5">
             {onNavigateCarton && (
-              <div className="flex items-center bg-slate-800 rounded-lg p-0.5 border border-slate-700 mr-2">
+              <div className="flex items-center bg-neutral-100 rounded-lg p-0.5 border border-neutral-300 mr-2">
                 <button
                   disabled={!hasPrevCarton}
                   onClick={() => onNavigateCarton('prev')}
-                  className="p-1.5 text-slate-400 hover:text-white disabled:opacity-30 disabled:hover:text-slate-400 rounded transition cursor-pointer"
+                  className="p-1.5 text-neutral-600 hover:text-neutral-900 disabled:opacity-30 rounded transition cursor-pointer"
                   title="Previous Carton"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
-                <span className="text-[11px] font-mono font-bold px-2 text-slate-300">
+                <span className="text-[11px] font-mono font-bold px-2 text-neutral-900">
                   {ctnNo} / {totalCount}
                 </span>
                 <button
                   disabled={!hasNextCarton}
                   onClick={() => onNavigateCarton('next')}
-                  className="p-1.5 text-slate-400 hover:text-white disabled:opacity-30 disabled:hover:text-slate-400 rounded transition cursor-pointer"
+                  className="p-1.5 text-neutral-600 hover:text-neutral-900 disabled:opacity-30 rounded transition cursor-pointer"
                   title="Next Carton"
                 >
                   <ChevronRight className="w-4 h-4" />
@@ -179,7 +181,7 @@ export const CartonQrDetailModal: React.FC<CartonQrDetailModalProps> = ({
 
             <button
               onClick={onClose}
-              className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition cursor-pointer"
+              className="p-1.5 text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg transition cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -187,24 +189,24 @@ export const CartonQrDetailModal: React.FC<CartonQrDetailModalProps> = ({
         </div>
 
         {/* Modal Body / Printable Label Card */}
-        <div className="p-5 sm:p-6 space-y-5">
+        <div className="p-5 sm:p-6 space-y-5 bg-white">
           
           {/* Main Inspection Card with QR */}
-          <div className="bg-white text-slate-900 rounded-xl p-5 border-2 border-slate-900 shadow-md">
+          <div className="bg-white text-neutral-900 rounded-xl p-5 border-2 border-neutral-900 shadow-md">
             
             {/* Header / Brand info */}
-            <div className="border-b-2 border-slate-900 pb-3 mb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div className="border-b-2 border-neutral-900 pb-3 mb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
-                <h2 className="text-sm sm:text-base font-black uppercase tracking-wider text-slate-900">
+                <h2 className="text-sm sm:text-base font-black uppercase tracking-wider text-neutral-900">
                   {companyName}
                 </h2>
-                <div className="text-[11px] font-semibold text-slate-600">
+                <div className="text-[11px] font-semibold text-neutral-600">
                   GARMENT PACKING & ACCESSORIES SPECIFICATION
                 </div>
               </div>
 
               <div className="flex items-center gap-2 self-start sm:self-auto">
-                <span className="bg-slate-900 text-white font-black px-3 py-1 text-sm font-mono tracking-wide rounded-none">
+                <span className="bg-neutral-900 text-white font-black px-3 py-1 text-sm font-mono tracking-wide rounded-none">
                   CTN #{ctnNo} / {totalCount}
                 </span>
               </div>
@@ -216,73 +218,73 @@ export const CartonQrDetailModal: React.FC<CartonQrDetailModalProps> = ({
               {/* Order Info & Specifications (8 cols) */}
               <div className="md:col-span-8 space-y-3">
                 {/* Meta details */}
-                <div className="grid grid-cols-2 gap-2 text-xs bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+                <div className="grid grid-cols-2 gap-2 text-xs bg-neutral-50 p-2.5 rounded-lg border border-neutral-200">
                   <div>
-                    <span className="text-[10px] font-bold text-slate-500 uppercase block">REF / PO:</span>
-                    <span className="font-bold font-mono text-slate-900 break-all">{refPo || 'N/A'}</span>
+                    <span className="text-[10px] font-bold text-neutral-500 uppercase block">REF / PO:</span>
+                    <span className="font-bold font-mono text-neutral-900 break-all">{refPo || 'N/A'}</span>
                   </div>
                   <div>
-                    <span className="text-[10px] font-bold text-slate-500 uppercase block">BUYER:</span>
-                    <span className="font-black text-indigo-900 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100 inline-block">
+                    <span className="text-[10px] font-bold text-neutral-500 uppercase block">BUYER:</span>
+                    <span className="font-black text-neutral-900 bg-neutral-100 px-1.5 py-0.5 rounded border border-neutral-300 inline-block">
                       {buyer || 'N/A'}
                     </span>
                   </div>
                   <div>
-                    <span className="text-[10px] font-bold text-slate-500 uppercase block">CUSTOMER:</span>
-                    <span className="font-semibold text-slate-800">{customer || 'N/A'}</span>
+                    <span className="text-[10px] font-bold text-neutral-500 uppercase block">CUSTOMER:</span>
+                    <span className="font-semibold text-neutral-800">{customer || 'N/A'}</span>
                   </div>
                   <div>
-                    <span className="text-[10px] font-bold text-slate-500 uppercase block">SIZE / COLOR:</span>
-                    <span className="font-bold text-slate-900">{size || 'N/A'} | {color || 'N/A'}</span>
+                    <span className="text-[10px] font-bold text-neutral-500 uppercase block">SIZE / COLOR:</span>
+                    <span className="font-bold text-neutral-900">{size || 'N/A'} | {color || 'N/A'}</span>
                   </div>
                 </div>
 
                 {/* Primary Weight Breakdown */}
                 <div className="grid grid-cols-3 gap-2 text-center font-mono">
-                  <div className="bg-slate-100 p-2 rounded-lg border border-slate-300">
-                    <span className="text-[9px] font-bold text-slate-600 uppercase block">Gross Wt</span>
-                    <span className="text-base font-black text-slate-900">{grossWt.toFixed(2)}</span>
-                    <span className="text-[9px] text-slate-500 block">Kg</span>
+                  <div className="bg-neutral-50 p-2 rounded-lg border border-neutral-300">
+                    <span className="text-[9px] font-bold text-neutral-600 uppercase block">Gross Wt</span>
+                    <span className="text-base font-black text-neutral-900">{grossWt.toFixed(2)}</span>
+                    <span className="text-[9px] text-neutral-500 block">Kg</span>
                   </div>
 
-                  <div className="bg-slate-100 p-2 rounded-lg border border-slate-300">
-                    <span className="text-[9px] font-bold text-slate-600 uppercase block">Tare Wt</span>
-                    <span className="text-base font-black text-slate-700">{tareWt.toFixed(2)}</span>
-                    <span className="text-[9px] text-slate-500 block">Kg</span>
+                  <div className="bg-neutral-50 p-2 rounded-lg border border-neutral-300">
+                    <span className="text-[9px] font-bold text-neutral-600 uppercase block">Tare Wt</span>
+                    <span className="text-base font-black text-neutral-700">{tareWt.toFixed(2)}</span>
+                    <span className="text-[9px] text-neutral-500 block">Kg</span>
                   </div>
 
-                  <div className="bg-emerald-100/80 p-2 rounded-lg border-2 border-emerald-600">
-                    <span className="text-[9px] font-black text-emerald-900 uppercase block">TOTAL NET WT</span>
-                    <span className="text-lg font-black text-emerald-950 leading-tight">{netWt.toFixed(2)}</span>
-                    <span className="text-[9px] font-bold text-emerald-800 block">Kg ({netWtLbs} Lbs)</span>
+                  <div className="bg-neutral-100 p-2 rounded-lg border-2 border-neutral-900">
+                    <span className="text-[9px] font-black text-neutral-900 uppercase block">TOTAL NET WT</span>
+                    <span className="text-lg font-black text-neutral-950 leading-tight">{netWt.toFixed(2)}</span>
+                    <span className="text-[9px] font-bold text-neutral-700 block">Kg ({netWtLbs} Lbs)</span>
                   </div>
                 </div>
 
                 {/* Length & Unit Wt Breakdown */}
                 <div className="grid grid-cols-3 gap-2 text-center font-mono text-xs">
-                  <div className="bg-indigo-50 p-2 rounded-lg border border-indigo-200">
-                    <span className="text-[9px] font-bold text-indigo-900 uppercase block">Length (Mtr)</span>
-                    <span className="text-sm font-black text-indigo-950">{lengthMtr.toFixed(2)}</span>
-                    <span className="text-[9px] text-indigo-700 block">Meters</span>
+                  <div className="bg-neutral-50 p-2 rounded-lg border border-neutral-200">
+                    <span className="text-[9px] font-bold text-neutral-800 uppercase block">Length (Mtr)</span>
+                    <span className="text-sm font-black text-neutral-900">{lengthMtr.toFixed(2)}</span>
+                    <span className="text-[9px] text-neutral-600 block">Meters</span>
                   </div>
 
-                  <div className="bg-purple-50 p-2 rounded-lg border border-purple-200">
-                    <span className="text-[9px] font-bold text-purple-900 uppercase block">Length (Gry)</span>
-                    <span className="text-sm font-black text-purple-950">{lengthGry.toFixed(2)}</span>
-                    <span className="text-[9px] text-purple-700 block">Gross Yards</span>
+                  <div className="bg-neutral-50 p-2 rounded-lg border border-neutral-200">
+                    <span className="text-[9px] font-bold text-neutral-800 uppercase block">Length (Gry)</span>
+                    <span className="text-sm font-black text-neutral-900">{lengthGry.toFixed(2)}</span>
+                    <span className="text-[9px] text-neutral-600 block">Gross Yards</span>
                   </div>
 
-                  <div className="bg-amber-50 p-2 rounded-lg border border-amber-200">
-                    <span className="text-[9px] font-bold text-amber-900 uppercase block">Unit Weight</span>
-                    <span className="text-sm font-black text-amber-950">{wtPerUnit.toFixed(2)}</span>
-                    <span className="text-[9px] text-amber-700 block">gm / Meter</span>
+                  <div className="bg-neutral-50 p-2 rounded-lg border border-neutral-200">
+                    <span className="text-[9px] font-bold text-neutral-800 uppercase block">Unit Weight</span>
+                    <span className="text-sm font-black text-neutral-900">{wtPerUnit.toFixed(2)}</span>
+                    <span className="text-[9px] text-neutral-600 block">gm / Meter</span>
                   </div>
                 </div>
               </div>
 
               {/* Scannable QR Code Section (4 cols) */}
-              <div className="md:col-span-4 flex flex-col items-center justify-center p-3 bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl">
-                <div className="bg-white p-2.5 rounded-lg border border-slate-300 shadow-xs mb-2">
+              <div className="md:col-span-4 flex flex-col items-center justify-center p-3 bg-neutral-50 border-2 border-dashed border-neutral-300 rounded-xl">
+                <div className="bg-white p-2.5 rounded-lg border border-neutral-300 shadow-xs mb-2">
                   <QRCodeSVG
                     value={previewUrl}
                     size={qrSize}
@@ -295,30 +297,30 @@ export const CartonQrDetailModal: React.FC<CartonQrDetailModalProps> = ({
                 <div className="flex items-center gap-2 mb-3 print:hidden">
                   <button 
                     onClick={() => setQrSize(Math.max(64, qrSize - 16))}
-                    className="w-7 h-7 flex items-center justify-center bg-white border border-slate-300 rounded shadow-sm hover:bg-slate-50 transition cursor-pointer text-slate-600"
+                    className="w-7 h-7 flex items-center justify-center bg-white border border-neutral-300 rounded shadow-xs hover:bg-neutral-100 transition cursor-pointer text-neutral-700"
                   >
                     <span className="font-bold">-</span>
                   </button>
-                  <span className="text-[10px] font-bold text-slate-500 w-12 text-center">{qrSize}px</span>
+                  <span className="text-[10px] font-bold text-neutral-600 w-12 text-center">{qrSize}px</span>
                   <button 
                     onClick={() => setQrSize(Math.min(250, qrSize + 16))}
-                    className="w-7 h-7 flex items-center justify-center bg-white border border-slate-300 rounded shadow-sm hover:bg-slate-50 transition cursor-pointer text-slate-600"
+                    className="w-7 h-7 flex items-center justify-center bg-white border border-neutral-300 rounded shadow-xs hover:bg-neutral-100 transition cursor-pointer text-neutral-700"
                   >
                     <span className="font-bold">+</span>
                   </button>
                 </div>
 
-                <span className="text-[10px] font-bold font-mono text-slate-700 uppercase tracking-tight text-center">
+                <span className="text-[10px] font-bold font-mono text-neutral-900 uppercase tracking-tight text-center">
                   SCAN TO VERIFY CTN #{ctnNo}
                 </span>
-                <span className="text-[9px] text-slate-500 font-mono mt-0.5">
+                <span className="text-[9px] text-neutral-500 font-mono mt-0.5">
                   *{refPo}-{ctnNo}*
                 </span>
               </div>
             </div>
 
             {/* Bottom Certification Banner */}
-            <div className="mt-3 pt-2.5 border-t border-slate-200 flex items-center justify-between text-[10px] font-mono text-slate-500">
+            <div className="mt-3 pt-2.5 border-t border-neutral-200 flex items-center justify-between text-[10px] font-mono text-neutral-500">
               <span>Net Yield: {netGrossRatio}% • {netWtGm.toLocaleString()} gm</span>
               <span>QC Inspection Standard PASS</span>
             </div>
@@ -327,16 +329,16 @@ export const CartonQrDetailModal: React.FC<CartonQrDetailModalProps> = ({
           {/* Quick Action Buttons & Direct Link Box (Screen only) */}
           <div className="space-y-3 print:hidden">
             {/* Direct URL Input Bar */}
-            <div className="flex items-center gap-2 bg-slate-950/80 border border-slate-800 rounded-xl p-2">
+            <div className="flex items-center gap-2 bg-neutral-50 border border-neutral-300 rounded-xl p-2">
               <input
                 type="text"
                 readOnly
                 value={previewUrl}
-                className="w-full bg-transparent text-slate-300 text-xs font-mono px-2 py-1 focus:outline-none select-all"
+                className="w-full bg-transparent text-neutral-800 text-xs font-mono px-2 py-1 focus:outline-none select-all"
               />
               <button
                 onClick={handleCopyLink}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shrink-0 transition cursor-pointer"
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-semibold shrink-0 transition cursor-pointer shadow-xs"
               >
                 {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                 <span>{copied ? 'Copied' : 'Copy Link'}</span>
@@ -348,15 +350,15 @@ export const CartonQrDetailModal: React.FC<CartonQrDetailModalProps> = ({
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleCopyInspectionSummary}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-slate-200 transition cursor-pointer"
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-neutral-100 border border-neutral-300 text-xs font-semibold text-neutral-800 transition cursor-pointer shadow-xs"
                 >
-                  {copiedSummary ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                  {copiedSummary ? <Check className="w-3.5 h-3.5 text-neutral-900" /> : <Copy className="w-3.5 h-3.5" />}
                   <span>{copiedSummary ? 'Copied Details' : 'Copy Specs Text'}</span>
                 </button>
 
                 <button
                   onClick={handleShareWhatsApp}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-xs font-semibold text-emerald-300 transition cursor-pointer"
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-neutral-100 border border-neutral-300 text-xs font-semibold text-neutral-800 transition cursor-pointer shadow-xs"
                 >
                   <Share2 className="w-3.5 h-3.5" />
                   <span>WhatsApp</span>
@@ -366,7 +368,7 @@ export const CartonQrDetailModal: React.FC<CartonQrDetailModalProps> = ({
               <div className="flex items-center gap-2">
                 <button
                   onClick={handlePrintSingleSticker}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md transition cursor-pointer"
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-bold shadow-xs transition cursor-pointer"
                 >
                   <Printer className="w-4 h-4" />
                   <span>Print Sticker with QR</span>

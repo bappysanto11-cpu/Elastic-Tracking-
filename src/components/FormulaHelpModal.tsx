@@ -21,7 +21,7 @@ export const FormulaHelpModal: React.FC<FormulaHelpModalProps> = ({
         {/* Header */}
         <div className="p-4 bg-slate-900 text-white flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Calculator className="w-5 h-5 text-emerald-400" />
+            <Calculator className="w-5 h-5 text-neutral-400" />
             <h3 className="text-sm font-bold">
               {lang === 'en' ? 'How Calculations Work (Textile & Garment Industry Formulas)' : 'ক্যালকুলেশন কিভাবে কাজ করে (গার্মেন্টস সূত্রাবলী)'}
             </h3>
@@ -53,12 +53,12 @@ export const FormulaHelpModal: React.FC<FormulaHelpModalProps> = ({
           </div>
 
           {/* Formula 2: Length in Meters */}
-          <div className="p-3 bg-indigo-50/50 border border-indigo-200 rounded-xl space-y-1">
-            <h4 className="font-bold text-indigo-950 flex items-center gap-1.5 text-xs">
-              <span className="w-5 h-5 rounded-full bg-indigo-600 text-white text-[10px] flex items-center justify-center font-mono">2</span>
+          <div className="p-3 bg-neutral-100/50 border border-neutral-200 rounded-xl space-y-1">
+            <h4 className="font-bold text-neutral-900 flex items-center gap-1.5 text-xs">
+              <span className="w-5 h-5 rounded-full bg-neutral-900 text-white text-[10px] flex items-center justify-center font-mono">2</span>
               {lang === 'en' ? 'Length in Meters (Mtr)' : '২. দৈর্ঘ্য মিটার (Mtr) নির্ণয়'}
             </h4>
-            <div className="bg-white p-2 rounded border border-indigo-200 font-mono text-indigo-950 font-bold">
+            <div className="bg-white p-2 rounded border border-neutral-200 font-mono text-neutral-900 font-bold">
               Length (Mtr) = (Net Weight in Kg × 1000) ÷ Unit Weight (gm/meter)
             </div>
             <p className="text-[11px] text-slate-500">
@@ -69,12 +69,12 @@ export const FormulaHelpModal: React.FC<FormulaHelpModalProps> = ({
           </div>
 
           {/* Formula 3: Length in Gross Yards (Gry) */}
-          <div className="p-3 bg-purple-50/50 border border-purple-200 rounded-xl space-y-1">
-            <h4 className="font-bold text-purple-950 flex items-center gap-1.5 text-xs">
-              <span className="w-5 h-5 rounded-full bg-purple-600 text-white text-[10px] flex items-center justify-center font-mono">3</span>
+          <div className="p-3 bg-neutral-100/50 border border-neutral-200 rounded-xl space-y-1">
+            <h4 className="font-bold text-neutral-900 flex items-center gap-1.5 text-xs">
+              <span className="w-5 h-5 rounded-full bg-neutral-900 text-white text-[10px] flex items-center justify-center font-mono">3</span>
               {lang === 'en' ? 'Length in Gross Yards (Gry)' : '৩. গ্রস ইয়ার্ড (Gry) নির্ণয়'}
             </h4>
-            <div className="bg-white p-2 rounded border border-purple-200 font-mono text-purple-950 font-bold">
+            <div className="bg-white p-2 rounded border border-neutral-200 font-mono text-neutral-900 font-bold">
               Length (Gry) = (Length in Meters ÷ 0.9144) ÷ 144
             </div>
             <p className="text-[11px] text-slate-500">
@@ -85,9 +85,9 @@ export const FormulaHelpModal: React.FC<FormulaHelpModalProps> = ({
           </div>
 
           {/* Summary */}
-          <div className="p-3 bg-emerald-50/50 border border-emerald-200 rounded-xl space-y-1">
-            <h4 className="font-bold text-emerald-950 flex items-center gap-1.5 text-xs">
-              <span className="w-5 h-5 rounded-full bg-emerald-600 text-white text-[10px] flex items-center justify-center font-mono">4</span>
+          <div className="p-3 bg-neutral-100/50 border border-neutral-200 rounded-xl space-y-1">
+            <h4 className="font-bold text-neutral-900 flex items-center gap-1.5 text-xs">
+              <span className="w-5 h-5 rounded-full bg-neutral-900 text-white text-[10px] flex items-center justify-center font-mono">4</span>
               {lang === 'en' ? 'Grand Summary' : '৪. সর্বমোট হিসাব'}
             </h4>
             <p className="text-[11px] text-slate-600">
@@ -99,25 +99,25 @@ export const FormulaHelpModal: React.FC<FormulaHelpModalProps> = ({
           {/* Keyboard Shortcuts Section */}
           <div className="p-3 bg-slate-900 text-white rounded-xl space-y-2 border border-slate-800">
             <h4 className="font-bold text-slate-100 flex items-center gap-1.5 text-xs">
-              <span className="w-5 h-5 rounded-full bg-indigo-500 text-white text-[10px] flex items-center justify-center font-mono">⚡</span>
+              <span className="w-5 h-5 rounded-full bg-neutral-800 text-white text-[10px] flex items-center justify-center font-mono">⚡</span>
               {lang === 'en' ? 'Packing Table Keyboard Shortcuts' : 'প্যাকিং টেবিল কীবোর্ড শর্টকাট'}
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] font-mono">
               <div className="bg-slate-800/90 p-2 rounded border border-slate-700 flex items-center justify-between">
                 <span className="text-slate-300 font-sans">{lang === 'en' ? 'Add Empty Row' : 'নতুন সারি যোগ'}</span>
-                <kbd className="px-1.5 py-0.5 bg-slate-950 text-emerald-400 font-bold rounded text-[10px]">Ctrl + Enter</kbd>
+                <kbd className="px-1.5 py-0.5 bg-slate-950 text-neutral-400 font-bold rounded text-[10px]">Ctrl + Enter</kbd>
               </div>
               <div className="bg-slate-800/90 p-2 rounded border border-slate-700 flex items-center justify-between">
                 <span className="text-slate-300 font-sans">{lang === 'en' ? 'Delete Selected Row' : 'সিলেক্টেড সারি মুছুন'}</span>
-                <kbd className="px-1.5 py-0.5 bg-slate-950 text-rose-400 font-bold rounded text-[10px]">Ctrl + Del</kbd>
+                <kbd className="px-1.5 py-0.5 bg-slate-950 text-neutral-400 font-bold rounded text-[10px]">Ctrl + Del</kbd>
               </div>
               <div className="bg-slate-800/90 p-2 rounded border border-slate-700 flex items-center justify-between">
                 <span className="text-slate-300 font-sans">{lang === 'en' ? 'Duplicate Row' : 'সারি ডুপ্লিকেট'}</span>
-                <kbd className="px-1.5 py-0.5 bg-slate-950 text-amber-400 font-bold rounded text-[10px]">Ctrl + D</kbd>
+                <kbd className="px-1.5 py-0.5 bg-slate-950 text-neutral-400 font-bold rounded text-[10px]">Ctrl + D</kbd>
               </div>
               <div className="bg-slate-800/90 p-2 rounded border border-slate-700 flex items-center justify-between">
                 <span className="text-slate-300 font-sans">{lang === 'en' ? 'Navigate Rows' : 'সারি নেভিগেশন'}</span>
-                <kbd className="px-1.5 py-0.5 bg-slate-950 text-sky-400 font-bold rounded text-[10px]">Alt + ↑ / ↓</kbd>
+                <kbd className="px-1.5 py-0.5 bg-slate-950 text-neutral-400 font-bold rounded text-[10px]">Alt + ↑ / ↓</kbd>
               </div>
             </div>
           </div>

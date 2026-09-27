@@ -57,8 +57,17 @@ import {
   Maximize2,
   Scan,
   Scissors,
-  Camera
+  Camera,
+  FolderOpen
 } from 'lucide-react';
+import { ScheduleItem } from '../types/schedule';
+import { 
+  getAllAvailableScheduleOrders, 
+  generateCartonsForOrder, 
+  getDefaultCartonCapacity,
+  getOrCreateOrderCartons,
+  saveOrderPackingData
+} from '../utils/orderCartonStorage';
 import { 
   StickerCustomizationSettings, 
   DEFAULT_STICKER_SETTINGS, 
@@ -77,8 +86,7 @@ import {
   saveBulkConfig
 } from '../utils/stickerSettingsStorage';
 import { recordStickerUsage } from '../utils/recentStickerConfigsStorage';
-import { StickerSettingsModal } from './StickerSettingsModal';
-import { StickerBulkConfigPanel } from './StickerBulkConfigPanel';
+import { StickerCustomizationModal } from './StickerCustomizationModal';
 import { AutoFitText } from './AutoFitText';
 import { 
   getItemTechnicalRows, 
@@ -90,6 +98,9 @@ interface StickerLabelsViewProps {
   sheetData: PackingSheetData;
   summary: SummaryStats;
   lang: Language;
+  activeScheduleItem?: ScheduleItem | null;
+  onSelectScheduleItem?: (item: ScheduleItem) => void;
+  onAutoGenerateCartons?: (capacity: number) => void;
   onRequestPrint?: (orientation: 'landscape' | 'portrait') => void;
   onOpenCartonQr?: (carton: CartonRow) => void;
   onUpdateHeader?: (updated: Partial<PackingSheetData>) => void;
@@ -100,12 +111,16 @@ interface StickerLabelsViewProps {
   onAddBulk?: (count: number) => void;
   onReorderCartons?: (newCartons: CartonRow[]) => void;
   onOpenAiPhotoScanner?: () => void;
+  isPrintPreview?: boolean;
 }
 
 export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
   sheetData,
   summary,
   lang,
+  activeScheduleItem,
+  onSelectScheduleItem,
+  onAutoGenerateCartons,
   onRequestPrint,
   onOpenCartonQr,
   onUpdateHeader,
@@ -116,7 +131,73 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
   onAddBulk,
   onReorderCartons,
   onOpenAiPhotoScanner,
+  isPrintPreview = false,
 }) => {
+  // Available Schedule Orders for Order Switcher
+  const [availableOrders, setAvailableOrders] = useState<ScheduleItem[]>(() => {
+    return getAllAvailableScheduleOrders();
+  });
+  const [isOrderSelectorOpen, setIsOrderSelectorOpen] = useState<boolean>(false);
+  const [isCapacityModalOpen, setIsCapacityModalOpen] = useState<boolean>(false);
+  const [customCapacityInput, setCustomCapacityInput] = useState<string>(() => {
+    if (activeScheduleItem) {
+      return String(getDefaultCartonCapacity(activeScheduleItem));
+    }
+    return sheetData.deliveryUnit === 'pcs' ? '100' : '500';
+  });
+
+  // Refresh available orders on mount
+  useEffect(() => {
+    setAvailableOrders(getAllAvailableScheduleOrders());
+  }, []);
+
+  // Sync capacity input if active schedule item changes
+  useEffect(() => {
+    if (activeScheduleItem) {
+      setCustomCapacityInput(String(getDefaultCartonCapacity(activeScheduleItem)));
+    }
+  }, [activeScheduleItem?.id]);
+
+  const handleSelectOrder = async (order: ScheduleItem) => {
+    if (onSelectScheduleItem) {
+      onSelectScheduleItem(order);
+    } else {
+      const { data: orderData } = await getOrCreateOrderCartons(order);
+      if (onUpdateHeader) {
+        onUpdateHeader({
+          buyer: order.buyer,
+          customer: order.customer,
+          ref: order.customerRefPO || order.jobNo,
+          customItemName: order.itemDescription,
+          color: order.color,
+          size: order.size,
+          cartons: orderData.cartons,
+        });
+      }
+      if (onReorderCartons && orderData.cartons) {
+        onReorderCartons(orderData.cartons);
+      }
+    }
+  };
+
+  const handleExecuteAutoGenerateCartons = () => {
+    const cap = parseInt(customCapacityInput, 10) || 500;
+    if (onAutoGenerateCartons) {
+      onAutoGenerateCartons(cap);
+    } else if (activeScheduleItem) {
+      const generated = generateCartonsForOrder(
+        activeScheduleItem,
+        cap,
+        sheetData.defaultTare || 0.50,
+        sheetData.defaultWtPerUnit || 30.00
+      );
+      if (onReorderCartons) {
+        onReorderCartons(generated);
+      }
+    }
+    setIsCapacityModalOpen(false);
+  };
+
   // View mode: showPreview toggles between full-page sticker preview mode and list-based data entry mode
   const [showPreview, setShowPreview] = useState<boolean>(true);
   const [selectedCartonId, setSelectedCartonId] = useState<string | null>(null);
@@ -851,817 +932,306 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* Header bar */}
-      <div className="flex flex-col bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs gap-3 print:hidden">
-        
-        {/* Top row: Title & Action buttons */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-200 flex items-center justify-center font-bold text-xs">
-              <Tag className="w-4 h-4" />
+      {/* 1. ORDER-SPECIFIC ACTIVE PROFILE & ORDER SWITCHER BANNER */}
+      {!isPrintPreview && (
+        <div className="bg-gradient-to-r from-slate-900 via-neutral-950 to-slate-900 text-white p-3.5 sm:p-4 rounded-xl border border-neutral-700/60 shadow-md print:hidden">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+          {/* Order Details Left Column */}
+          <div className="flex items-start sm:items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-xl bg-neutral-900/30 border border-neutral-300/40 flex items-center justify-center text-neutral-300 shrink-0 mt-0.5 sm:mt-0">
+              <Package className="w-5 h-5 text-neutral-300" />
             </div>
-            <div>
+            <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                  <span>{lang === 'en' ? 'Printable Carton Box Stickers & QR Codes' : 'প্রিন্টযোগ্য কার্টন বক্স স্টিকার ও কিউআর কোড'}</span>
-                  <span className="text-[10px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded font-mono font-bold">
-                    {activeCartons.length} {lang === 'en' ? 'Labels' : 'লেবেল'}
-                  </span>
-                </h3>
-                
-                {/* Active Item Badge in Header */}
-                <span className={`text-[10px] border px-2 py-0.2 rounded font-bold flex items-center gap-1 ${
-                  currentItemKey === 'elastic'
-                    ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
-                    : currentItemKey === 'drawstring'
-                    ? 'bg-amber-50 text-amber-800 border-amber-300'
-                    : currentItemKey === 'bow'
-                    ? 'bg-rose-50 text-rose-800 border-rose-300'
-                    : 'bg-emerald-50 text-emerald-800 border-emerald-300'
-                }`}>
-                  <span>{currentItemKey === 'elastic' ? '🧵' : currentItemKey === 'drawstring' ? '🪢' : currentItemKey === 'bow' ? '🎀' : '🏷️'}</span>
-                  <span>{currentItemConfig.name} ({isPcsMode ? 'Pcs Delivery' : 'Mtr Delivery'})</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-300 bg-neutral-950 px-2 py-0.5 rounded border border-neutral-700/60">
+                  {lang === 'en' ? 'Order Profile' : 'অর্ডার প্রোফাইল'}
                 </span>
-
-                {stickerSettings.logoUrl && (
-                  <span className="text-[10px] bg-emerald-100 text-emerald-800 border border-emerald-300 px-1.5 py-0.2 rounded font-semibold flex items-center gap-1">
-                    <Sparkles className="w-3 h-3 text-emerald-600" />
-                    Branded
+                <span className="font-bold text-sm text-white truncate">
+                  {sheetData.buyer || activeScheduleItem?.buyer || 'Buyer'}
+                </span>
+                <span className="text-xs font-mono font-bold text-neutral-300 bg-neutral-950/70 px-2 py-0.5 rounded border border-neutral-600/50">
+                  PO: {sheetData.ref || activeScheduleItem?.customerRefPO || 'N/A'}
+                </span>
+                <span className="text-xs text-neutral-200 truncate">
+                  • {sheetData.customItemName || activeScheduleItem?.itemDescription || currentItemConfig.name}
+                </span>
+                {(sheetData.color || activeScheduleItem?.color) && (
+                  <span className="text-[11px] bg-slate-800 px-2 py-0.5 rounded text-slate-200 border border-slate-700">
+                    {lang === 'en' ? 'Color:' : 'কালার:'} <strong className="text-white">{sheetData.color || activeScheduleItem?.color}</strong>
+                  </span>
+                )}
+                {(sheetData.size || activeScheduleItem?.size) && (
+                  <span className="text-[11px] bg-slate-800 px-2 py-0.5 rounded text-slate-200 border border-slate-700 font-mono">
+                    {lang === 'en' ? 'Size:' : 'সাইজ:'} <strong className="text-white">{sheetData.size || activeScheduleItem?.size}</strong>
                   </span>
                 )}
               </div>
-              <p className="text-xs text-slate-500">
+
+              <div className="text-xs text-slate-300 mt-1.5 flex items-center gap-3 flex-wrap">
+                <span>
+                  {lang === 'en' ? 'Order Demand:' : 'অর্ডারের মোট চাহিদা:'}{' '}
+                  <strong className="text-white font-mono">
+                    {Number(activeScheduleItem?.demandQty || activeScheduleItem?.orderQty || 1000).toLocaleString()}{' '}
+                    {activeScheduleItem?.unit || (isPcsMode ? 'Pcs' : 'Mtr')}
+                  </strong>
+                </span>
+                <span>•</span>
+                <span>
+                  {lang === 'en' ? 'Total Distinct Cartons:' : 'এই অর্ডারের মোট কার্টন:'}{' '}
+                  <strong className="text-neutral-400 font-mono font-bold">
+                    {sheetData.cartons.length} {lang === 'en' ? 'Boxes' : 'টি বক্স'}
+                  </strong>
+                </span>
+                <span>•</span>
+                <span className="text-slate-400">
+                  {lang === 'en' ? 'Cloud Status:' : 'ক্লাউড স্ট্যাটাস:'}{' '}
+                  <span className="text-neutral-400 font-medium">
+                    ✓ {lang === 'en' ? 'Saved per Order' : 'অর্ডারের সাথে সংরক্ষিত'}
+                  </span>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Buttons Right Column */}
+          <div className="flex items-center gap-2 shrink-0 flex-wrap">
+            {/* Quick Order Switcher Dropdown */}
+            {availableOrders.length > 0 && (
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setIsOrderSelectorOpen(!isOrderSelectorOpen)}
+                  className="px-3 py-1.5 bg-neutral-900/80 hover:bg-neutral-800 text-white border border-neutral-400/50 rounded-lg text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shadow-xs"
+                >
+                  <FolderOpen className="w-3.5 h-3.5 text-neutral-200" />
+                  <span>{lang === 'en' ? 'Switch Order' : 'অর্ডার পরিবর্তন'}</span>
+                  <ChevronDown className={`w-3.5 h-3.5 text-neutral-300 transition-transform ${isOrderSelectorOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {isOrderSelectorOpen && (
+                  <div className="absolute right-0 mt-2 w-80 max-h-80 overflow-y-auto bg-white border border-neutral-300 rounded-xl shadow-2xl z-50 p-1.5 text-xs text-neutral-800 divide-y divide-neutral-200">
+                    <div className="px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-neutral-500 flex items-center justify-between">
+                      <span>{lang === 'en' ? 'Select Schedule Order' : 'শিডিউল থেকে অর্ডার নির্বাচন'}</span>
+                      <span className="text-neutral-900 font-mono font-bold">{availableOrders.length} {lang === 'en' ? 'orders' : 'অর্ডার'}</span>
+                    </div>
+                    {availableOrders.map((ord) => {
+                      const isCurrent = (activeScheduleItem?.id === ord.id) || (sheetData.ref === ord.customerRefPO);
+                      return (
+                        <button
+                          key={ord.id}
+                          type="button"
+                          onClick={() => {
+                            setIsOrderSelectorOpen(false);
+                            handleSelectOrder(ord);
+                          }}
+                          className={`w-full text-left p-2 rounded-lg transition cursor-pointer flex flex-col gap-0.5 ${
+                            isCurrent
+                              ? 'bg-neutral-900 text-white font-bold shadow-xs'
+                              : 'hover:bg-neutral-100 text-neutral-800'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between font-bold">
+                            <span className="truncate">{ord.buyer}</span>
+                            <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded ${isCurrent ? 'bg-neutral-800 text-white' : 'bg-neutral-100 text-neutral-800 border border-neutral-200'}`}>
+                              {ord.customerRefPO || ord.jobNo}
+                            </span>
+                          </div>
+                          <div className={`text-[11px] flex items-center justify-between ${isCurrent ? 'text-neutral-300' : 'text-neutral-500'}`}>
+                            <span className="truncate">{ord.itemDescription || 'Elastic'} • {ord.color || 'N/A'}</span>
+                            <span className="font-mono font-semibold">{ord.demandQty} {ord.unit}</span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Auto Generate Cartons for This Order Button */}
+            <button
+              type="button"
+              onClick={() => setIsCapacityModalOpen(true)}
+              className="px-3 py-1.5 bg-neutral-900 hover:bg-neutral-800 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shadow-xs"
+              title={lang === 'en' ? 'Auto generate cartons based on this order demand' : 'এই অর্ডারের ডিমান্ড ও কার্টন সাইজ অনুযায়ী স্বয়ংক্রিয়ভাবে কার্টন প্রস্তুত করুন'}
+            >
+              <Sparkles className="w-3.5 h-3.5 text-neutral-300" />
+              <span>{lang === 'en' ? 'Auto-Generate Cartons' : 'অটো-কার্টন জেনারেট'}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      )}
+
+      {/* AUTO GENERATE CARTONS MODAL */}
+      {!isPrintPreview && isCapacityModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 print:hidden">
+          <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            <div className="p-4 bg-gradient-to-r from-slate-900 to-neutral-950 text-white flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-neutral-300" />
+                <h3 className="font-bold text-sm">
+                  {lang === 'en' ? 'Auto-Generate Order Cartons' : 'অর্ডারের কার্টন স্বয়ংক্রিয়ভাবে তৈরি'}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsCapacityModalOpen(false)}
+                className="p-1 text-slate-400 hover:text-white rounded-md cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-5 space-y-4 text-xs text-slate-700">
+              <div className="bg-neutral-100/70 p-3 rounded-xl border border-neutral-200 space-y-1.5">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">{lang === 'en' ? 'Buyer & PO:' : 'বায়ার ও পিও:'}</span>
+                  <span className="font-bold text-slate-900">{sheetData.buyer} ({sheetData.ref})</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">{lang === 'en' ? 'Item / Spec:' : 'আইটেম ও স্পেক:'}</span>
+                  <span className="font-medium text-slate-800">{sheetData.customItemName || 'Elastic'} • {sheetData.color} ({sheetData.size})</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">{lang === 'en' ? 'Total Demand:' : 'অর্ডারের মোট চাহিদা:'}</span>
+                  <span className="font-mono font-bold text-neutral-800">
+                    {Number(activeScheduleItem?.demandQty || 1000).toLocaleString()} {activeScheduleItem?.unit || (isPcsMode ? 'Pcs' : 'Mtr')}
+                  </span>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block font-bold text-slate-800">
+                  {lang === 'en' ? 'Carton Capacity (Units per Carton Box):' : 'কার্টন ক্যাপাসিটি (প্রতি বক্সে পরিমাণ):'}
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min="1"
+                    value={customCapacityInput}
+                    onChange={e => setCustomCapacityInput(e.target.value)}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg font-mono font-bold text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-neutral-400"
+                    placeholder="e.g. 500"
+                  />
+                  <span className="text-slate-500 font-bold shrink-0">
+                    {activeScheduleItem?.unit || (isPcsMode ? 'Pcs/ctn' : 'Mtr/ctn')}
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-500">
+                  {lang === 'en'
+                    ? `Estimated total boxes: ${Math.max(1, Math.ceil(Number(activeScheduleItem?.demandQty || 1000) / (parseInt(customCapacityInput, 10) || 500)))} cartons`
+                    : `হিসাব অনুযায়ী মোট বক্স তৈরি হবে: ${Math.max(1, Math.ceil(Number(activeScheduleItem?.demandQty || 1000) / (parseInt(customCapacityInput, 10) || 500)))} টি কার্টন`}
+                </p>
+              </div>
+
+              <div className="bg-neutral-100 p-2.5 rounded-lg border border-neutral-200 text-neutral-900 text-[11px] flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-neutral-800 shrink-0" />
+                <span>
+                  {lang === 'en'
+                    ? 'This will auto-generate carton #1 to #N with calculated net and gross weights, saved directly to this order.'
+                    : 'এটি এই অর্ডারের নিজস্ব বায়ার ও পিও দিয়ে ১ থেকে N পর্যন্ত সঠিক ওজনের কার্টন তৈরি করে ক্লাউডে সেভ করবে।'}
+                </span>
+              </div>
+            </div>
+
+            <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setIsCapacityModalOpen(false)}
+                className="px-3.5 py-1.5 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-100 text-xs font-semibold cursor-pointer"
+              >
+                {lang === 'en' ? 'Cancel' : 'বাতিল'}
+              </button>
+              <button
+                type="button"
+                onClick={handleExecuteAutoGenerateCartons}
+                className="px-4 py-1.5 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-bold flex items-center gap-1.5 shadow-xs transition cursor-pointer"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-neutral-200" />
+                <span>{lang === 'en' ? 'Generate & Save' : 'তৈরি ও সেভ করুন'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Streamlined Sticker Action Bar */}
+      {!isPrintPreview && (
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs print:hidden">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-9 h-9 rounded-lg bg-neutral-100 text-neutral-800 border border-neutral-200 flex items-center justify-center font-bold text-sm shrink-0">
+              <Tag className="w-5 h-5" />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="text-sm sm:text-base font-bold text-slate-900 truncate">
+                  {lang === 'en' ? 'Carton Sticker Labels Preview' : '🏷️ কার্টন স্টিকার প্রিভিউ'}
+                </h3>
+                <span className="text-xs bg-neutral-100 text-neutral-800 font-mono font-bold px-2.5 py-0.5 rounded-full shrink-0">
+                  {activeCartons.length} {lang === 'en' ? 'Labels' : 'টি লেবেল'}
+                </span>
+                <span className="text-xs bg-slate-100 text-slate-700 font-medium px-2 py-0.5 rounded-md border border-slate-200 shrink-0">
+                  {currentItemConfig.name} ({isPcsMode ? 'Pcs' : 'Mtr'})
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 truncate">
                 {lang === 'en'
-                  ? `Active Style: ${currentItemConfig.name} (${isPcsMode ? 'Pieces' : 'Meters'} delivery format with live auto-sync)`
-                  : `সক্রিয় স্টাইল: ${currentItemConfig.nameBn} (${isPcsMode ? 'পিস' : 'মিটার'} ডেলিভারি স্টাইলে সিঙ্কড)`}
+                  ? `Format: ${activePaperDef.name} · ${densityMode === 'compact' ? 'Compact Density' : 'Comfort Density'}`
+                  : `প্রিন্ট ফরম্যাট: ${activePaperDef.name} · ${densityMode === 'compact' ? 'কমপ্যাক্ট' : 'কমফোর্ট'}`}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center flex-wrap gap-2">
-            {/* Primary 'Preview Mode' Toggle Control */}
-            <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 shadow-2xs gap-1.5">
-              {/* Interactive Master Toggle Switch */}
-              <button
-                type="button"
-                role="switch"
-                aria-checked={showPreview}
-                onClick={() => setShowPreview(!showPreview)}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer shadow-2xs select-none ${
-                  showPreview
-                    ? 'bg-indigo-600 text-white shadow-indigo-200'
-                    : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-200/80'
-                }`}
-                title={
-                  showPreview
-                    ? (lang === 'en' ? 'Preview Mode Active (Visual Grid): Click to switch to Sticker Settings & Data List View' : 'প্রিভিউ মোড চালু (ভিজ্যুয়াল গ্রিড): সেটিংস ও ডাটা লিস্ট ভিউতে যেতে ক্লিক করুন')
-                    : (lang === 'en' ? 'Click to enable Preview Mode (Rendered Labels Visual Grid)' : 'প্রিভিউ মোড চালু করতে ক্লিক করুন (ভিজ্যুয়াল গ্রিড)')
-                }
-              >
-                <div className="flex items-center gap-1.5">
-                  {showPreview ? (
-                    <LayoutGrid className="w-3.5 h-3.5 text-indigo-200" />
-                  ) : (
-                    <FileSpreadsheet className="w-3.5 h-3.5 text-slate-500" />
-                  )}
-                  <span>{lang === 'en' ? 'Preview Mode' : 'প্রিভিউ মোড'}</span>
-                </div>
-
-                {/* Animated Switch Pill */}
-                <div className={`relative inline-flex h-4 w-7 shrink-0 items-center rounded-full transition-colors ${
-                  showPreview ? 'bg-indigo-400' : 'bg-slate-300'
-                }`}>
-                  <span className={`inline-block h-3 w-3 transform rounded-full bg-white shadow-xs transition-transform ${
-                    showPreview ? 'translate-x-3.5' : 'translate-x-0.5'
-                  }`} />
-                </div>
-
-                <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded font-semibold ${
-                  showPreview ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'
-                }`}>
-                  {showPreview ? (lang === 'en' ? 'GRID' : 'গ্রিড') : (lang === 'en' ? 'LIST' : 'লিস্ট')}
-                </span>
-              </button>
-
-              {/* Segmented Mode Selector for Direct Selection */}
-              <div className="hidden sm:flex items-center bg-slate-200/70 p-0.5 rounded-lg text-[11px]">
-                <button
-                  type="button"
-                  onClick={() => setShowPreview(false)}
-                  className={`flex items-center gap-1 px-2.5 py-1 rounded-md font-semibold transition cursor-pointer ${
-                    !showPreview
-                      ? 'bg-white text-indigo-700 shadow-2xs font-bold'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                  title={lang === 'en' ? 'List View: Sticker settings overview & carton contents table' : 'লিস্ট ভিউ: স্টিকার সেটিংস ও কার্টন টেবিল'}
-                >
-                  <FileSpreadsheet className="w-3 h-3 text-indigo-600" />
-                  <span>{lang === 'en' ? 'Settings List' : 'সেটিংস লিস্ট'}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowPreview(true)}
-                  className={`flex items-center gap-1 px-2.5 py-1 rounded-md font-semibold transition cursor-pointer ${
-                    showPreview
-                      ? 'bg-white text-indigo-700 shadow-2xs font-bold'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                  title={lang === 'en' ? 'Visual Grid: True-to-print rendered final sticker labels' : 'ভিজ্যুয়াল গ্রিড: রেন্ডারড প্রিন্ট লেবেল'}
-                >
-                  <LayoutGrid className="w-3 h-3 text-indigo-600" />
-                  <span>{lang === 'en' ? 'Visual Grid' : 'ভিজ্যুয়াল গ্রিড'}</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Bulk Configuration & Paper Layout Button */}
+          {/* 3 Core Action Buttons: Print All, Image Download, Customize */}
+          <div className="flex items-center gap-2 w-full sm:w-auto justify-end flex-wrap shrink-0">
+            {/* 1. Print All */}
             <button
               type="button"
-              onClick={() => setIsBulkPanelOpen(!isBulkPanelOpen)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition cursor-pointer ${
-                isBulkPanelOpen
-                  ? 'bg-indigo-600 border-indigo-700 text-white shadow-2xs font-bold'
-                  : 'bg-indigo-50/80 border-indigo-200 text-indigo-800 hover:bg-indigo-100'
-              }`}
-              title="Bulk configure padding, paper size (A4 vs Roll), font scale, and page breaks"
+              onClick={handlePrint}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-white text-xs sm:text-sm font-bold shadow-xs hover:shadow transition cursor-pointer"
+              title={lang === 'en' ? 'Print all carton labels' : 'সবগুলো স্টিকার প্রিন্ট করুন'}
             >
-              <SlidersHorizontal className="w-3.5 h-3.5" />
-              <span>{lang === 'en' ? 'Bulk Config & Paper' : 'বাল্ক কনফিগারেশন'}</span>
-              <span className="text-[10px] bg-white/30 px-1 py-0.2 rounded font-mono">
-                {STICKER_PAPER_SIZES[bulkConfig.paperSize]?.name.split(' ')[0] || 'A4'}
-              </span>
+              <Printer className="w-4 h-4" />
+              <span>{lang === 'en' ? 'Print All' : 'সব প্রিন্ট'}</span>
             </button>
 
-            {/* AI Photo Weight Scanner Button */}
-            {onOpenAiPhotoScanner && (
-              <button
-                type="button"
-                onClick={onOpenAiPhotoScanner}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold shadow-xs transition cursor-pointer"
-                title={lang === 'en' ? 'Scan photos of cartons or weighing scales to auto-detect gross weights and generate stickers' : 'কার্টনের ছবি থেকে ওজন স্ক্যান করে স্টিকার তৈরি করুন'}
-              >
-                <Camera className="w-3.5 h-3.5 text-white" />
-                <span>{lang === 'en' ? 'AI Photo Scan' : '📷 AI ছবি স্ক্যান'}</span>
-                <span className="hidden sm:inline-block px-1 py-0.2 text-[9px] bg-emerald-800 text-emerald-100 rounded font-semibold uppercase">
-                  AI
-                </span>
-              </button>
-            )}
-
-            {/* Sticker Styling & Branding Button */}
+            {/* 2. Image Download */}
             <button
               type="button"
-              onClick={() => setIsSettingsOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white text-xs font-semibold shadow-xs transition cursor-pointer"
-              title="Customize sticker fonts, colors, company logo, and layout"
-            >
-              <Palette className="w-3.5 h-3.5 text-amber-300" />
-              <span>{lang === 'en' ? 'Sticker Styling & Logo' : 'স্টাইল ও লোগো'}</span>
-            </button>
-
-            <button
-              onClick={() => setShowQrCode(!showQrCode)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition cursor-pointer ${
-                showQrCode
-                  ? 'bg-indigo-50 border-indigo-300 text-indigo-700'
-                  : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
-              }`}
-              title="Toggle QR Code visibility on labels"
-            >
-              <QrCode className="w-3.5 h-3.5" />
-              <span className="hidden lg:inline">{showQrCode ? 'QR Code Active' : 'Show QR'}</span>
-            </button>
-
-            {showQrCode && (
-              <div className="flex items-center bg-slate-100 rounded-lg p-0.5 border border-slate-200">
-                <button
-                  onClick={() => setQrSize(Math.max(32, qrSize - 8))}
-                  className="p-1 hover:bg-white rounded-md text-slate-600 transition cursor-pointer"
-                  title="Decrease QR Size"
-                >
-                  <Minus className="w-3.5 h-3.5" />
-                </button>
-                <span className="px-2 text-[10px] font-bold text-slate-500 min-w-[3rem] text-center">
-                  QR: {qrSize}px
-                </span>
-                <button
-                  onClick={() => setQrSize(Math.min(120, qrSize + 8))}
-                  className="p-1 hover:bg-white rounded-md text-slate-600 transition cursor-pointer"
-                  title="Increase QR Size"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            )}
-
-            {/* Density Mode Switcher (Compact vs Comfort) */}
-            <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200">
-              <button
-                type="button"
-                onClick={() => setDensityMode('compact')}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold transition cursor-pointer ${
-                  densityMode === 'compact'
-                    ? 'bg-white text-emerald-700 shadow-2xs font-bold border border-emerald-200/80'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-                title={lang === 'en' ? 'Compact Density: More labels per page, compact layout & low paper waste' : 'কমপ্যাক্ট মোড: প্রতি পেজে বেশি লেবেল ও কাগজের সাশ্রয়'}
-              >
-                <Minimize2 className="w-3.5 h-3.5 text-emerald-600" />
-                <span>{lang === 'en' ? 'Compact' : 'কমপ্যাক্ট'}</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setDensityMode('comfort')}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold transition cursor-pointer ${
-                  densityMode === 'comfort'
-                    ? 'bg-white text-indigo-700 shadow-2xs font-bold border border-indigo-200/80'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-                title={lang === 'en' ? 'Comfort Density: Larger typography & high-contrast barcodes for easy scanning' : 'কমফোর্ট মোড: বড় ফন্ট ও সহজে স্ক্যান উপযোগী বারকোড'}
-              >
-                <Maximize2 className="w-3.5 h-3.5 text-indigo-600" />
-                <span>{lang === 'en' ? 'Comfort' : 'কমফোর্ট'}</span>
-              </button>
-            </div>
-
-            {/* Dashed Crop Marks Toggle Button */}
-            <button
-              type="button"
-              onClick={handleToggleCropMarks}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-semibold transition cursor-pointer ${
-                showCropMarks
-                  ? 'bg-emerald-50 border-emerald-300 text-emerald-800 font-bold shadow-2xs'
-                  : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-              }`}
-              title={
-                showCropMarks
-                  ? (lang === 'en' ? 'Crop Marks ON: Dashed cutting lines & corner guides visible for manual cutting' : 'ক্রপ মার্ক অন: কাঁচি দিয়ে কাটার ড্যাশড দাগ প্রদর্শিত হচ্ছে')
-                  : (lang === 'en' ? 'Crop Marks OFF: Click to show dashed cutting crop marks around stickers' : 'ক্রপ মার্ক অফ: স্টিকারের চারপাশে ড্যাশড কাটিং দাগ দেখতে ক্লিক করুন')
-              }
-            >
-              <Scissors className={`w-3.5 h-3.5 ${showCropMarks ? 'text-emerald-600' : 'text-slate-500'}`} />
-              <span>{lang === 'en' ? (showCropMarks ? 'Crop Marks: ON' : 'Crop Marks') : (showCropMarks ? 'কাটিং মার্ক: চালু' : 'কাটিং মার্ক')}</span>
-            </button>
-
-            <button
-              onClick={() => {
-                const updated = {
-                  ...stickerSettings,
-                  autoScaleLongText: stickerSettings.autoScaleLongText === false ? true : false,
-                };
-                handleUpdateSettings(updated);
-              }}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-semibold transition cursor-pointer ${
-                stickerSettings.autoScaleLongText !== false
-                  ? 'bg-blue-50 border-blue-300 text-blue-700 font-bold'
-                  : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
-              }`}
-              title={
-                stickerSettings.autoScaleLongText !== false
-                  ? 'Auto-Scale Font Enabled: Automatically scales down font sizes for long REF or Customer names to prevent overflow'
-                  : 'Auto-Scale Font Disabled: Uses fixed font sizes'
-              }
-            >
-              <span className="font-mono text-[11px] font-black">A↕</span>
-              <span>{stickerSettings.autoScaleLongText !== false ? 'Auto-Fit' : 'Fixed Font'}</span>
-            </button>
-
-            {/* Sequence & Reordering Tools Dropdown */}
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setIsReorderMenuOpen(!isReorderMenuOpen)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition cursor-pointer ${
-                  isReorderMenuOpen
-                    ? 'bg-indigo-600 border-indigo-700 text-white shadow-2xs font-bold'
-                    : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'
-                }`}
-                title="Manage print sequence and sort cartons"
-              >
-                <ArrowDownUp className="w-3.5 h-3.5" />
-                <span>{lang === 'en' ? 'Reorder Sequence' : 'ক্রম সাজান'}</span>
-              </button>
-
-              {isReorderMenuOpen && (
-                <div className="absolute right-0 top-full mt-1 w-64 bg-white rounded-xl shadow-xl border border-slate-200 py-1.5 z-40 text-xs animate-in fade-in zoom-in-95 duration-150">
-                  <div className="px-3 py-1.5 border-b border-slate-100 flex items-center justify-between text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                    <span>{lang === 'en' ? 'Print Sequence Tools' : 'প্রিন্ট সিকোয়েন্স টুলস'}</span>
-                    <span className="text-[10px] text-indigo-600 font-mono bg-indigo-50 px-1.5 py-0.2 rounded font-bold">
-                      Drag & Drop
-                    </span>
-                  </div>
-
-                  <div className="p-2 bg-slate-50 border-b border-slate-100 text-[11px] text-slate-600 leading-relaxed">
-                    <span className="font-semibold text-slate-800">💡 Tip:</span> {lang === 'en' ? 'Drag any sticker card by its handle to reorder directly.' : 'সরাসরি সিকোয়েন্স বদলাতে যেকোনো স্টিকার কার্ড ধরে ড্র্যাগ করুন।'}
-                  </div>
-
-                  <div className="py-1">
-                    <button
-                      type="button"
-                      onClick={() => handleSortCartons('weight-asc')}
-                      className="w-full text-left px-3 py-1.5 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 flex items-center justify-between transition cursor-pointer"
-                    >
-                      <div className="flex items-center gap-2">
-                        <MoveUp className="w-3.5 h-3.5 text-slate-400" />
-                        <span>{lang === 'en' ? 'Sort by Weight: Light → Heavy' : 'ওজন অনুযায়ী: হালকা → ভারী'}</span>
-                      </div>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => handleSortCartons('weight-desc')}
-                      className="w-full text-left px-3 py-1.5 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 flex items-center justify-between transition cursor-pointer"
-                    >
-                      <div className="flex items-center gap-2">
-                        <MoveDown className="w-3.5 h-3.5 text-slate-400" />
-                        <span>{lang === 'en' ? 'Sort by Weight: Heavy → Light' : 'ওজন অনুযায়ী: ভারী → হালকা'}</span>
-                      </div>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => handleSortCartons('qty-desc')}
-                      className="w-full text-left px-3 py-1.5 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 flex items-center justify-between transition cursor-pointer"
-                    >
-                      <div className="flex items-center gap-2">
-                        <ListOrdered className="w-3.5 h-3.5 text-slate-400" />
-                        <span>{lang === 'en' ? 'Sort by Quantity: High → Low' : 'পরিমাণ অনুযায়ী: বেশি → কম'}</span>
-                      </div>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => handleSortCartons('reverse')}
-                      className="w-full text-left px-3 py-1.5 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 flex items-center justify-between transition cursor-pointer"
-                    >
-                      <div className="flex items-center gap-2">
-                        <Shuffle className="w-3.5 h-3.5 text-slate-400" />
-                        <span>{lang === 'en' ? 'Reverse Entire Sequence' : 'সম্পূর্ণ সিকোয়েন্স উল্টান'}</span>
-                      </div>
-                    </button>
-
-                    <div className="h-px bg-slate-100 my-1" />
-
-                    <button
-                      type="button"
-                      onClick={() => handleSortCartons('carton-asc')}
-                      className="w-full text-left px-3 py-1.5 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 flex items-center justify-between transition cursor-pointer"
-                    >
-                      <div className="flex items-center gap-2">
-                        <RotateCcw className="w-3.5 h-3.5 text-slate-400" />
-                        <span>{lang === 'en' ? 'Reset to Carton #1...N' : 'আগের কার্টন নম্বরে রিসেট'}</span>
-                      </div>
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {onOpenAiPhotoScanner && (
-              <button
-                type="button"
-                onClick={onOpenAiPhotoScanner}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-xs transition cursor-pointer"
-                title={lang === 'en' ? 'Scan carton photos to auto-populate stickers' : 'কার্টন ছবি স্ক্যান করে স্বয়ংক্রিয়ভাবে স্টিকার তৈরি করুন'}
-              >
-                <Camera className="w-3.5 h-3.5 text-amber-200" />
-                <span>{lang === 'en' ? 'AI Photo Scan' : 'ফটো স্ক্যান'}</span>
-              </button>
-            )}
-
-            <button
               onClick={handleExportAllAsImages}
               disabled={isExportingAll || activeCartons.length === 0}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold shadow-xs transition cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg border text-xs sm:text-sm font-semibold shadow-xs transition cursor-pointer ${
                 isExportingAll
                   ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
                   : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'
               }`}
-              title={lang === 'en' ? 'Download all active sticker images' : 'সবগুলো স্টিকার ইমেজ ডাউনলোড করুন'}
+              title={lang === 'en' ? 'Download all sticker images' : 'স্টিকার ইমেজ ডাউনলোড করুন'}
             >
-              <ImageIcon className="w-3.5 h-3.5 text-indigo-600" />
-              <span>{isExportingAll ? (lang === 'en' ? 'Downloading...' : 'ডাউনলোড হচ্ছে...') : (lang === 'en' ? 'Export Images' : 'ইমেজ ডাউনলোড')}</span>
-            </button>
-
-            <button
-              onClick={handlePrint}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-xs transition cursor-pointer"
-            >
-              <Printer className="w-3.5 h-3.5" />
-              <span>{lang === 'en' ? 'Print All' : 'সব প্রিন্ট করুন'}</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Bottom row: Quick Item Switcher Buttons right in Sticker Tab */}
-        {onUpdateHeader && (
-          <div className="pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs">
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="font-bold text-slate-600 flex items-center gap-1 text-[11px]">
-                <Package className="w-3.5 h-3.5 text-indigo-600" />
-                <span>{lang === 'en' ? 'Item Style Switcher:' : 'স্টিকার আইটেম পরিবর্তন:'}</span>
+              <Download className="w-4 h-4 text-neutral-800" />
+              <span>
+                {isExportingAll 
+                  ? (lang === 'en' ? 'Exporting...' : 'ডাউনলোড হচ্ছে...') 
+                  : (lang === 'en' ? 'Image Download' : 'ইমেজ ডাউনলোড')}
               </span>
+            </button>
 
-              {/* 1. Elastic (Mtr) */}
-              <button
-                type="button"
-                onClick={() => handleQuickItemSwitch('elastic')}
-                className={`px-2.5 py-1 rounded text-xs font-bold transition flex items-center gap-1 cursor-pointer border ${
-                  currentItemKey === 'elastic'
-                    ? 'bg-indigo-600 text-white border-indigo-700 shadow-2xs'
-                    : 'bg-slate-50 hover:bg-indigo-50 text-slate-700 border-slate-200'
-                }`}
-              >
-                <span>🧵 Elastic</span>
-                <span className="text-[9.5px] opacity-80">(Mtr)</span>
-              </button>
-
-              {/* 2. Drawstring (Pcs) */}
-              <button
-                type="button"
-                onClick={() => handleQuickItemSwitch('drawstring')}
-                className={`px-2.5 py-1 rounded text-xs font-bold transition flex items-center gap-1 cursor-pointer border ${
-                  currentItemKey === 'drawstring'
-                    ? 'bg-amber-600 text-white border-amber-700 shadow-2xs'
-                    : 'bg-slate-50 hover:bg-amber-50 text-slate-700 border-slate-200'
-                }`}
-              >
-                <span>🪢 Drawstring</span>
-                <span className="text-[9.5px] opacity-80">(Pcs)</span>
-              </button>
-
-              {/* 3. Bow (Pcs) */}
-              <button
-                type="button"
-                onClick={() => handleQuickItemSwitch('bow')}
-                className={`px-2.5 py-1 rounded text-xs font-bold transition flex items-center gap-1 cursor-pointer border ${
-                  currentItemKey === 'bow'
-                    ? 'bg-rose-600 text-white border-rose-700 shadow-2xs'
-                    : 'bg-slate-50 hover:bg-rose-50 text-slate-700 border-slate-200'
-                }`}
-              >
-                <span>🎀 Bow</span>
-                <span className="text-[9.5px] opacity-80">(Pcs)</span>
-              </button>
-
-              {/* 4. Tape (Mtr) */}
-              <button
-                type="button"
-                onClick={() => handleQuickItemSwitch('tape')}
-                className={`px-2.5 py-1 rounded text-xs font-bold transition flex items-center gap-1 cursor-pointer border ${
-                  currentItemKey === 'tape'
-                    ? 'bg-emerald-600 text-white border-emerald-700 shadow-2xs'
-                    : 'bg-slate-50 hover:bg-emerald-50 text-slate-700 border-slate-200'
-                }`}
-              >
-                <span>🏷️ Tape</span>
-                <span className="text-[9.5px] opacity-80">(Mtr)</span>
-              </button>
-            </div>
-
-            <span className="text-[11px] text-slate-500 font-medium">
-              {lang === 'en' ? 'Changing items adapts measurements (Mtr vs Pcs) automatically' : 'আইটেম পরিবর্তনে মাপ (মিটার/পিস) স্বয়ংক্রিয়ভাবে পরিবর্তিত হবে'}
-            </span>
+            {/* 3. Customize & Settings */}
+            <button
+              type="button"
+              onClick={() => setIsSettingsOpen(true)}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-bold shadow-xs transition cursor-pointer"
+              title={lang === 'en' ? 'Sticker paper, style, specs & carton customize' : 'পেপার, স্টাইল, স্পেক্স ও সেটিংস কাস্টমাইজ করুন'}
+            >
+              <SlidersHorizontal className="w-4 h-4 text-neutral-300" />
+              <span>{lang === 'en' ? 'Customize' : '⚙️ কাস্টমাইজ'}</span>
+            </button>
           </div>
-        )}
-
-        {/* Technical Specs Customizer Bar (Dynamic per Item Type) */}
-        {onUpdateHeader && (
-          <div className="pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs">
-            <div className="flex items-center gap-2 flex-wrap">
-              <button
-                type="button"
-                onClick={() => setIsSpecsDrawerOpen(!isSpecsDrawerOpen)}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-bold transition cursor-pointer border ${
-                  isSpecsDrawerOpen
-                    ? 'bg-purple-600 text-white border-purple-700 shadow-2xs'
-                    : 'bg-purple-50 hover:bg-purple-100 text-purple-800 border-purple-200'
-                }`}
-                title="Configure dynamic technical specifications (Style, GSM, Stretch, Tipping, etc.)"
-              >
-                <SlidersHorizontal className="w-3.5 h-3.5 text-purple-600" />
-                <span>{lang === 'en' ? 'Technical Specs (Style, GSM...)' : 'টেকনিক্যাল স্পেক্স (স্টাইল, জিএসএম...)'}</span>
-                <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ml-1 ${
-                  isSpecsDrawerOpen ? 'bg-purple-800 text-white' : 'bg-purple-200 text-purple-900'
-                }`}>
-                  {isSpecsDrawerOpen ? (lang === 'en' ? 'Hide' : 'লুকান') : (lang === 'en' ? 'Customize' : 'কাস্টমাইজ')}
-                </span>
-              </button>
-
-              {/* Active Specs Live Pills */}
-              <div className="flex items-center gap-1.5 flex-wrap">
-                {currentItemKey === 'elastic' && (
-                  <>
-                    <span className="text-[10px] bg-indigo-50 text-indigo-800 border border-indigo-200 px-2 py-0.5 rounded font-mono font-bold">
-                      Style: {sheetData.style || 'WOVEN JACQUARD'}
-                    </span>
-                    <span className="text-[10px] bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded font-mono font-bold">
-                      GSM: {sheetData.gsm || '240 GSM'}
-                    </span>
-                    <span className="text-[10px] bg-slate-100 text-slate-700 border border-slate-200 px-2 py-0.5 rounded font-mono">
-                      {sheetData.stretch || '140% STRETCH'}
-                    </span>
-                  </>
-                )}
-
-                {currentItemKey === 'bow' && (
-                  <>
-                    <span className="text-[10px] bg-rose-50 text-rose-800 border border-rose-200 px-2 py-0.5 rounded font-mono font-bold">
-                      Style: {sheetData.style || 'SATIN RIBBON BOW'}
-                    </span>
-                    <span className="text-[10px] bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded font-mono font-bold">
-                      Finish: {sheetData.finish || 'BAR-TACK ULTRASONIC'}
-                    </span>
-                    <span className="text-[10px] bg-purple-50 text-purple-800 border border-purple-200 px-2 py-0.5 rounded font-mono">
-                      {sheetData.pattern || '3MM RIBBON | 45MM SPAN'}
-                    </span>
-                  </>
-                )}
-
-                {currentItemKey === 'drawstring' && (
-                  <>
-                    <span className="text-[10px] bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded font-mono font-bold">
-                      Cord: {sheetData.style || 'BRAIDED ROUND CORD'}
-                    </span>
-                    <span className="text-[10px] bg-indigo-50 text-indigo-800 border border-indigo-200 px-2 py-0.5 rounded font-mono font-bold">
-                      Tipping: {sheetData.tipping || 'CLEAR FILM TIP 15MM'}
-                    </span>
-                    <span className="text-[10px] bg-purple-50 text-purple-800 border border-purple-200 px-2 py-0.5 rounded font-mono">
-                      {sheetData.pattern || 'Ø 5MM × 120 CM CUT'}
-                    </span>
-                  </>
-                )}
-
-                {currentItemKey === 'tape' && (
-                  <>
-                    <span className="text-[10px] bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded font-mono font-bold">
-                      Style: {sheetData.style || 'HERRINGBONE TWILL'}
-                    </span>
-                    <span className="text-[10px] bg-indigo-50 text-indigo-800 border border-indigo-200 px-2 py-0.5 rounded font-mono font-bold">
-                      GSM: {sheetData.gsm || '320 GSM'}
-                    </span>
-                    <span className="text-[10px] bg-slate-100 text-slate-700 border border-slate-200 px-2 py-0.5 rounded font-mono">
-                      {sheetData.finish || '1.2MM HEAVY DUTY'}
-                    </span>
-                  </>
-                )}
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  const defaultSpecs = getDefaultSpecsForItem(sheetData.itemType);
-                  onUpdateHeader(defaultSpecs);
-                }}
-                className="text-[10.5px] text-slate-500 hover:text-slate-800 font-semibold flex items-center gap-1 cursor-pointer"
-                title="Reset technical specs to standard defaults for this item"
-              >
-                <RefreshCw className="w-3 h-3 text-slate-400" />
-                <span>{lang === 'en' ? 'Reset to Defaults' : 'ডিফল্ট রিসেট'}</span>
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Collapsible Technical Specs Editor Drawer */}
-        {isSpecsDrawerOpen && onUpdateHeader && (
-          <div className="mt-2 p-3 bg-slate-900 text-slate-100 rounded-xl border border-slate-700 shadow-md space-y-3">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-              <div className="flex items-center gap-2">
-                <Layers className="w-4 h-4 text-purple-400" />
-                <div>
-                  <h4 className="text-xs font-bold text-white uppercase tracking-wider">
-                    {lang === 'en' ? `Technical Specifications: ${currentItemConfig.name}` : `টেকনিক্যাল স্পেসিফিকেশন: ${currentItemConfig.nameBn}`}
-                  </h4>
-                  <p className="text-[10px] text-slate-400">
-                    {lang === 'en'
-                      ? 'Extra label rows adapt automatically to this item type. Click chips or enter custom values.'
-                      : 'আইটেমের ধরন অনুযায়ী স্টিকারে অতিরিক্ত স্পেক্স রো প্রদর্শিত হবে।'}
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsSpecsDrawerOpen(false)}
-                className="text-xs text-slate-400 hover:text-white px-2 py-0.5 bg-slate-800 rounded cursor-pointer"
-              >
-                ✕ {lang === 'en' ? 'Done' : 'সম্পন্ন'}
-              </button>
-            </div>
-
-            {/* Grid of Spec Inputs with Quick Chips */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-              {/* Field 1: STYLE / PATTERN */}
-              <div className="bg-slate-950 p-2.5 rounded-lg border border-slate-800 space-y-2">
-                <label className="block text-[11px] font-bold text-slate-300 uppercase tracking-wide">
-                  {currentItemKey === 'bow'
-                    ? 'Bow Style / Pattern'
-                    : currentItemKey === 'drawstring'
-                    ? 'Cord Style'
-                    : 'Weave / Construction Style'}
-                </label>
-                <input
-                  type="text"
-                  value={sheetData.style || ''}
-                  placeholder={
-                    currentItemKey === 'bow'
-                      ? 'e.g. SATIN RIBBON BOW'
-                      : currentItemKey === 'drawstring'
-                      ? 'e.g. BRAIDED ROUND CORD'
-                      : 'e.g. WOVEN JACQUARD'
-                  }
-                  onChange={(e) => onUpdateHeader({ style: e.target.value })}
-                  className="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-700 rounded text-xs text-white uppercase font-bold focus:ring-1 focus:ring-purple-500 focus:outline-none"
-                />
-                {/* Quick suggestion chips */}
-                <div className="flex flex-wrap gap-1 pt-1">
-                  {(ITEM_SPEC_SUGGESTIONS[currentItemKey]?.styles || ['STANDARD']).map((s) => (
-                    <button
-                      key={s}
-                      type="button"
-                      onClick={() => onUpdateHeader({ style: s })}
-                      className={`text-[9.5px] px-1.5 py-0.5 rounded cursor-pointer transition ${
-                        sheetData.style === s
-                          ? 'bg-purple-600 text-white font-bold'
-                          : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
-                      }`}
-                    >
-                      {s}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Field 2: GSM (Elastic/Tape) OR Attachment (Bow) OR Tipping (Drawstring) */}
-              <div className="bg-slate-950 p-2.5 rounded-lg border border-slate-800 space-y-2">
-                <label className="block text-[11px] font-bold text-slate-300 uppercase tracking-wide">
-                  {ITEM_SPEC_SUGGESTIONS[currentItemKey]?.field2Label || 'GSM / Weight'}
-                </label>
-                {currentItemKey === 'elastic' || currentItemKey === 'tape' ? (
-                  <input
-                    type="text"
-                    value={sheetData.gsm || ''}
-                    placeholder="e.g. 240 GSM"
-                    onChange={(e) => onUpdateHeader({ gsm: e.target.value })}
-                    className="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-700 rounded text-xs text-emerald-400 font-mono font-bold focus:ring-1 focus:ring-emerald-500 focus:outline-none"
-                  />
-                ) : currentItemKey === 'bow' ? (
-                  <input
-                    type="text"
-                    value={sheetData.finish || ''}
-                    placeholder="e.g. BAR-TACK ULTRASONIC"
-                    onChange={(e) => onUpdateHeader({ finish: e.target.value })}
-                    className="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-700 rounded text-xs text-rose-300 font-bold focus:ring-1 focus:ring-rose-500 focus:outline-none"
-                  />
-                ) : (
-                  <input
-                    type="text"
-                    value={sheetData.tipping || ''}
-                    placeholder="e.g. CLEAR FILM TIP 15MM"
-                    onChange={(e) => onUpdateHeader({ tipping: e.target.value })}
-                    className="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-700 rounded text-xs text-amber-300 font-bold focus:ring-1 focus:ring-amber-500 focus:outline-none"
-                  />
-                )}
-                {/* Quick suggestion chips */}
-                <div className="flex flex-wrap gap-1 pt-1">
-                  {(ITEM_SPEC_SUGGESTIONS[currentItemKey]?.field2Options || []).map((opt) => (
-                    <button
-                      key={opt}
-                      type="button"
-                      onClick={() => {
-                        if (currentItemKey === 'elastic' || currentItemKey === 'tape') {
-                          onUpdateHeader({ gsm: opt });
-                        } else if (currentItemKey === 'bow') {
-                          onUpdateHeader({ finish: opt });
-                        } else {
-                          onUpdateHeader({ tipping: opt });
-                        }
-                      }}
-                      className={`text-[9.5px] px-1.5 py-0.5 rounded cursor-pointer transition ${
-                        (currentItemKey === 'elastic' || currentItemKey === 'tape') && sheetData.gsm === opt
-                          ? 'bg-emerald-600 text-white font-bold'
-                          : currentItemKey === 'bow' && sheetData.finish === opt
-                          ? 'bg-rose-600 text-white font-bold'
-                          : currentItemKey === 'drawstring' && sheetData.tipping === opt
-                          ? 'bg-amber-600 text-white font-bold'
-                          : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
-                      }`}
-                    >
-                      {opt}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Field 3: Stretch (Elastic) OR Ribbon Span (Bow) OR Cut Length (Drawstring) */}
-              <div className="bg-slate-950 p-2.5 rounded-lg border border-slate-800 space-y-2">
-                <label className="block text-[11px] font-bold text-slate-300 uppercase tracking-wide">
-                  {ITEM_SPEC_SUGGESTIONS[currentItemKey]?.field3Label || 'Technical Spec'}
-                </label>
-                {currentItemKey === 'elastic' ? (
-                  <input
-                    type="text"
-                    value={sheetData.stretch || ''}
-                    placeholder="e.g. 140% - 160% HIGH RECOVERY"
-                    onChange={(e) => onUpdateHeader({ stretch: e.target.value })}
-                    className="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-700 rounded text-xs text-indigo-300 font-bold focus:ring-1 focus:ring-indigo-500 focus:outline-none"
-                  />
-                ) : currentItemKey === 'bow' ? (
-                  <input
-                    type="text"
-                    value={sheetData.pattern || ''}
-                    placeholder="e.g. 3MM RIBBON | 45MM SPAN"
-                    onChange={(e) => onUpdateHeader({ pattern: e.target.value })}
-                    className="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-700 rounded text-xs text-purple-300 font-bold focus:ring-1 focus:ring-purple-500 focus:outline-none"
-                  />
-                ) : currentItemKey === 'drawstring' ? (
-                  <input
-                    type="text"
-                    value={sheetData.pattern || ''}
-                    placeholder="e.g. Ø 5MM × 120 CM CUT"
-                    onChange={(e) => onUpdateHeader({ pattern: e.target.value })}
-                    className="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-700 rounded text-xs text-amber-300 font-bold focus:ring-1 focus:ring-amber-500 focus:outline-none"
-                  />
-                ) : (
-                  <input
-                    type="text"
-                    value={sheetData.finish || ''}
-                    placeholder="e.g. 1.2MM HEAVY DUTY"
-                    onChange={(e) => onUpdateHeader({ finish: e.target.value })}
-                    className="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-700 rounded text-xs text-emerald-300 font-bold focus:ring-1 focus:ring-emerald-500 focus:outline-none"
-                  />
-                )}
-                {/* Quick suggestion chips */}
-                <div className="flex flex-wrap gap-1 pt-1">
-                  {(ITEM_SPEC_SUGGESTIONS[currentItemKey]?.field3Options || []).map((opt) => (
-                    <button
-                      key={opt}
-                      type="button"
-                      onClick={() => {
-                        if (currentItemKey === 'elastic') {
-                          onUpdateHeader({ stretch: opt });
-                        } else if (currentItemKey === 'bow' || currentItemKey === 'drawstring') {
-                          onUpdateHeader({ pattern: opt });
-                        } else {
-                          onUpdateHeader({ finish: opt });
-                        }
-                      }}
-                      className={`text-[9.5px] px-1.5 py-0.5 rounded cursor-pointer transition ${
-                        (currentItemKey === 'elastic' && sheetData.stretch === opt) ||
-                        ((currentItemKey === 'bow' || currentItemKey === 'drawstring') && sheetData.pattern === opt) ||
-                        (currentItemKey === 'tape' && sheetData.finish === opt)
-                          ? 'bg-indigo-600 text-white font-bold'
-                          : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
-                      }`}
-                    >
-                      {opt}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Notification Banner when a configuration is applied or saved */}
-      {recentlyNotification && (
-        <div className="flex items-center justify-between gap-2 px-3.5 py-2 bg-emerald-700 text-white text-xs font-semibold rounded-xl shadow-md border border-emerald-600 print:hidden animate-in fade-in slide-in-from-top-1 duration-200">
-          <div className="flex items-center gap-2">
-            <Check className="w-4 h-4 text-emerald-200 shrink-0" />
-            <span>{recentlyNotification}</span>
-          </div>
-          <button
-            type="button"
-            onClick={() => setRecentlyNotification(null)}
-            className="text-emerald-200 hover:text-white p-0.5 rounded cursor-pointer text-xs"
-          >
-            ✕
-          </button>
         </div>
       )}
 
-      {/* Bulk Sticker Configuration & Paper Layout Panel */}
-      <StickerBulkConfigPanel
-        bulkConfig={bulkConfig}
-        onUpdateBulkConfig={handleUpdateBulkConfig}
-        lang={lang}
-        isOpen={isBulkPanelOpen}
-        onToggleOpen={() => setIsBulkPanelOpen(!isBulkPanelOpen)}
-        hasOverflowWarning={hasOverflowDetected}
-        totalLabelsCount={activeCartons.length}
-      />
-
-      {/* Render function for a single sticker card (reusable across Full Preview Grid and Live Side Inspector) */}
-      {(() => {
-        // Internal render helper
-        return null;
-      })()}
-
-      {/* Full-Page Sticker Preview Mode (Always visible when printing, visible on screen when showPreview is true) */}
-      <div className={showPreview ? 'block space-y-6' : 'hidden print:block print:space-y-0'}>
+      {/* Full-Page Sticker Preview Mode (Always visible when printing, visible on screen when showPreview is true or in print preview) */}
+      <div className={isPrintPreview || showPreview ? 'block space-y-6 print:space-y-0' : 'hidden print:block print:space-y-0'}>
         {/* Dynamic Print CSS for Selected Paper Size */}
         <style>{`
           @media print {
@@ -1702,7 +1272,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
             <button
               type="button"
               onClick={() => setShowPreview(false)}
-              className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold shadow-xs transition cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-neutral-900 hover:bg-neutral-800 text-white rounded-lg text-xs font-bold shadow-xs transition cursor-pointer"
             >
               <Table className="w-4 h-4" />
               <span>{lang === 'en' ? 'Open List Data Entry Mode' : 'লিস্ট ডাটা এন্ট্রি মোড খুলুন'}</span>
@@ -1710,52 +1280,6 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
           </div>
         ) : (
           <>
-            {/* Interactive Drag-and-Drop Sequence Notice Banner */}
-            <div className="bg-gradient-to-r from-indigo-50 via-slate-50 to-indigo-50 border border-indigo-100/80 rounded-xl p-2.5 flex flex-wrap items-center justify-between gap-2.5 text-xs print:hidden shadow-2xs">
-              <div className="flex items-center gap-2 text-indigo-950 font-medium">
-                <span className="p-1 bg-indigo-100 text-indigo-700 rounded-md">
-                  <GripVertical className="w-3.5 h-3.5" />
-                </span>
-                <span>
-                  {lang === 'en'
-                    ? 'Drag any sticker card to reorder printing sequence or use the sequence shortcuts.'
-                    : 'প্রিন্ট সিকোয়েন্স পরিবর্তন করতে যে কোনো স্টিকার কার্ড ড্র্যাগ করুন অথবা শর্টকাট ব্যবহার করুন।'}
-                </span>
-                <span className="text-[10px] font-mono bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full font-bold">
-                  {activeCartons.length} {lang === 'en' ? 'Cartons' : 'কার্টন'}
-                </span>
-              </div>
-
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <button
-                  type="button"
-                  onClick={() => handleSortCartons('weight-asc')}
-                  className="px-2 py-1 bg-white hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 border border-slate-200 rounded-md text-[11px] font-semibold transition cursor-pointer shadow-2xs flex items-center gap-1"
-                  title="Sort by net weight ascending"
-                >
-                  <MoveUp className="w-3 h-3 text-slate-400" />
-                  <span>Weight ↑</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleSortCartons('weight-desc')}
-                  className="px-2 py-1 bg-white hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 border border-slate-200 rounded-md text-[11px] font-semibold transition cursor-pointer shadow-2xs flex items-center gap-1"
-                  title="Sort by net weight descending"
-                >
-                  <MoveDown className="w-3 h-3 text-slate-400" />
-                  <span>Weight ↓</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleSortCartons('reverse')}
-                  className="px-2 py-1 bg-white hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 border border-slate-200 rounded-md text-[11px] font-semibold transition cursor-pointer shadow-2xs flex items-center gap-1"
-                  title="Reverse print order"
-                >
-                  <Shuffle className="w-3 h-3 text-slate-400" />
-                  <span>Reverse ⇄</span>
-                </button>
-              </div>
-            </div>
 
             {cartonPages.map((pageCartons, pageIdx) => {
             const isLastPage = pageIdx === cartonPages.length - 1;
@@ -1764,31 +1288,46 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
             return (
               <React.Fragment key={`page-group-${pageIdx}`}>
                 {/* Visual Page Break Marker in Preview */}
-                {bulkConfig.showPageBreakVisuals && cartonPages.length > 1 && (
+                {!isPrintPreview && bulkConfig.showPageBreakVisuals && cartonPages.length > 1 && (
                   <div className="my-4 flex items-center gap-2 print:hidden select-none">
-                    <div className="h-px bg-indigo-200 flex-1 border-b border-dashed border-indigo-300" />
-                    <span className="text-[11px] font-mono font-bold bg-indigo-50 text-indigo-800 border border-indigo-200 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-2xs">
-                      <FileText className="w-3.5 h-3.5 text-indigo-600" />
+                    <div className="h-px bg-neutral-200 flex-1 border-b border-dashed border-neutral-300" />
+                    <span className="text-[11px] font-mono font-bold bg-neutral-100 text-neutral-900 border border-neutral-200 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-2xs">
+                      <FileText className="w-3.5 h-3.5 text-neutral-800" />
                       {isRollPaper ? (
                         <span>Roll Label #{pageIdx + 1} of {cartonPages.length} · [1 Label / Page Break]</span>
                       ) : (
                         <span>Page {pageIdx + 1} of {cartonPages.length} ({pageCartons.length} labels) · [{activePaperDef.name.split(' ')[0]} Page Break]</span>
                       )}
                     </span>
-                    <div className="h-px bg-indigo-200 flex-1 border-b border-dashed border-indigo-300" />
+                    <div className="h-px bg-neutral-200 flex-1 border-b border-dashed border-neutral-300" />
                   </div>
                 )}
 
-                {/* Printable Page Grid */}
+                {/* Printable Page Grid / A4 Sheet Container */}
                 <div 
-                  className={`grid ${activePaperDef.gridColsClass} gap-4 print:gap-4 ${
-                    isSingleCard ? 'sticker-print-card-single' : (!isLastPage ? 'sticker-print-page' : 'sticker-print-card')
-                  }`}
-                  style={{
-                    breakAfter: (!isLastPage || shouldBreakPerLabel) ? 'page' : 'auto',
-                    pageBreakAfter: (!isLastPage || shouldBreakPerLabel) ? 'always' : 'auto',
-                  }}
+                  className={isPrintPreview ? "a4-sheet-preview-card bg-white shadow-lg p-5 sm:p-7 mb-8 border border-slate-300 ring-1 ring-slate-200 print:shadow-none print:border-none print:p-0 print:m-0" : ""}
                 >
+                  {isPrintPreview && (
+                    <div className="print:hidden pb-3 mb-4 border-b border-slate-200 flex items-center justify-between text-xs text-slate-500 font-mono">
+                      <span className="font-bold text-slate-800 flex items-center gap-1.5">
+                        <FileText className="w-4 h-4 text-neutral-800" />
+                        <span>{lang === 'en' ? 'A4 Sheet' : 'A4 শিট'} {pageIdx + 1} / {cartonPages.length}</span>
+                      </span>
+                      <span className="bg-neutral-100 text-neutral-800 font-bold px-2.5 py-0.5 rounded-full text-[11px] border border-neutral-200">
+                        {pageCartons.length} {lang === 'en' ? 'Labels (2×2 Grid)' : 'টি স্টিকার (২×২ গ্রিড)'} · #{pageCartons[0]?.cartonNo} - #{pageCartons[pageCartons.length - 1]?.cartonNo}
+                      </span>
+                    </div>
+                  )}
+
+                  <div 
+                    className={`grid ${isPrintPreview ? 'grid-cols-2' : activePaperDef.gridColsClass} gap-4 print:gap-4 ${
+                      isSingleCard ? 'sticker-print-card-single' : (!isLastPage ? 'sticker-print-page' : 'sticker-print-card')
+                    }`}
+                    style={{
+                      breakAfter: (!isLastPage || shouldBreakPerLabel) ? 'page' : 'auto',
+                      pageBreakAfter: (!isLastPage || shouldBreakPerLabel) ? 'always' : 'auto',
+                    }}
+                  >
                   {pageCartons.map((c) => {
               const qrUrl = generateCartonPreviewUrl(c, sheetData, summary.totalCtn);
               const companyDisplayName = stickerSettings.customCompanyName || sheetData.companyName || 'GOOD & FAST Pa. Co. Ltd';
@@ -1813,11 +1352,11 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                     fontConfig.cssClass
                   } ${
                     isBeingDragged
-                      ? 'opacity-35 ring-2 ring-dashed ring-indigo-500 scale-[0.98] shadow-inner'
+                      ? 'opacity-35 ring-2 ring-dashed ring-neutral-400 scale-[0.98] shadow-inner'
                       : isDropTarget
                         ? (dragOverPosition === 'before'
-                            ? 'ring-2 ring-indigo-500 bg-indigo-50/30 border-l-4 border-l-indigo-600 shadow-md'
-                            : 'ring-2 ring-indigo-500 bg-indigo-50/30 border-r-4 border-r-indigo-600 shadow-md')
+                            ? 'ring-2 ring-neutral-400 bg-neutral-100/30 border-l-4 border-l-indigo-600 shadow-md'
+                            : 'ring-2 ring-neutral-400 bg-neutral-100/30 border-r-4 border-r-indigo-600 shadow-md')
                         : 'hover:shadow-md'
                   }`}
                   style={{ 
@@ -1848,57 +1387,61 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                   )}
 
                   {/* Drag Handle Badge on Top-Left */}
-                  <div
-                    draggable={true}
-                    onDragStart={(e) => {
-                      e.stopPropagation();
-                      handleDragStart(e, c.id);
-                    }}
-                    className="absolute top-2 left-2 flex items-center gap-1 opacity-70 group-hover:opacity-100 transition-opacity print:hidden z-10 bg-slate-900/80 hover:bg-indigo-600 text-white px-2 py-0.5 rounded text-[10px] font-mono font-bold cursor-grab active:cursor-grabbing shadow-sm select-none"
-                    title={lang === 'en' ? 'Drag to change print sequence' : 'প্রিন্ট সিকোয়েন্স পরিবর্তন করতে ড্র্যাগ করুন'}
-                  >
-                    <GripVertical className="w-3 h-3 text-slate-300" />
-                    <span>#{c.cartonNo}</span>
-                  </div>
+                  {!isPrintPreview && (
+                    <div
+                      draggable={true}
+                      onDragStart={(e) => {
+                        e.stopPropagation();
+                        handleDragStart(e, c.id);
+                      }}
+                      className="absolute top-2 left-2 flex items-center gap-1 opacity-70 group-hover:opacity-100 transition-opacity print:hidden z-10 bg-slate-900/80 hover:bg-neutral-800 text-white px-2 py-0.5 rounded text-[10px] font-mono font-bold cursor-grab active:cursor-grabbing shadow-sm select-none"
+                      title={lang === 'en' ? 'Drag to change print sequence' : 'প্রিন্ট সিকোয়েন্স পরিবর্তন করতে ড্র্যাগ করুন'}
+                    >
+                      <GripVertical className="w-3 h-3 text-slate-300" />
+                      <span>#{c.cartonNo}</span>
+                    </div>
+                  )}
 
                   {/* Sequence Movement & Export Overlay Controls (Visible on mobile and hover on desktop) */}
-                  <div className="absolute top-2 right-2 flex items-center gap-1 opacity-100 sm:opacity-90 sm:hover:opacity-100 transition-opacity print:hidden z-10 bg-white/95 backdrop-blur-xs p-1 rounded-lg shadow-md border border-slate-200 sticker-overlay-control">
-                    <button
-                      type="button"
-                      onClick={() => handleDownloadSticker(c.id, c.cartonNo)}
-                      className="flex items-center gap-1 px-2 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold rounded shadow-xs transition cursor-pointer"
-                      title={lang === 'en' ? 'Download Carton Sticker Image (PNG)' : 'এই কার্টনের স্টিকার ইমেজ ডাউনলোড করুন'}
-                    >
-                      <Download className="w-3.5 h-3.5" />
-                      <span>{lang === 'en' ? 'Image' : 'ইমেজ'}</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleShareSticker(c.id, c.cartonNo)}
-                      className="p-1 bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white rounded transition cursor-pointer border border-indigo-200"
-                      title={lang === 'en' ? 'Share as Image' : 'শেয়ার করুন'}
-                    >
-                      <Share2 className="w-3.5 h-3.5" />
-                    </button>
-                    <div className="flex items-center bg-slate-100 rounded border border-slate-200">
+                  {!isPrintPreview && (
+                    <div className="absolute top-2 right-2 flex items-center gap-1 opacity-100 sm:opacity-90 sm:hover:opacity-100 transition-opacity print:hidden z-10 bg-white/95 backdrop-blur-xs p-1 rounded-lg shadow-md border border-slate-200 sticker-overlay-control">
                       <button
                         type="button"
-                        onClick={() => handleMoveCarton(c.id, 'up')}
-                        className="p-1 hover:bg-indigo-600 hover:text-white text-slate-700 rounded-l transition cursor-pointer"
-                        title={lang === 'en' ? 'Move earlier in sequence' : 'সিকোয়েন্সে আগে নিন'}
+                        onClick={() => handleDownloadSticker(c.id, c.cartonNo)}
+                        className="flex items-center gap-1 px-2 py-1 bg-neutral-900 hover:bg-neutral-800 text-white text-[11px] font-bold rounded shadow-xs transition cursor-pointer"
+                        title={lang === 'en' ? 'Download Carton Sticker Image (PNG)' : 'এই কার্টনের স্টিকার ইমেজ ডাউনলোড করুন'}
                       >
-                        <ChevronUp className="w-3.5 h-3.5" />
+                        <Download className="w-3.5 h-3.5" />
+                        <span>{lang === 'en' ? 'Image' : 'ইমেজ'}</span>
                       </button>
                       <button
                         type="button"
-                        onClick={() => handleMoveCarton(c.id, 'down')}
-                        className="p-1 hover:bg-indigo-600 hover:text-white text-slate-700 rounded-r transition cursor-pointer"
-                        title={lang === 'en' ? 'Move later in sequence' : 'সিকোয়েন্সে পরে নিন'}
+                        onClick={() => handleShareSticker(c.id, c.cartonNo)}
+                        className="p-1 bg-neutral-100 hover:bg-neutral-800 text-neutral-800 hover:text-white rounded transition cursor-pointer border border-neutral-200"
+                        title={lang === 'en' ? 'Share as Image' : 'শেয়ার করুন'}
                       >
-                        <ChevronDown className="w-3.5 h-3.5" />
+                        <Share2 className="w-3.5 h-3.5" />
                       </button>
+                      <div className="flex items-center bg-slate-100 rounded border border-slate-200">
+                        <button
+                          type="button"
+                          onClick={() => handleMoveCarton(c.id, 'up')}
+                          className="p-1 hover:bg-neutral-800 hover:text-white text-slate-700 rounded-l transition cursor-pointer"
+                          title={lang === 'en' ? 'Move earlier in sequence' : 'সিকোয়েন্সে আগে নিন'}
+                        >
+                          <ChevronUp className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleMoveCarton(c.id, 'down')}
+                          className="p-1 hover:bg-neutral-800 hover:text-white text-slate-700 rounded-r transition cursor-pointer"
+                          title={lang === 'en' ? 'Move later in sequence' : 'সিকোয়েন্সে পরে নিন'}
+                        >
+                          <ChevronDown className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Sticker Header with Customized Logo, Font & Styling */}
                   <div 
@@ -2036,9 +1579,9 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                             </div>
                           </div>
                         </div>
-                        <div className="flex items-center justify-between bg-amber-50/80 px-2 py-0.5 border border-amber-300 rounded-sm">
-                          <span className="text-[9px] font-black text-amber-950 uppercase tracking-wide">QUANTITY:</span>
-                          <span className="font-mono font-black text-amber-950 text-xs sm:text-sm">
+                        <div className="flex items-center justify-between bg-neutral-100/80 px-2 py-0.5 border border-neutral-300 rounded-sm">
+                          <span className="text-[9px] font-black text-neutral-900 uppercase tracking-wide">QUANTITY:</span>
+                          <span className="font-mono font-black text-neutral-900 text-xs sm:text-sm">
                             {calculatedQtyPcs ? `${calculatedQtyPcs.toLocaleString()} PCS` : '2000 PCS'}
                             {calculatedPkts ? ` (${calculatedPkts} PKTS)` : ''}
                           </span>
@@ -2063,7 +1606,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                                       minFontSize={6.5}
                                       enabled={stickerSettings.autoScaleLongText !== false}
                                       className={`font-bold ${
-                                        row.item1.highlight ? 'text-rose-900 font-black' : 'text-slate-900'
+                                        row.item1.highlight ? 'text-neutral-900 font-black' : 'text-slate-900'
                                       }`}
                                     />
                                   </div>
@@ -2080,7 +1623,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                                         minFontSize={6.5}
                                         enabled={stickerSettings.autoScaleLongText !== false}
                                         className={`font-bold ${
-                                          row.item2.highlight ? 'text-purple-900 font-black' : 'text-slate-900'
+                                          row.item2.highlight ? 'text-neutral-900 font-black' : 'text-slate-900'
                                         }`}
                                       />
                                     </div>
@@ -2146,7 +1689,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                         <div className="min-w-0">
                           <span className="text-[8px] font-bold text-slate-500 uppercase block">ITEM / PRODUCT:</span>
                           <AutoFitText
-                            text={currentItemKey === 'elastic' ? '🧵 ELASTIC' : '🏷️ WEBBING TAPE'}
+                            text={sheetData.customItemName || activeScheduleItem?.itemDescription || (currentItemKey === 'elastic' ? '🧵 ELASTIC' : '🏷️ WEBBING TAPE')}
                             maxFontSize={isCompact ? 10 : 11}
                             minFontSize={6.5}
                             enabled={stickerSettings.autoScaleLongText !== false}
@@ -2156,7 +1699,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                         <div className="min-w-0">
                           <span className="text-[8px] font-bold text-slate-500 uppercase block">SIZE / COLOR:</span>
                           <AutoFitText
-                            text={`${sheetData.size || ''} | ${sheetData.color || ''}`}
+                            text={`${c.size || sheetData.size || activeScheduleItem?.size || 'Standard'} | ${c.color || sheetData.color || activeScheduleItem?.color || 'Standard'}`}
                             maxFontSize={isCompact ? 10 : 11}
                             minFontSize={6.5}
                             enabled={stickerSettings.autoScaleLongText !== false}
@@ -2175,8 +1718,8 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                           <div className="col-span-2 pt-1 border-t border-slate-200 grid grid-cols-2 gap-x-2 gap-y-0.5 min-w-0">
                             {technicalRows.map((row) => (
                               <React.Fragment key={row.id}>
-                                <div className="flex items-center justify-between bg-indigo-50/70 px-1.5 py-0.5 rounded border border-indigo-100 min-w-0 gap-1">
-                                  <span className="text-[7.5px] font-bold text-indigo-900 uppercase tracking-tight shrink-0">
+                                <div className="flex items-center justify-between bg-neutral-100/70 px-1.5 py-0.5 rounded border border-neutral-200 min-w-0 gap-1">
+                                  <span className="text-[7.5px] font-bold text-neutral-900 uppercase tracking-tight shrink-0">
                                     {row.item1.label}
                                   </span>
                                   <div className="min-w-0 flex-1 flex justify-end">
@@ -2186,13 +1729,13 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                                       minFontSize={6.5}
                                       align="right"
                                       enabled={stickerSettings.autoScaleLongText !== false}
-                                      className="font-black text-indigo-950"
+                                      className="font-black text-neutral-900"
                                     />
                                   </div>
                                 </div>
                                 {row.item2 && (
-                                  <div className="flex items-center justify-between bg-emerald-50/70 px-1.5 py-0.5 rounded border border-emerald-100 min-w-0 gap-1">
-                                    <span className="text-[7.5px] font-bold text-emerald-900 uppercase tracking-tight shrink-0">
+                                  <div className="flex items-center justify-between bg-neutral-100/70 px-1.5 py-0.5 rounded border border-neutral-200 min-w-0 gap-1">
+                                    <span className="text-[7.5px] font-bold text-neutral-900 uppercase tracking-tight shrink-0">
                                       {row.item2.label}
                                     </span>
                                     <div className="min-w-0 flex-1 flex justify-end">
@@ -2202,7 +1745,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                                         minFontSize={6.5}
                                         align="right"
                                         enabled={stickerSettings.autoScaleLongText !== false}
-                                        className="font-black text-emerald-950"
+                                        className="font-black text-neutral-900"
                                       />
                                     </div>
                                   </div>
@@ -2259,7 +1802,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                       {isPcsMode ? (
                         <>
                           <span className="text-[8px] font-bold text-slate-700 uppercase block">TOTAL QTY</span>
-                          <span className={`font-black text-amber-900 ${isCompact ? 'text-xs' : 'text-xs sm:text-sm'}`}>
+                          <span className={`font-black text-neutral-900 ${isCompact ? 'text-xs' : 'text-xs sm:text-sm'}`}>
                             {calculatedQtyPcs}
                           </span>
                           <span className="text-[8px] text-slate-600 block">Pcs</span>
@@ -2281,7 +1824,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                         calculatedPkts !== undefined ? (
                           <>
                             <span className="text-[8px] font-bold text-slate-700 uppercase block">PACKETS</span>
-                            <span className={`font-black text-purple-900 ${isCompact ? 'text-xs' : 'text-xs sm:text-sm'}`}>
+                            <span className={`font-black text-neutral-900 ${isCompact ? 'text-xs' : 'text-xs sm:text-sm'}`}>
                               {calculatedPkts}
                             </span>
                             <span className="text-[8px] text-slate-600 block">Pkt</span>
@@ -2350,7 +1893,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                     {showQrCode && (
                       <div 
                         onClick={() => onOpenCartonQr && onOpenCartonQr(c)}
-                        className="flex items-center gap-1.5 p-1 bg-slate-50 border border-slate-300 rounded cursor-pointer hover:border-indigo-500 transition group/qr shrink-0"
+                        className="flex items-center gap-1.5 p-1 bg-slate-50 border border-slate-300 rounded cursor-pointer hover:border-neutral-400 transition group/qr shrink-0"
                         title="Click to view & scan carton detail QR"
                       >
                         <div className="bg-white p-0.5">
@@ -2364,7 +1907,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                         </div>
                         {!isCompact && qrSize < 64 && (
                           <div className="hidden sm:flex flex-col text-left print:hidden">
-                            <span className="text-[8px] font-black uppercase text-indigo-700 flex items-center gap-0.5">
+                            <span className="text-[8px] font-black uppercase text-neutral-800 flex items-center gap-0.5">
                               <QrCode className="w-2.5 h-2.5" />
                               QR Scan
                             </span>
@@ -2379,23 +1922,24 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                 </div>
               );
             })}
-          </div>
-        </React.Fragment>
-      );
-    })}
-  </>
-)}
-</div>
+                  </div>
+                </div>
+              </React.Fragment>
+            );
+          })}
+        </>
+      )}
+      </div>
 
       {/* List-Based Settings & Data Entry Mode */}
-      {!showPreview && (
+      {!isPrintPreview && !showPreview && (
         <div className="space-y-4 print:hidden">
           {/* Sticker Settings & Print Parameters List Card */}
           <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden transition-all">
             {/* Settings List Header */}
-            <div className="p-3.5 bg-gradient-to-r from-slate-50 via-indigo-50/30 to-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
+            <div className="p-3.5 bg-gradient-to-r from-slate-50 via-neutral-100/30 to-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold">
+                <div className="w-8 h-8 rounded-lg bg-neutral-100 text-neutral-800 flex items-center justify-center font-bold">
                   <SlidersHorizontal className="w-4 h-4" />
                 </div>
                 <div>
@@ -2403,11 +1947,11 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                     <h4 className="text-xs font-bold text-slate-800">
                       {lang === 'en' ? 'Sticker Settings & Print Parameters List' : 'স্টিকার সেটিংস ও প্রিন্ট প্যারামিটার লিস্ট'}
                     </h4>
-                    <span className="text-[10px] bg-indigo-100 text-indigo-700 font-mono px-2 py-0.5 rounded-full font-bold">
+                    <span className="text-[10px] bg-neutral-100 text-neutral-800 font-mono px-2 py-0.5 rounded-full font-bold">
                       {STICKER_PAPER_SIZES[bulkConfig.paperSize]?.name.split(' ')[0] || 'A4'} • {FONT_FAMILY_STYLES[stickerSettings.fontFamily]?.name || 'Standard'}
                     </span>
-                    <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-semibold flex items-center gap-1">
-                      <Check className="w-3 h-3 text-emerald-600" />
+                    <span className="text-[10px] bg-neutral-100 text-neutral-900 px-2 py-0.5 rounded font-semibold flex items-center gap-1">
+                      <Check className="w-3 h-3 text-neutral-800" />
                       {lang === 'en' ? 'Synced with live labels' : 'লাইভ সিঙ্কড'}
                     </span>
                   </div>
@@ -2441,19 +1985,19 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setIsSettingsOpen(true)}
-                  className="px-2.5 py-1.5 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer shadow-xs"
+                  className="px-2.5 py-1.5 bg-gradient-to-r from-neutral-900 to-neutral-900 hover:from-neutral-800 hover:to-neutral-800 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer shadow-xs"
                 >
-                  <Palette className="w-3.5 h-3.5 text-amber-300" />
+                  <Palette className="w-3.5 h-3.5 text-neutral-300" />
                   <span>{lang === 'en' ? 'Customize in Studio' : 'স্টুডিওতে এডিট'}</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setShowPreview(true)}
-                  className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shadow-xs"
+                  className="px-3 py-1.5 bg-neutral-900 hover:bg-neutral-800 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shadow-xs"
                   title="Switch to Rendered Labels Visual Grid Preview"
                 >
-                  <LayoutGrid className="w-3.5 h-3.5 text-indigo-200" />
+                  <LayoutGrid className="w-3.5 h-3.5 text-neutral-200" />
                   <span>{lang === 'en' ? 'View Visual Grid →' : 'ভিজ্যুয়াল গ্রিড দেখুন →'}</span>
                 </button>
               </div>
@@ -2465,14 +2009,14 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                 {/* 1. Paper & Dimensions */}
                 <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-200/90 space-y-2">
                   <div className="flex items-center justify-between text-slate-700 font-bold text-[11px] uppercase tracking-wider">
-                    <span className="flex items-center gap-1.5 text-indigo-900">
-                      <FileSpreadsheet className="w-3.5 h-3.5 text-indigo-600" />
+                    <span className="flex items-center gap-1.5 text-neutral-900">
+                      <FileSpreadsheet className="w-3.5 h-3.5 text-neutral-800" />
                       {lang === 'en' ? 'Paper & Geometry' : 'পেপার ও ডাইমেনশন'}
                     </span>
                     <button
                       type="button"
                       onClick={() => setIsBulkPanelOpen(true)}
-                      className="text-indigo-600 hover:text-indigo-800 text-[10px] font-semibold flex items-center gap-0.5 cursor-pointer"
+                      className="text-neutral-800 hover:text-neutral-900 text-[10px] font-semibold flex items-center gap-0.5 cursor-pointer"
                     >
                       <span>Edit</span>
                       <ChevronRight className="w-2.5 h-2.5" />
@@ -2493,7 +2037,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                     </div>
                     <div className="flex justify-between">
                       <span className="text-slate-500">Layout Format:</span>
-                      <span className="font-semibold text-indigo-700">
+                      <span className="font-semibold text-neutral-800">
                         {activePaperDef.isRoll ? '1 per page (Roll)' : '2 × 2 Grid (4/sheet)'}
                       </span>
                     </div>
@@ -2507,14 +2051,14 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                 {/* 2. Typography & Scale */}
                 <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-200/90 space-y-2">
                   <div className="flex items-center justify-between text-slate-700 font-bold text-[11px] uppercase tracking-wider">
-                    <span className="flex items-center gap-1.5 text-indigo-900">
-                      <Type className="w-3.5 h-3.5 text-indigo-600" />
+                    <span className="flex items-center gap-1.5 text-neutral-900">
+                      <Type className="w-3.5 h-3.5 text-neutral-800" />
                       {lang === 'en' ? 'Typography & Scale' : 'টাইপোগ্রাফি ও স্কেল'}
                     </span>
                     <button
                       type="button"
                       onClick={() => setIsSettingsOpen(true)}
-                      className="text-indigo-600 hover:text-indigo-800 text-[10px] font-semibold flex items-center gap-0.5 cursor-pointer"
+                      className="text-neutral-800 hover:text-neutral-900 text-[10px] font-semibold flex items-center gap-0.5 cursor-pointer"
                     >
                       <span>Style</span>
                       <ChevronRight className="w-2.5 h-2.5" />
@@ -2541,7 +2085,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                         }}
                         className={`text-[10px] px-1.5 py-0.2 rounded font-bold transition cursor-pointer ${
                           stickerSettings.autoScaleLongText !== false
-                            ? 'bg-blue-100 text-blue-800'
+                            ? 'bg-neutral-100 text-neutral-900'
                             : 'bg-slate-200 text-slate-700'
                         }`}
                       >
@@ -2556,7 +2100,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                           onClick={() => setDensityMode('compact')}
                           className={`px-1.5 py-0.5 rounded transition cursor-pointer font-bold ${
                             densityMode === 'compact'
-                              ? 'bg-white text-emerald-700 shadow-2xs'
+                              ? 'bg-white text-neutral-800 shadow-2xs'
                               : 'text-slate-600 hover:text-slate-900'
                           }`}
                           title="Compact: More labels per page"
@@ -2568,7 +2112,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                           onClick={() => setDensityMode('comfort')}
                           className={`px-1.5 py-0.5 rounded transition cursor-pointer font-bold ${
                             densityMode === 'comfort'
-                              ? 'bg-white text-indigo-700 shadow-2xs'
+                              ? 'bg-white text-neutral-800 shadow-2xs'
                               : 'text-slate-600 hover:text-slate-900'
                           }`}
                           title="Comfort: Larger labels for easy scanning"
@@ -2584,7 +2128,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                         onClick={handleToggleCropMarks}
                         className={`text-[10px] px-2 py-0.5 rounded font-bold transition cursor-pointer flex items-center gap-1 ${
                           showCropMarks
-                            ? 'bg-emerald-100 text-emerald-800'
+                            ? 'bg-neutral-100 text-neutral-900'
                             : 'bg-slate-200 text-slate-700'
                         }`}
                         title="Toggle dashed manual cutting crop marks and corner tick guides"
@@ -2599,14 +2143,14 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                 {/* 3. Branding & Header */}
                 <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-200/90 space-y-2">
                   <div className="flex items-center justify-between text-slate-700 font-bold text-[11px] uppercase tracking-wider">
-                    <span className="flex items-center gap-1.5 text-indigo-900">
-                      <Palette className="w-3.5 h-3.5 text-indigo-600" />
+                    <span className="flex items-center gap-1.5 text-neutral-900">
+                      <Palette className="w-3.5 h-3.5 text-neutral-800" />
                       {lang === 'en' ? 'Branding & Borders' : 'ব্র্যান্ডিং ও বর্ডার'}
                     </span>
                     <button
                       type="button"
                       onClick={() => setIsSettingsOpen(true)}
-                      className="text-indigo-600 hover:text-indigo-800 text-[10px] font-semibold flex items-center gap-0.5 cursor-pointer"
+                      className="text-neutral-800 hover:text-neutral-900 text-[10px] font-semibold flex items-center gap-0.5 cursor-pointer"
                     >
                       <span>Logo</span>
                       <ChevronRight className="w-2.5 h-2.5" />
@@ -2622,7 +2166,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                     <div className="flex justify-between items-center">
                       <span className="text-slate-500">Logo Badge:</span>
                       <span className={`text-[10px] px-1.5 py-0.2 rounded font-semibold ${
-                        stickerSettings.logoUrl ? 'bg-emerald-100 text-emerald-800 font-bold' : 'bg-slate-200 text-slate-600'
+                        stickerSettings.logoUrl ? 'bg-neutral-100 text-neutral-900 font-bold' : 'bg-slate-200 text-slate-600'
                       }`}>
                         {stickerSettings.logoUrl ? 'Branded Logo' : 'Default Tag'}
                       </span>
@@ -2644,14 +2188,14 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                 {/* 4. Barcodes & QR Codes */}
                 <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-200/90 space-y-2">
                   <div className="flex items-center justify-between text-slate-700 font-bold text-[11px] uppercase tracking-wider">
-                    <span className="flex items-center gap-1.5 text-indigo-900">
-                      <QrCode className="w-3.5 h-3.5 text-indigo-600" />
+                    <span className="flex items-center gap-1.5 text-neutral-900">
+                      <QrCode className="w-3.5 h-3.5 text-neutral-800" />
                       {lang === 'en' ? 'Barcodes & QR' : 'বারকোড ও কিউআর'}
                     </span>
                     <button
                       type="button"
                       onClick={() => setShowQrCode(!showQrCode)}
-                      className="text-indigo-600 hover:text-indigo-800 text-[10px] font-semibold cursor-pointer"
+                      className="text-neutral-800 hover:text-neutral-900 text-[10px] font-semibold cursor-pointer"
                     >
                       {showQrCode ? 'Hide' : 'Show'}
                     </button>
@@ -2660,7 +2204,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                     <div className="flex justify-between items-center">
                       <span className="text-slate-500">Dynamic QR Code:</span>
                       <span className={`text-[10px] px-1.5 py-0.2 rounded font-bold ${
-                        showQrCode ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'
+                        showQrCode ? 'bg-neutral-100 text-neutral-900' : 'bg-slate-200 text-slate-600'
                       }`}>
                         {showQrCode ? `Active (${qrSize}px)` : 'Disabled'}
                       </span>
@@ -2701,14 +2245,14 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                 {/* 5. Item Metadata & Units */}
                 <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-200/90 space-y-2">
                   <div className="flex items-center justify-between text-slate-700 font-bold text-[11px] uppercase tracking-wider">
-                    <span className="flex items-center gap-1.5 text-indigo-900">
-                      <Package className="w-3.5 h-3.5 text-indigo-600" />
+                    <span className="flex items-center gap-1.5 text-neutral-900">
+                      <Package className="w-3.5 h-3.5 text-neutral-800" />
                       {lang === 'en' ? 'Item Specs & Units' : 'আইটেম স্পেকস ও ইউনিট'}
                     </span>
                     <button
                       type="button"
                       onClick={() => setIsSpecsDrawerOpen(true)}
-                      className="text-indigo-600 hover:text-indigo-800 text-[10px] font-semibold flex items-center gap-0.5 cursor-pointer"
+                      className="text-neutral-800 hover:text-neutral-900 text-[10px] font-semibold flex items-center gap-0.5 cursor-pointer"
                     >
                       <span>Specs</span>
                       <ChevronRight className="w-2.5 h-2.5" />
@@ -2721,7 +2265,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                     </div>
                     <div className="flex justify-between">
                       <span className="text-slate-500">Delivery Unit:</span>
-                      <span className="font-semibold text-indigo-700">{isPcsMode ? 'Pieces (pcs)' : 'Meters (mtr)'}</span>
+                      <span className="font-semibold text-neutral-800">{isPcsMode ? 'Pieces (pcs)' : 'Meters (mtr)'}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-slate-500">Default Tare:</span>
@@ -2741,7 +2285,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
           <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                <Table className="w-4 h-4 text-indigo-600" />
+                <Table className="w-4 h-4 text-neutral-800" />
                 <span>{lang === 'en' ? 'Carton Content Table' : 'কার্টন কনটেন্ট টেবিল'}</span>
               </span>
 
@@ -2751,7 +2295,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                   type="button"
                   onClick={() => setStatusFilter('all')}
                   className={`px-2 py-0.5 rounded font-semibold transition cursor-pointer ${
-                    statusFilter === 'all' ? 'bg-white text-indigo-700 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                    statusFilter === 'all' ? 'bg-white text-neutral-800 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
                   {lang === 'en' ? 'All' : 'সব'} ({sheetData.cartons.length})
@@ -2760,7 +2304,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                   type="button"
                   onClick={() => setStatusFilter('with-weight')}
                   className={`px-2 py-0.5 rounded font-semibold transition cursor-pointer ${
-                    statusFilter === 'with-weight' ? 'bg-white text-emerald-700 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                    statusFilter === 'with-weight' ? 'bg-white text-neutral-800 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
                   {lang === 'en' ? 'Active' : 'সক্রিয়'} ({activeCartons.length})
@@ -2769,7 +2313,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                   type="button"
                   onClick={() => setStatusFilter('zero-weight')}
                   className={`px-2 py-0.5 rounded font-semibold transition cursor-pointer ${
-                    statusFilter === 'zero-weight' ? 'bg-white text-amber-700 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                    statusFilter === 'zero-weight' ? 'bg-white text-neutral-800 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
                   {lang === 'en' ? 'Pending' : 'বাকি'} ({sheetData.cartons.length - activeCartons.length})
@@ -2784,7 +2328,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                   value={searchTerm}
                   onChange={e => setSearchTerm(e.target.value)}
                   placeholder={lang === 'en' ? 'Search carton # or note...' : 'কার্টন নম্বর বা নোট খুঁজুন...'}
-                  className="pl-8 pr-2.5 py-1 text-xs bg-slate-50 border border-slate-200 rounded-lg w-44 focus:w-56 transition-all focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  className="pl-8 pr-2.5 py-1 text-xs bg-slate-50 border border-slate-200 rounded-lg w-44 focus:w-56 transition-all focus:outline-none focus:ring-1 focus:ring-neutral-400"
                 />
               </div>
             </div>
@@ -2794,7 +2338,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
               <button
                 type="button"
                 onClick={handleAddNewCarton}
-                className="flex items-center gap-1 px-2.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold shadow-2xs transition cursor-pointer"
+                className="flex items-center gap-1 px-2.5 py-1.5 bg-neutral-900 hover:bg-neutral-800 text-white rounded-lg text-xs font-semibold shadow-2xs transition cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>{lang === 'en' ? 'Add Carton' : 'কার্টন যোগ'}</span>
@@ -2824,7 +2368,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                 onClick={() => setShowSidePreview(!showSidePreview)}
                 className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg border text-xs font-semibold transition cursor-pointer ${
                   showSidePreview
-                    ? 'bg-indigo-50 border-indigo-200 text-indigo-700'
+                    ? 'bg-neutral-100 border-neutral-200 text-neutral-800'
                     : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
                 }`}
                 title="Toggle real-time sticker preview panel beside the table"
@@ -2881,19 +2425,19 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                           onClick={() => setSelectedCartonId(c.id)}
                           className={`transition cursor-pointer ${
                             isSelected
-                              ? 'bg-indigo-50/70 ring-1 ring-inset ring-indigo-300'
+                              ? 'bg-neutral-100/70 ring-1 ring-inset ring-neutral-300'
                               : 'hover:bg-slate-50/80'
                           } ${
-                            isBeingDragged ? 'opacity-35 bg-indigo-100/50' : ''
+                            isBeingDragged ? 'opacity-35 bg-neutral-100/50' : ''
                           } ${
                             isDropTarget
-                              ? (dragOverPosition === 'before' ? 'border-t-2 border-t-indigo-600 bg-indigo-50/50' : 'border-b-2 border-b-indigo-600 bg-indigo-50/50')
+                              ? (dragOverPosition === 'before' ? 'border-t-2 border-t-indigo-600 bg-neutral-100/50' : 'border-b-2 border-b-indigo-600 bg-neutral-100/50')
                               : ''
                           }`}
                         >
                           {/* Drag Handle Column */}
                           <td 
-                            className="py-2 px-1 text-center cursor-grab active:cursor-grabbing text-slate-400 hover:text-indigo-600 select-none" 
+                            className="py-2 px-1 text-center cursor-grab active:cursor-grabbing text-slate-400 hover:text-neutral-800 select-none" 
                             title={lang === 'en' ? 'Drag to change print sequence' : 'ড্র্যাগ করে ক্রম পরিবর্তন করুন'} 
                             onClick={e => e.stopPropagation()}
                           >
@@ -2904,12 +2448,12 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                           <td className="py-2 px-3 font-mono font-bold text-slate-800 whitespace-nowrap">
                             <div className="flex items-center gap-1.5">
                               <span className={`inline-flex items-center justify-center w-6 h-6 rounded-md text-[11px] font-bold ${
-                                isSelected ? 'bg-indigo-600 text-white shadow-2xs' : 'bg-slate-100 text-slate-700'
+                                isSelected ? 'bg-neutral-900 text-white shadow-2xs' : 'bg-slate-100 text-slate-700'
                               }`}>
                                 {c.cartonNo}
                               </span>
                               {isSelected && (
-                                <span className="text-[10px] text-indigo-600 font-bold hidden sm:inline">Active</span>
+                                <span className="text-[10px] text-neutral-800 font-bold hidden sm:inline">Active</span>
                               )}
                             </div>
                           </td>
@@ -2928,7 +2472,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                                   handleUpdateCartonField(c.id, { grossWt: isNaN(val) ? 0 : val });
                                 }}
                                 onFocus={() => setSelectedCartonId(c.id)}
-                                className="w-24 px-2 py-1 bg-white border border-slate-300 rounded font-mono font-bold text-slate-900 text-xs focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                className="w-24 px-2 py-1 bg-white border border-slate-300 rounded font-mono font-bold text-slate-900 text-xs focus:ring-2 focus:ring-neutral-400 focus:border-neutral-400"
                               />
                               <span className="text-[10px] font-bold text-slate-400 ml-1">{wUnit}</span>
                             </div>
@@ -2947,7 +2491,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                                   handleUpdateCartonField(c.id, { tareWt: isNaN(val) ? 0 : val });
                                 }}
                                 onFocus={() => setSelectedCartonId(c.id)}
-                                className="w-20 px-2 py-1 bg-slate-50 border border-slate-200 rounded font-mono text-slate-700 text-xs focus:ring-1 focus:ring-indigo-500"
+                                className="w-20 px-2 py-1 bg-slate-50 border border-slate-200 rounded font-mono text-slate-700 text-xs focus:ring-1 focus:ring-neutral-400"
                               />
                               <span className="text-[10px] text-slate-400 ml-1">{wUnit}</span>
                             </div>
@@ -2956,13 +2500,13 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                           {/* Net Wt Badge */}
                           <td className="py-2 px-3 whitespace-nowrap font-mono">
                             {c.netWt > 0 ? (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold text-xs">
-                                <Check className="w-3 h-3 text-emerald-600" />
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-neutral-100 text-neutral-900 border border-neutral-200 font-bold text-xs">
+                                <Check className="w-3 h-3 text-neutral-800" />
                                 {c.netWt.toFixed(2)} kg
                               </span>
                             ) : isInvalidNet ? (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200 font-bold text-[11px]" title="Gross weight is less than or equal to Tare">
-                                <AlertCircle className="w-3 h-3 text-rose-500" />
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-neutral-100 text-neutral-800 border border-neutral-200 font-bold text-[11px]" title="Gross weight is less than or equal to Tare">
+                                <AlertCircle className="w-3 h-3 text-neutral-700" />
                                 Gross ≤ Tare
                               </span>
                             ) : (
@@ -2974,18 +2518,18 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                           <td className="py-2 px-3 whitespace-nowrap">
                             {isPcsMode ? (
                               <div>
-                                <span className="font-bold text-amber-900 font-mono text-xs">
+                                <span className="font-bold text-neutral-900 font-mono text-xs">
                                   {calculatedQty.toLocaleString()} Pcs
                                 </span>
                                 {c.pkts !== undefined && (
-                                  <span className="text-[10px] text-purple-700 font-mono block">
+                                  <span className="text-[10px] text-neutral-800 font-mono block">
                                     {c.pkts} Pkt
                                   </span>
                                 )}
                               </div>
                             ) : (
                               <div>
-                                <span className="font-bold text-indigo-950 font-mono text-xs">
+                                <span className="font-bold text-neutral-900 font-mono text-xs">
                                   {c.lengthMtr > 0 ? `${c.lengthMtr.toFixed(2)} Mtr` : '-'}
                                 </span>
                                 {c.lengthGry > 0 && (
@@ -3010,7 +2554,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                                   handleUpdateCartonField(c.id, { wtPerUnit: isNaN(val) ? sheetData.defaultWtPerUnit : val });
                                 }}
                                 onFocus={() => setSelectedCartonId(c.id)}
-                                className="w-18 px-1.5 py-1 bg-slate-50 border border-slate-200 rounded font-mono text-slate-700 text-xs focus:ring-1 focus:ring-indigo-500"
+                                className="w-18 px-1.5 py-1 bg-slate-50 border border-slate-200 rounded font-mono text-slate-700 text-xs focus:ring-1 focus:ring-neutral-400"
                               />
                               <span className="text-[10px] text-slate-400 ml-1">
                                 {isPcsMode ? 'g/pc' : 'g/m'}
@@ -3026,7 +2570,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                               onChange={e => handleUpdateCartonField(c.id, { notes: e.target.value })}
                               placeholder="Notes / roll"
                               onFocus={() => setSelectedCartonId(c.id)}
-                              className="w-28 sm:w-36 px-2 py-1 bg-white border border-slate-200 rounded text-xs text-slate-700 focus:ring-1 focus:ring-indigo-500"
+                              className="w-28 sm:w-36 px-2 py-1 bg-white border border-slate-200 rounded text-xs text-slate-700 focus:ring-1 focus:ring-neutral-400"
                             />
                           </td>
 
@@ -3036,7 +2580,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                               <button
                                 type="button"
                                 onClick={() => handleMoveCarton(c.id, 'up')}
-                                className="p-1.5 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-700 rounded transition cursor-pointer"
+                                className="p-1.5 bg-slate-100 hover:bg-neutral-100 hover:text-neutral-800 text-slate-700 rounded transition cursor-pointer"
                                 title={lang === 'en' ? 'Move earlier in sequence' : 'আগে নিন'}
                               >
                                 <ChevronUp className="w-3.5 h-3.5" />
@@ -3044,7 +2588,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                               <button
                                 type="button"
                                 onClick={() => handleMoveCarton(c.id, 'down')}
-                                className="p-1.5 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-700 rounded transition cursor-pointer"
+                                className="p-1.5 bg-slate-100 hover:bg-neutral-100 hover:text-neutral-800 text-slate-700 rounded transition cursor-pointer"
                                 title={lang === 'en' ? 'Move later in sequence' : 'পরে নিন'}
                               >
                                 <ChevronDown className="w-3.5 h-3.5" />
@@ -3057,7 +2601,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                                 }}
                                 className={`p-1.5 rounded transition cursor-pointer ${
                                   isSelected
-                                    ? 'bg-indigo-600 text-white'
+                                    ? 'bg-neutral-900 text-white'
                                     : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
                                 }`}
                                 title="Inspect live sticker in side panel"
@@ -3085,7 +2629,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                               <button
                                 type="button"
                                 onClick={() => handleDeleteExistingCarton(c.id)}
-                                className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded transition cursor-pointer"
+                                className="p-1.5 bg-neutral-100 hover:bg-neutral-100 text-neutral-800 rounded transition cursor-pointer"
                                 title="Delete this carton"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
@@ -3111,14 +2655,14 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                   </span>
                   <span>•</span>
                   <span>
-                    Net Wt: <strong className="font-mono text-emerald-700">{summary.totalNetWt.toFixed(2)} {wUnit}</strong>
+                    Net Wt: <strong className="font-mono text-neutral-800">{summary.totalNetWt.toFixed(2)} {wUnit}</strong>
                   </span>
                   <span>•</span>
                   <span>
                     {isPcsMode ? (
-                      <>Total: <strong className="font-mono text-amber-900">{summary.totalQtyPcs?.toLocaleString() || 0} Pcs</strong></>
+                      <>Total: <strong className="font-mono text-neutral-900">{summary.totalQtyPcs?.toLocaleString() || 0} Pcs</strong></>
                     ) : (
-                      <>Total: <strong className="font-mono text-indigo-900">{summary.totalMtr.toFixed(2)} Mtr</strong></>
+                      <>Total: <strong className="font-mono text-neutral-900">{summary.totalMtr.toFixed(2)} Mtr</strong></>
                     )}
                   </span>
                 </div>
@@ -3126,7 +2670,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                 <button
                   type="button"
                   onClick={handleAddNewCarton}
-                  className="text-indigo-600 hover:text-indigo-700 font-bold flex items-center gap-1 cursor-pointer"
+                  className="text-neutral-800 hover:text-neutral-800 font-bold flex items-center gap-1 cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>{lang === 'en' ? '+ Add Next Carton' : '+ পরবর্তী কার্টন'}</span>
@@ -3139,7 +2683,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
               <div className="w-full xl:w-96 shrink-0 xl:sticky xl:top-4 bg-slate-50 p-3 rounded-xl border border-slate-200 shadow-xs space-y-2">
                 <div className="flex items-center justify-between border-b border-slate-200 pb-2">
                   <div className="flex items-center gap-1.5">
-                    <Tag className="w-4 h-4 text-indigo-600" />
+                    <Tag className="w-4 h-4 text-neutral-800" />
                     <div>
                       <h4 className="text-xs font-bold text-slate-900">
                         {lang === 'en' ? `Live Sticker Preview — CTN #${selectedCarton.cartonNo}` : `লাইভ স্টিকার প্রিভিউ — কার্টন #${selectedCarton.cartonNo}`}
@@ -3337,9 +2881,9 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                                   </div>
                                 </div>
                               </div>
-                              <div className="flex items-center justify-between bg-amber-50/80 px-2 py-0.5 border border-amber-300 rounded-sm">
-                                <span className="text-[9px] font-black text-amber-950 uppercase tracking-wide">QUANTITY:</span>
-                                <span className="font-mono font-black text-amber-950 text-xs sm:text-sm">
+                              <div className="flex items-center justify-between bg-neutral-100/80 px-2 py-0.5 border border-neutral-300 rounded-sm">
+                                <span className="text-[9px] font-black text-neutral-900 uppercase tracking-wide">QUANTITY:</span>
+                                <span className="font-mono font-black text-neutral-900 text-xs sm:text-sm">
                                   {calculatedQtyPcs ? `${calculatedQtyPcs.toLocaleString()} PCS` : '2000 PCS'}
                                   {calculatedPkts ? ` (${calculatedPkts} PKTS)` : ''}
                                 </span>
@@ -3364,7 +2908,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                                             minFontSize={6.5}
                                             enabled={stickerSettings.autoScaleLongText !== false}
                                             className={`font-bold ${
-                                              row.item1.highlight ? 'text-rose-900 font-black' : 'text-slate-900'
+                                              row.item1.highlight ? 'text-neutral-900 font-black' : 'text-slate-900'
                                             }`}
                                           />
                                         </div>
@@ -3381,7 +2925,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                                               minFontSize={6.5}
                                               enabled={stickerSettings.autoScaleLongText !== false}
                                               className={`font-bold ${
-                                                row.item2.highlight ? 'text-purple-900 font-black' : 'text-slate-900'
+                                                row.item2.highlight ? 'text-neutral-900 font-black' : 'text-slate-900'
                                               }`}
                                             />
                                           </div>
@@ -3443,10 +2987,10 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                                   className="font-bold text-slate-900"
                                 />
                               </div>
-                              <div className="min-w-0">
+                               <div className="min-w-0">
                                 <span className="text-[8px] font-bold text-slate-500 uppercase block">ITEM / PRODUCT:</span>
                                 <AutoFitText
-                                  text={currentItemKey === 'elastic' ? '🧵 ELASTIC' : '🏷️ WEBBING TAPE'}
+                                  text={sheetData.customItemName || activeScheduleItem?.itemDescription || (currentItemKey === 'elastic' ? '🧵 ELASTIC' : '🏷️ WEBBING TAPE')}
                                   maxFontSize={isCompact ? 10 : 11}
                                   minFontSize={6.5}
                                   enabled={stickerSettings.autoScaleLongText !== false}
@@ -3456,7 +3000,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                               <div className="min-w-0">
                                 <span className="text-[8px] font-bold text-slate-500 uppercase block">SIZE / COLOR:</span>
                                 <AutoFitText
-                                  text={`${sheetData.size || ''} | ${sheetData.color || ''}`}
+                                  text={`${c.size || sheetData.size || activeScheduleItem?.size || 'Standard'} | ${c.color || sheetData.color || activeScheduleItem?.color || 'Standard'}`}
                                   maxFontSize={isCompact ? 10 : 11}
                                   minFontSize={6.5}
                                   enabled={stickerSettings.autoScaleLongText !== false}
@@ -3475,8 +3019,8 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                                 <div className="col-span-2 pt-1 border-t border-slate-200 grid grid-cols-2 gap-x-2 gap-y-0.5 min-w-0">
                                   {technicalRows.map((row) => (
                                     <React.Fragment key={row.id}>
-                                      <div className="flex items-center justify-between bg-indigo-50/70 px-1.5 py-0.5 rounded border border-indigo-100 min-w-0 gap-1">
-                                        <span className="text-[7.5px] font-bold text-indigo-900 uppercase tracking-tight shrink-0">
+                                      <div className="flex items-center justify-between bg-neutral-100/70 px-1.5 py-0.5 rounded border border-neutral-200 min-w-0 gap-1">
+                                        <span className="text-[7.5px] font-bold text-neutral-900 uppercase tracking-tight shrink-0">
                                           {row.item1.label}
                                         </span>
                                         <div className="min-w-0 flex-1 flex justify-end">
@@ -3486,13 +3030,13 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                                             minFontSize={6.5}
                                             align="right"
                                             enabled={stickerSettings.autoScaleLongText !== false}
-                                            className="font-black text-indigo-950"
+                                            className="font-black text-neutral-900"
                                           />
                                         </div>
                                       </div>
                                       {row.item2 && (
-                                        <div className="flex items-center justify-between bg-emerald-50/70 px-1.5 py-0.5 rounded border border-emerald-100 min-w-0 gap-1">
-                                          <span className="text-[7.5px] font-bold text-emerald-900 uppercase tracking-tight shrink-0">
+                                        <div className="flex items-center justify-between bg-neutral-100/70 px-1.5 py-0.5 rounded border border-neutral-200 min-w-0 gap-1">
+                                          <span className="text-[7.5px] font-bold text-neutral-900 uppercase tracking-tight shrink-0">
                                             {row.item2.label}
                                           </span>
                                           <div className="min-w-0 flex-1 flex justify-end">
@@ -3502,7 +3046,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                                               minFontSize={6.5}
                                               align="right"
                                               enabled={stickerSettings.autoScaleLongText !== false}
-                                              className="font-black text-emerald-950"
+                                              className="font-black text-neutral-900"
                                             />
                                           </div>
                                         </div>
@@ -3556,7 +3100,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                             {isPcsMode ? (
                               <>
                                 <span className="text-[8px] font-bold text-slate-700 uppercase block">TOTAL QTY</span>
-                                <span className={`font-black text-amber-900 ${isCompact ? 'text-xs' : 'text-xs sm:text-sm'}`}>
+                                <span className={`font-black text-neutral-900 ${isCompact ? 'text-xs' : 'text-xs sm:text-sm'}`}>
                                   {calculatedQtyPcs}
                                 </span>
                                 <span className="text-[8px] text-slate-600 block">Pcs</span>
@@ -3577,7 +3121,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                               calculatedPkts !== undefined ? (
                                 <>
                                   <span className="text-[8px] font-bold text-slate-700 uppercase block">PACKETS</span>
-                                  <span className={`font-black text-purple-900 ${isCompact ? 'text-xs' : 'text-xs sm:text-sm'}`}>
+                                  <span className={`font-black text-neutral-900 ${isCompact ? 'text-xs' : 'text-xs sm:text-sm'}`}>
                                     {calculatedPkts}
                                   </span>
                                   <span className="text-[8px] text-slate-600 block">Pkt</span>
@@ -3646,7 +3190,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                           {showQrCode && (
                             <div 
                               onClick={() => onOpenCartonQr && onOpenCartonQr(c)}
-                              className="flex items-center gap-1.5 p-1 bg-slate-50 border border-slate-300 rounded cursor-pointer hover:border-indigo-500 transition group/qr shrink-0"
+                              className="flex items-center gap-1.5 p-1 bg-slate-50 border border-slate-300 rounded cursor-pointer hover:border-neutral-400 transition group/qr shrink-0"
                               title="Click to view & scan carton detail QR"
                             >
                               <div className="bg-white p-0.5">
@@ -3673,7 +3217,7 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
                   <button
                     type="button"
                     onClick={() => setShowPreview(true)}
-                    className="text-xs font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 cursor-pointer"
+                    className="text-xs font-bold text-neutral-800 hover:text-neutral-800 flex items-center gap-1 cursor-pointer"
                   >
                     <span>{lang === 'en' ? 'Switch to Full Preview' : 'ফুল প্রিভিউতে যান'}</span>
                     <ArrowRight className="w-3 h-3" />
@@ -3685,21 +3229,37 @@ export const StickerLabelsView: React.FC<StickerLabelsViewProps> = ({
         </div>
       )}
 
-      {/* Settings Modal */}
-      <StickerSettingsModal
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-        settings={stickerSettings}
-        onUpdateSettings={handleUpdateSettings}
-        sheetData={sheetData}
-        lang={lang}
-      />
+      {/* Comprehensive Categorized Customization Modal */}
+      {!isPrintPreview && (
+        <StickerCustomizationModal
+          isOpen={isSettingsOpen}
+          onClose={() => setIsSettingsOpen(false)}
+          settings={stickerSettings}
+          onUpdateSettings={handleUpdateSettings}
+          bulkConfig={bulkConfig}
+          onUpdateBulkConfig={handleUpdateBulkConfig}
+          sheetData={sheetData}
+          onUpdateHeader={onUpdateHeader}
+          lang={lang}
+          densityMode={densityMode}
+          setDensityMode={setDensityMode}
+          showCropMarks={showCropMarks}
+          setShowCropMarks={setShowCropMarks}
+          showQrCode={showQrCode}
+          setShowQrCode={setShowQrCode}
+          qrSize={qrSize}
+          setQrSize={setQrSize}
+          onSortCartons={handleSortCartons}
+          onOpenCapacityModal={() => setIsCapacityModalOpen(true)}
+          totalLabelsCount={activeCartons.length}
+        />
+      )}
 
       {/* Floating Reorder Notification Toast */}
-      {reorderNotice && (
-        <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-2xl border border-slate-700/80 flex items-center gap-2.5 text-xs font-semibold animate-in fade-in slide-in-from-bottom-3 duration-200 print:hidden">
-          <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <ArrowUpDown className="w-4 h-4 text-indigo-400" />
+      {!isPrintPreview && reorderNotice && (
+        <div className="fixed bottom-6 right-6 z-50 bg-neutral-900 text-white px-4 py-2.5 rounded-xl shadow-2xl border border-neutral-700 flex items-center gap-2.5 text-xs font-semibold animate-in fade-in slide-in-from-bottom-3 duration-200 print:hidden">
+          <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
+          <ArrowUpDown className="w-4 h-4 text-white" />
           <span>{reorderNotice}</span>
         </div>
       )}

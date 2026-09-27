@@ -203,18 +203,18 @@ export const SecuritySettingsPanel: React.FC<SecuritySettingsPanelProps> = ({ la
   return (
     <div className="space-y-4">
       {/* Firebase Auth Account Banner */}
-      <div className="p-4 rounded-xl bg-gradient-to-r from-slate-900 to-indigo-950 text-white border border-slate-800 shadow-md">
+      <div className="p-4 rounded-xl bg-gradient-to-r from-slate-900 to-neutral-950 text-white border border-slate-800 shadow-md">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-600/30 border border-indigo-500/40 flex items-center justify-center text-indigo-400 shrink-0">
-              <ShieldCheck className="w-5 h-5 text-indigo-300" />
+            <div className="w-10 h-10 rounded-xl bg-neutral-900/30 border border-neutral-400/40 flex items-center justify-center text-neutral-400 shrink-0">
+              <ShieldCheck className="w-5 h-5 text-neutral-300" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-indigo-300">
+                <span className="text-xs font-bold uppercase tracking-wider text-neutral-300">
                   {lang === 'en' ? 'Firebase Auth Integration' : 'ফায়ারবেস অথেনটিকেশন ইন্টিগ্রেশন'}
                 </span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-neutral-800/20 text-neutral-300 border border-neutral-400/30">
                   {user?.isAnonymous ? 'Active Session' : 'Secured Cloud'}
                 </span>
               </div>
@@ -237,7 +237,7 @@ export const SecuritySettingsPanel: React.FC<SecuritySettingsPanelProps> = ({ la
             onClick={() => handleCopyViewOnlyLink()}
             className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-bold transition shrink-0 cursor-pointer"
           >
-            {copiedLink === 'general' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-indigo-300" />}
+            {copiedLink === 'general' ? <Check className="w-3.5 h-3.5 text-neutral-400" /> : <Copy className="w-3.5 h-3.5 text-neutral-300" />}
             <span>{copiedLink === 'general' ? (lang === 'en' ? 'Copied!' : 'কপি হয়েছে!') : (lang === 'en' ? 'Copy View-Only Link' : 'ভিউ-অনলি লিঙ্ক কপি')}</span>
           </button>
         </div>
@@ -245,14 +245,14 @@ export const SecuritySettingsPanel: React.FC<SecuritySettingsPanelProps> = ({ la
 
       {/* Notifications */}
       {successMsg && (
-        <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center gap-2 animate-in fade-in">
-          <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+        <div className="p-3 rounded-lg bg-neutral-100 border border-neutral-200 text-neutral-900 text-xs font-bold flex items-center gap-2 animate-in fade-in">
+          <Check className="w-4 h-4 text-neutral-800 shrink-0" />
           <span>{successMsg}</span>
         </div>
       )}
       {errorMsg && (
-        <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold flex items-center gap-2 animate-in fade-in">
-          <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+        <div className="p-3 rounded-lg bg-neutral-100 border border-neutral-200 text-neutral-900 text-xs font-bold flex items-center gap-2 animate-in fade-in">
+          <AlertCircle className="w-4 h-4 text-neutral-800 shrink-0" />
           <span>{errorMsg}</span>
         </div>
       )}
@@ -260,7 +260,7 @@ export const SecuritySettingsPanel: React.FC<SecuritySettingsPanelProps> = ({ la
       {/* Action Bar: Add Member Button */}
       <div className="flex items-center justify-between gap-2 pt-1">
         <div className="flex items-center gap-2">
-          <KeyRound className="w-4 h-4 text-indigo-600" />
+          <KeyRound className="w-4 h-4 text-neutral-800" />
           <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
             {lang === 'en' ? 'Team Members & Access Levels' : 'টিম মেম্বার ও অ্যাক্সেস পারমিশন'}
           </h4>
@@ -275,7 +275,7 @@ export const SecuritySettingsPanel: React.FC<SecuritySettingsPanelProps> = ({ la
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition shadow-xs cursor-pointer ${
             showAddForm
               ? 'bg-slate-200 text-slate-700 hover:bg-slate-300'
-              : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+              : 'bg-neutral-900 hover:bg-neutral-800 text-white'
           }`}
         >
           <UserPlus className="w-3.5 h-3.5" />
@@ -285,10 +285,10 @@ export const SecuritySettingsPanel: React.FC<SecuritySettingsPanelProps> = ({ la
 
       {/* Add Team Member Form */}
       {showAddForm && (
-        <form onSubmit={handleAddMember} className="p-4 rounded-xl bg-slate-50 border border-indigo-200 shadow-xs space-y-3.5 animate-in slide-in-from-top-2 duration-200">
+        <form onSubmit={handleAddMember} className="p-4 rounded-xl bg-slate-50 border border-neutral-200 shadow-xs space-y-3.5 animate-in slide-in-from-top-2 duration-200">
           <div className="flex items-center justify-between border-b border-slate-200 pb-2">
             <div className="flex items-center gap-2">
-              <UserPlus className="w-4 h-4 text-indigo-600" />
+              <UserPlus className="w-4 h-4 text-neutral-800" />
               <h5 className="text-xs font-bold text-slate-800">
                 {lang === 'en' ? 'Configure Team Member Access' : 'নতুন টিম মেম্বার অ্যাক্সেস কনফিগার করুন'}
               </h5>
@@ -296,7 +296,7 @@ export const SecuritySettingsPanel: React.FC<SecuritySettingsPanelProps> = ({ la
             <button
               type="button"
               onClick={handleAddSampleMember}
-              className="text-[11px] font-semibold text-indigo-600 hover:text-indigo-800 underline cursor-pointer"
+              className="text-[11px] font-semibold text-neutral-800 hover:text-neutral-900 underline cursor-pointer"
             >
               {lang === 'en' ? 'Fill Sample (Q.C. Lead)' : 'নমুনা পূরণ করুন (Q.C. Lead)'}
             </button>
@@ -314,7 +314,7 @@ export const SecuritySettingsPanel: React.FC<SecuritySettingsPanelProps> = ({ la
                 placeholder="supervisor@company.com"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                className="w-full px-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg text-slate-900 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                className="w-full px-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg text-slate-900 focus:ring-2 focus:ring-neutral-400 focus:outline-none"
               />
             </div>
 
@@ -328,7 +328,7 @@ export const SecuritySettingsPanel: React.FC<SecuritySettingsPanelProps> = ({ la
                 placeholder="e.g. Asif Rahman (Floor Manager)"
                 value={displayName}
                 onChange={e => setDisplayName(e.target.value)}
-                className="w-full px-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg text-slate-900 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                className="w-full px-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg text-slate-900 focus:ring-2 focus:ring-neutral-400 focus:outline-none"
               />
             </div>
 
@@ -342,7 +342,7 @@ export const SecuritySettingsPanel: React.FC<SecuritySettingsPanelProps> = ({ la
                 placeholder="e.g. Quality Inspection / Finishing"
                 value={department}
                 onChange={e => setDepartment(e.target.value)}
-                className="w-full px-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg text-slate-900 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                className="w-full px-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg text-slate-900 focus:ring-2 focus:ring-neutral-400 focus:outline-none"
               />
             </div>
 
@@ -356,11 +356,11 @@ export const SecuritySettingsPanel: React.FC<SecuritySettingsPanelProps> = ({ la
                   onClick={() => setRole('view-only')}
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer border ${
                     role === 'view-only'
-                      ? 'bg-indigo-50 border-indigo-500 text-indigo-700 shadow-2xs'
+                      ? 'bg-neutral-100 border-neutral-400 text-neutral-800 shadow-2xs'
                       : 'bg-white border-slate-300 text-slate-600 hover:bg-slate-100'
                   }`}
                 >
-                  <Lock className="w-3.5 h-3.5 text-indigo-600" />
+                  <Lock className="w-3.5 h-3.5 text-neutral-800" />
                   <span>{lang === 'en' ? 'View-Only (Safe)' : 'ভিউ-অনলি (নিরাপদ)'}</span>
                 </button>
 
@@ -369,11 +369,11 @@ export const SecuritySettingsPanel: React.FC<SecuritySettingsPanelProps> = ({ la
                   onClick={() => setRole('editor')}
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer border ${
                     role === 'editor'
-                      ? 'bg-emerald-50 border-emerald-500 text-emerald-700 shadow-2xs'
+                      ? 'bg-neutral-100 border-neutral-400 text-neutral-800 shadow-2xs'
                       : 'bg-white border-slate-300 text-slate-600 hover:bg-slate-100'
                   }`}
                 >
-                  <Eye className="w-3.5 h-3.5 text-emerald-600" />
+                  <Eye className="w-3.5 h-3.5 text-neutral-800" />
                   <span>{lang === 'en' ? 'Editor / Operator' : 'এডিটর / অপারেটর'}</span>
                 </button>
               </div>
@@ -383,7 +383,7 @@ export const SecuritySettingsPanel: React.FC<SecuritySettingsPanelProps> = ({ la
           {/* Granular Module Access Checklist */}
           <div className="p-3 bg-white rounded-lg border border-slate-200">
             <div className="flex items-center gap-1.5 mb-2">
-              <SlidersHorizontal className="w-3.5 h-3.5 text-indigo-600" />
+              <SlidersHorizontal className="w-3.5 h-3.5 text-neutral-800" />
               <span className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
                 {lang === 'en' ? 'Allowed Modules for this Member:' : 'এই মেম্বার যে মডিউলগুলো দেখতে পারবেন:'}
               </span>
@@ -394,7 +394,7 @@ export const SecuritySettingsPanel: React.FC<SecuritySettingsPanelProps> = ({ la
                   type="checkbox"
                   checked={modules.packingSheets}
                   onChange={e => setModules({ ...modules, packingSheets: e.target.checked })}
-                  className="rounded text-indigo-600 focus:ring-indigo-500"
+                  className="rounded text-neutral-800 focus:ring-neutral-400"
                 />
                 <span className="text-slate-700 font-medium">{lang === 'en' ? 'Packing Sheets' : 'প্যাকিং শিট'}</span>
               </label>
@@ -404,7 +404,7 @@ export const SecuritySettingsPanel: React.FC<SecuritySettingsPanelProps> = ({ la
                   type="checkbox"
                   checked={modules.factorySchedules}
                   onChange={e => setModules({ ...modules, factorySchedules: e.target.checked })}
-                  className="rounded text-indigo-600 focus:ring-indigo-500"
+                  className="rounded text-neutral-800 focus:ring-neutral-400"
                 />
                 <span className="text-slate-700 font-medium">{lang === 'en' ? 'Production Schedule' : 'ফ্যাক্টরি শিডিউল'}</span>
               </label>
@@ -414,7 +414,7 @@ export const SecuritySettingsPanel: React.FC<SecuritySettingsPanelProps> = ({ la
                   type="checkbox"
                   checked={modules.dispatchChallans}
                   onChange={e => setModules({ ...modules, dispatchChallans: e.target.checked })}
-                  className="rounded text-indigo-600 focus:ring-indigo-500"
+                  className="rounded text-neutral-800 focus:ring-neutral-400"
                 />
                 <span className="text-slate-700 font-medium">{lang === 'en' ? 'Delivery Challans' : 'ডেলিভারি চালান'}</span>
               </label>
@@ -424,7 +424,7 @@ export const SecuritySettingsPanel: React.FC<SecuritySettingsPanelProps> = ({ la
                   type="checkbox"
                   checked={modules.stickerLabels}
                   onChange={e => setModules({ ...modules, stickerLabels: e.target.checked })}
-                  className="rounded text-indigo-600 focus:ring-indigo-500"
+                  className="rounded text-neutral-800 focus:ring-neutral-400"
                 />
                 <span className="text-slate-700 font-medium">{lang === 'en' ? 'Carton Barcodes' : 'কার্টন বারকোড'}</span>
               </label>
@@ -434,7 +434,7 @@ export const SecuritySettingsPanel: React.FC<SecuritySettingsPanelProps> = ({ la
                   type="checkbox"
                   checked={modules.analytics}
                   onChange={e => setModules({ ...modules, analytics: e.target.checked })}
-                  className="rounded text-indigo-600 focus:ring-indigo-500"
+                  className="rounded text-neutral-800 focus:ring-neutral-400"
                 />
                 <span className="text-slate-700 font-medium">{lang === 'en' ? 'Financial Analytics' : 'আর্থিক এনালিটিক্স'}</span>
               </label>
@@ -452,7 +452,7 @@ export const SecuritySettingsPanel: React.FC<SecuritySettingsPanelProps> = ({ la
             <button
               type="submit"
               disabled={saving}
-              className="px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-xs transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              className="px-4 py-1.5 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-bold shadow-xs transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
             >
               {saving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
               <span>{lang === 'en' ? 'Save Team Member' : 'মেম্বার সংরক্ষণ করুন'}</span>
@@ -465,7 +465,7 @@ export const SecuritySettingsPanel: React.FC<SecuritySettingsPanelProps> = ({ la
       <div className="space-y-2.5">
         {loading ? (
           <div className="p-6 text-center text-xs text-slate-500 flex items-center justify-center gap-2">
-            <RefreshCw className="w-4 h-4 animate-spin text-indigo-600" />
+            <RefreshCw className="w-4 h-4 animate-spin text-neutral-800" />
             <span>{lang === 'en' ? 'Loading team security permissions...' : 'টিম সিকিউরিটি লোড হচ্ছে...'}</span>
           </div>
         ) : members.length === 0 ? (
@@ -482,7 +482,7 @@ export const SecuritySettingsPanel: React.FC<SecuritySettingsPanelProps> = ({ la
             <button
               type="button"
               onClick={handleAddSampleMember}
-              className="px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-xs transition inline-flex items-center gap-1.5 cursor-pointer"
+              className="px-3.5 py-1.5 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-bold shadow-xs transition inline-flex items-center gap-1.5 cursor-pointer"
             >
               <UserPlus className="w-3.5 h-3.5" />
               <span>{lang === 'en' ? 'Add Sample Q.C. Team Member' : 'স্যাম্পল Q.C. মেম্বার যুক্ত করে পরীক্ষা করুন'}</span>
@@ -497,8 +497,8 @@ export const SecuritySettingsPanel: React.FC<SecuritySettingsPanelProps> = ({ la
               <div className="flex items-start gap-3">
                 <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 font-bold text-xs ${
                   member.role === 'view-only' 
-                    ? 'bg-indigo-100 text-indigo-800 border border-indigo-200' 
-                    : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                    ? 'bg-neutral-100 text-neutral-900 border border-neutral-200' 
+                    : 'bg-neutral-100 text-neutral-900 border border-neutral-200'
                 }`}>
                   {member.displayName ? member.displayName.charAt(0).toUpperCase() : 'U'}
                 </div>
@@ -507,8 +507,8 @@ export const SecuritySettingsPanel: React.FC<SecuritySettingsPanelProps> = ({ la
                     <h5 className="text-xs font-bold text-slate-800">{member.displayName}</h5>
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-1 border ${
                       member.role === 'view-only'
-                        ? 'bg-blue-50 text-blue-700 border-blue-200'
-                        : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                        ? 'bg-neutral-100 text-neutral-800 border-neutral-200'
+                        : 'bg-neutral-100 text-neutral-800 border-neutral-200'
                     }`}>
                       {member.role === 'view-only' ? <Lock className="w-2.5 h-2.5" /> : <Eye className="w-2.5 h-2.5" />}
                       <span>{member.role === 'view-only' ? (lang === 'en' ? 'View-Only' : 'ভিউ-অনলি') : (lang === 'en' ? 'Editor' : 'এডিটর')}</span>
@@ -540,16 +540,16 @@ export const SecuritySettingsPanel: React.FC<SecuritySettingsPanelProps> = ({ la
                 <button
                   type="button"
                   onClick={() => handleCopyViewOnlyLink(member.email)}
-                  className="p-1.5 rounded-md text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 transition cursor-pointer"
+                  className="p-1.5 rounded-md text-slate-500 hover:text-neutral-800 hover:bg-neutral-100 transition cursor-pointer"
                   title="Copy Individual View-Only Link"
                 >
-                  {copiedLink === member.email ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                  {copiedLink === member.email ? <Check className="w-3.5 h-3.5 text-neutral-800" /> : <Copy className="w-3.5 h-3.5" />}
                 </button>
 
                 <button
                   type="button"
                   onClick={() => handleRemoveMember(member.id, member.displayName)}
-                  className="p-1.5 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                  className="p-1.5 rounded-md text-slate-400 hover:text-neutral-800 hover:bg-neutral-100 transition cursor-pointer"
                   title="Revoke Access"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
@@ -569,7 +569,7 @@ export const SecuritySettingsPanel: React.FC<SecuritySettingsPanelProps> = ({ la
               {lang === 'en' ? 'Zero-Trust View-Only Policy' : 'জিরো-ট্রাস্ট ভিউ-অনলি নীতিমালা'}
             </span>
           </div>
-          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-100 text-indigo-700">
+          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-neutral-100 text-neutral-800">
             Active
           </span>
         </div>

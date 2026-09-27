@@ -262,7 +262,7 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
           {/* Left: Brand / Title */}
           <div className="flex items-center gap-2.5 min-w-0">
             <BrandTitle3D title={t.appTitle} isCollapsed={true} />
-            <span className={`w-2 h-2 rounded-full shrink-0 ${isOnline ? 'bg-emerald-400' : 'bg-amber-400'}`} title={isOnline ? 'Online' : 'Offline'} />
+            <span className={`w-2 h-2 rounded-full shrink-0 ${isOnline ? 'bg-neutral-400' : 'bg-neutral-400'}`} title={isOnline ? 'Online' : 'Offline'} />
           </div>
 
           {/* Right: Quick actions + Expand Button */}
@@ -296,7 +296,7 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
             <button
               type="button"
               onClick={onPrint}
-              className="hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-xs border border-emerald-500 transition cursor-pointer"
+              className="hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-semibold shadow-xs border border-neutral-400 transition cursor-pointer"
               title={t.printSheet}
             >
               <Printer className="w-3.5 h-3.5" />
@@ -312,7 +312,7 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
             <button
               type="button"
               onClick={toggleCollapse}
-              className="flex items-center gap-1 px-3 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition cursor-pointer shadow-xs"
+              className="flex items-center gap-1 px-3 py-1 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-bold transition cursor-pointer shadow-xs"
               title={lang === 'en' ? 'Expand header' : 'হেডার খুলুন'}
             >
               <span>{lang === 'en' ? 'Expand' : 'খুলুন'}</span>
@@ -344,13 +344,13 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
                   onClick={() => setShowSyncTooltip(prev => !prev)}
                   className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10.5px] font-mono font-semibold transition-all duration-300 cursor-pointer border shadow-[0_2px_10px_rgba(0,0,0,0.3)] backdrop-blur-md ${
                     !isOnline || syncStatus === 'offline'
-                      ? 'bg-amber-950/60 text-amber-300 border-amber-500/40 hover:bg-amber-900/60 hover:shadow-[0_0_15px_rgba(245,158,11,0.2)]'
+                      ? 'bg-neutral-950/60 text-neutral-300 border-neutral-400/40 hover:bg-neutral-950/60 hover:shadow-[0_0_15px_rgba(245,158,11,0.2)]'
                       : syncStatus === 'syncing' || isManualSyncing
-                      ? 'bg-cyan-950/70 text-cyan-200 border-cyan-400/50 animate-pulse shadow-[0_0_15px_rgba(6,182,212,0.25)]'
+                      ? 'bg-neutral-950/70 text-neutral-200 border-neutral-300/50 animate-pulse shadow-[0_0_15px_rgba(6,182,212,0.25)]'
                       : syncStatus === 'synced'
-                      ? 'bg-emerald-950/60 text-emerald-300 border-emerald-500/40 hover:bg-emerald-900/50 hover:border-emerald-400/60 hover:shadow-[0_0_15px_rgba(16,185,129,0.25)]'
+                      ? 'bg-neutral-950/60 text-neutral-300 border-neutral-400/40 hover:bg-neutral-950/50 hover:border-neutral-300/60 hover:shadow-[0_0_15px_rgba(16,185,129,0.25)]'
                       : syncStatus === 'error'
-                      ? 'bg-rose-950/70 text-rose-300 border-rose-500/50 hover:bg-rose-900/60 hover:shadow-[0_0_15px_rgba(244,63,94,0.2)]'
+                      ? 'bg-neutral-950/70 text-neutral-300 border-neutral-400/50 hover:bg-neutral-950/60 hover:shadow-[0_0_15px_rgba(244,63,94,0.2)]'
                       : 'bg-white/[0.04] text-slate-300 border-white/10 hover:bg-white/[0.08]'
                   }`}
                   title="Real-time network and Firestore sync status"
@@ -359,37 +359,37 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
                   <span className="relative flex h-2 w-2">
                     <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
                       !isOnline || syncStatus === 'offline'
-                        ? 'bg-amber-400'
+                        ? 'bg-neutral-400'
                         : syncStatus === 'syncing' || isManualSyncing
-                        ? 'bg-cyan-400'
+                        ? 'bg-neutral-400'
                         : syncStatus === 'synced'
-                        ? 'bg-emerald-400'
-                        : 'bg-emerald-400'
+                        ? 'bg-neutral-400'
+                        : 'bg-neutral-400'
                     }`} />
                     <span className={`relative inline-flex rounded-full h-2 w-2 ${
                       !isOnline || syncStatus === 'offline'
-                        ? 'bg-amber-500'
+                        ? 'bg-neutral-800'
                         : syncStatus === 'syncing' || isManualSyncing
-                        ? 'bg-cyan-400'
+                        ? 'bg-neutral-400'
                         : syncStatus === 'synced'
-                        ? 'bg-emerald-500'
-                        : 'bg-emerald-500'
+                        ? 'bg-neutral-800'
+                        : 'bg-neutral-800'
                     }`} />
                   </span>
 
                   {/* Icon */}
                   {!isOnline ? (
-                    <WifiOff className="w-3 h-3 text-amber-400" />
+                    <WifiOff className="w-3 h-3 text-neutral-400" />
                   ) : syncStatus === 'syncing' || isManualSyncing ? (
-                    <RefreshCw className="w-3 h-3 text-cyan-300 animate-spin" />
+                    <RefreshCw className="w-3 h-3 text-neutral-300 animate-spin" />
                   ) : syncStatus === 'synced' ? (
-                    <Cloud className="w-3 h-3 text-emerald-400" />
+                    <Cloud className="w-3 h-3 text-neutral-400" />
                   ) : syncStatus === 'offline' ? (
-                    <CloudOff className="w-3 h-3 text-amber-400" />
+                    <CloudOff className="w-3 h-3 text-neutral-400" />
                   ) : syncStatus === 'error' ? (
-                    <AlertCircle className="w-3 h-3 text-rose-400" />
+                    <AlertCircle className="w-3 h-3 text-neutral-400" />
                   ) : (
-                    <Wifi className="w-3 h-3 text-emerald-400" />
+                    <Wifi className="w-3 h-3 text-neutral-400" />
                   )}
 
                   {/* Text Label */}
@@ -410,57 +410,55 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
 
                 {/* Rich Real-Time Sync Tooltip */}
                 {showSyncTooltip && (
-                  <div className="absolute left-0 top-full mt-2 z-50 w-80 p-4 bg-slate-900 text-slate-200 rounded-xl shadow-2xl border border-slate-700 text-xs space-y-3 animate-in fade-in zoom-in-95 duration-150">
-                    <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
-                      <span className="font-bold text-white flex items-center gap-1.5">
+                  <div className="absolute left-0 top-full mt-2 z-50 w-80 p-4 bg-white text-neutral-800 rounded-xl shadow-2xl border border-neutral-200 text-xs space-y-3 animate-in fade-in zoom-in-95 duration-150">
+                    <div className="flex items-center justify-between border-b border-neutral-200 pb-2.5">
+                      <span className="font-bold text-neutral-900 flex items-center gap-1.5">
                         {isOnline ? (
-                          <Wifi className="w-4 h-4 text-emerald-400" />
+                          <Wifi className="w-4 h-4 text-neutral-800" />
                         ) : (
-                          <WifiOff className="w-4 h-4 text-amber-400" />
+                          <WifiOff className="w-4 h-4 text-neutral-500" />
                         )}
                         {lang === 'en' ? 'Real-Time Sync Engine' : 'রিয়েল-টাইম সিঙ্ক ইঞ্জিন'}
                       </span>
-                      <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-mono font-bold border backdrop-blur-md ${
+                      <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-mono font-bold border ${
                         isOnline 
-                          ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-[0_0_10px_rgba(16,185,129,0.2)]' 
-                          : 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                          ? 'bg-neutral-100 text-neutral-900 border-neutral-300' 
+                          : 'bg-neutral-100 text-neutral-600 border-neutral-300'
                       }`}>
                         {isOnline ? (lang === 'en' ? 'ONLINE' : 'অনলাইন') : (lang === 'en' ? 'OFFLINE' : 'অফলাইন')}
                       </span>
                     </div>
 
-                    <div className="space-y-2 text-[11px] text-slate-300">
+                    <div className="space-y-2 text-[11px] text-neutral-600">
                       <div className="flex items-center justify-between">
-                        <span className="text-slate-400">{lang === 'en' ? 'Network Connection:' : 'নেটওয়ার্ক সংযোগ:'}</span>
-                        <span className={`font-mono font-bold flex items-center gap-1 ${
-                          isOnline ? 'text-emerald-300' : 'text-amber-300'
-                        }`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+                        <span className="text-neutral-500">{lang === 'en' ? 'Network Connection:' : 'নেটওয়ার্ক সংযোগ:'}</span>
+                        <span className="font-mono font-bold flex items-center gap-1 text-neutral-900">
+                          <span className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-neutral-900' : 'bg-neutral-400'}`} />
                           {isOnline ? (lang === 'en' ? 'Active' : 'সক্রিয়') : (lang === 'en' ? 'Disconnected' : 'বিচ্ছিন্ন')}
                         </span>
                       </div>
 
                       <div className="flex items-center justify-between">
-                        <span className="text-slate-400">{lang === 'en' ? 'Firestore Cloud Sync:' : 'ফায়ারস্টোর ক্লাউড সিঙ্ক:'}</span>
-                        <span className="font-mono font-semibold text-slate-200 flex items-center gap-1">
+                        <span className="text-neutral-500">{lang === 'en' ? 'Firestore Cloud Sync:' : 'ফায়ারস্টোর ক্লাউড সিঙ্ক:'}</span>
+                        <span className="font-mono font-semibold text-neutral-900 flex items-center gap-1">
                           {user ? (
                             syncStatus === 'synced' ? (
-                              <span className="text-emerald-300 font-bold flex items-center gap-1">
-                                <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                              <span className="text-neutral-900 font-bold flex items-center gap-1">
+                                <CheckCircle2 className="w-3 h-3 text-neutral-900" />
                                 {lang === 'en' ? 'Real-Time Active' : 'রিয়েল-টাইম সক্রিয়'}
                               </span>
                             ) : syncStatus === 'syncing' ? (
-                              <span className="text-cyan-300 font-bold flex items-center gap-1">
+                              <span className="text-neutral-900 font-bold flex items-center gap-1">
                                 <RefreshCw className="w-3 h-3 animate-spin" />
                                 {lang === 'en' ? 'Pushing edits...' : 'সিঙ্ক করা হচ্ছে...'}
                               </span>
                             ) : (
-                              <span className="text-amber-300 font-bold">
+                              <span className="text-neutral-600 font-bold">
                                 {pendingOfflineChanges ? (lang === 'en' ? 'Queued (Offline)' : 'কিউ করা আছে') : (lang === 'en' ? 'Offline' : 'অফলাইন')}
                               </span>
                             )
                           ) : (
-                            <span className="text-slate-400 font-medium">
+                            <span className="text-neutral-500 font-medium">
                               {lang === 'en' ? 'Local Only (Sign in to sync)' : 'শুধুমাত্র লোকাল (সিঙ্ক করতে লগইন করুন)'}
                             </span>
                           )}
@@ -469,23 +467,23 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
 
                       {user && (
                         <div className="flex items-center justify-between">
-                          <span className="text-slate-400">{lang === 'en' ? 'Last Cloud Synced:' : 'সর্বশেষ ক্লাউড সিঙ্ক:'}</span>
-                          <span className="font-mono font-bold text-emerald-300 flex items-center gap-1">
-                            <Clock className="w-3 h-3 text-slate-400" />
+                          <span className="text-neutral-500">{lang === 'en' ? 'Last Cloud Synced:' : 'সর্বশেষ ক্লাউড সিঙ্ক:'}</span>
+                          <span className="font-mono font-bold text-neutral-900 flex items-center gap-1">
+                            <Clock className="w-3 h-3 text-neutral-600" />
                             {lastCloudSyncTime ? getRelativeTimeString(lastCloudSyncTime) : (lang === 'en' ? 'Pending' : 'অপেক্ষমান')}
                           </span>
                         </div>
                       )}
 
                       <div className="flex items-center justify-between">
-                        <span className="text-slate-400">{lang === 'en' ? 'Offline Safety:' : 'অফলাইন নিরাপত্তা:'}</span>
-                        <span className="font-mono text-emerald-300 font-semibold">LocalStorage + IndexedDB</span>
+                        <span className="text-neutral-500">{lang === 'en' ? 'Offline Safety:' : 'অফলাইন নিরাপত্তা:'}</span>
+                        <span className="font-mono text-neutral-900 font-semibold">LocalStorage + IndexedDB</span>
                       </div>
                     </div>
 
-                    <div className="pt-2.5 border-t border-white/10 flex items-center justify-between gap-2">
-                      <span className="text-[10px] text-slate-400 flex items-center gap-1">
-                        <HardDrive className="w-3 h-3 text-slate-400 shrink-0" />
+                    <div className="pt-2.5 border-t border-neutral-200 flex items-center justify-between gap-2">
+                      <span className="text-[10px] text-neutral-500 flex items-center gap-1">
+                        <HardDrive className="w-3 h-3 text-neutral-600 shrink-0" />
                         {lang === 'en' ? 'Immediate auto-push on edit' : 'এডিট করলেই অটো-সিঙ্ক'}
                       </span>
 
@@ -494,9 +492,9 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
                           type="button"
                           onClick={handleManualSyncClick}
                           disabled={isManualSyncing || !isOnline}
-                          className="px-3 py-1 bg-indigo-600/90 hover:bg-indigo-500 disabled:bg-slate-800/80 disabled:text-slate-500 text-white text-[10.5px] font-bold rounded-lg shadow-[0_0_15px_rgba(99,102,241,0.3)] transition cursor-pointer flex items-center gap-1.5 border border-indigo-400/30"
+                          className="px-3 py-1 bg-neutral-900 hover:bg-neutral-800 disabled:bg-neutral-300 disabled:text-neutral-500 text-white text-[10.5px] font-bold rounded-lg transition cursor-pointer flex items-center gap-1.5 shadow-xs"
                         >
-                          <RefreshCw className={`w-3 h-3 ${isManualSyncing ? 'animate-spin text-cyan-300' : ''}`} />
+                          <RefreshCw className={`w-3 h-3 ${isManualSyncing ? 'animate-spin' : ''}`} />
                           <span>{isManualSyncing ? (lang === 'en' ? 'Syncing...' : 'সিঙ্ক হচ্ছে...') : t.syncNowBtn}</span>
                         </button>
                       ) : onOpenAuthModal ? (
@@ -507,7 +505,7 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
                             setShowSyncTooltip(false);
                             onOpenAuthModal();
                           }}
-                          className="px-2.5 py-1 bg-indigo-600/90 hover:bg-indigo-500 text-white text-[10.5px] font-bold rounded-lg shadow-[0_0_15px_rgba(99,102,241,0.3)] transition cursor-pointer flex items-center gap-1 border border-indigo-400/30"
+                          className="px-2.5 py-1 bg-neutral-900 hover:bg-neutral-800 text-white text-[10.5px] font-bold rounded-lg transition cursor-pointer flex items-center gap-1 shadow-xs"
                         >
                           <LogIn className="w-3 h-3" />
                           <span>{lang === 'en' ? 'Sign In' : 'লগইন'}</span>
@@ -535,12 +533,12 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
                   }}
                   className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono font-semibold transition-all duration-300 cursor-pointer border shadow-[0_2px_10px_rgba(0,0,0,0.3)] backdrop-blur-md ${
                     isSaving
-                      ? 'bg-amber-950/60 text-amber-300 border-amber-500/40 animate-pulse'
+                      ? 'bg-neutral-950/60 text-neutral-300 border-neutral-400/40 animate-pulse'
                       : 'bg-white/[0.04] text-slate-300 border-white/10 hover:bg-white/[0.08] hover:border-white/20 hover:text-white'
                   }`}
                   title="Saved to LocalStorage & IndexedDB (Click to view snapshots)"
                 >
-                  <Database className="w-3 h-3 text-emerald-400" />
+                  <Database className="w-3 h-3 text-neutral-400" />
                   <span className="truncate max-w-[110px] sm:max-w-none">
                     {isSaving 
                       ? (lang === 'en' ? 'Saving...' : 'সংরক্ষণ...') 
@@ -550,38 +548,38 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
 
                 {/* Rich Tooltip */}
                 {showSaveTooltip && (
-                  <div className="absolute left-0 top-full mt-2 z-50 w-72 p-4 bg-slate-900 text-slate-200 rounded-xl shadow-2xl border border-slate-700 text-xs space-y-3 animate-in fade-in zoom-in-95 duration-150">
-                    <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                      <span className="font-bold text-white flex items-center gap-1.5">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                  <div className="absolute left-0 top-full mt-2 z-50 w-72 p-4 bg-white text-neutral-800 rounded-xl shadow-2xl border border-neutral-200 text-xs space-y-3 animate-in fade-in zoom-in-95 duration-150">
+                    <div className="flex items-center justify-between border-b border-neutral-200 pb-2">
+                      <span className="font-bold text-neutral-900 flex items-center gap-1.5">
+                        <CheckCircle2 className="w-4 h-4 text-neutral-800" />
                         {lang === 'en' ? 'IndexedDB Auto-Backup' : 'IndexedDB অটো-ব্যাকআপ'}
                       </span>
-                      <span className="text-[10px] px-2 py-0.5 bg-emerald-500/20 text-emerald-300 rounded-full border border-emerald-500/40 font-mono font-bold">
+                      <span className="text-[10px] px-2 py-0.5 bg-neutral-100 text-neutral-800 rounded-full border border-neutral-300 font-mono font-bold">
                         Persisted
                       </span>
                     </div>
 
-                    <div className="space-y-2 text-[11px] text-slate-300">
+                    <div className="space-y-2 text-[11px] text-neutral-600">
                       <div className="flex items-center justify-between">
-                        <span className="text-slate-400">{lang === 'en' ? 'Last Saved:' : 'সর্বশেষ সংরক্ষণ:'}</span>
-                        <span className="font-mono font-bold text-emerald-300 flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
+                        <span className="text-neutral-500">{lang === 'en' ? 'Last Saved:' : 'সর্বশেষ সংরক্ষণ:'}</span>
+                        <span className="font-mono font-bold text-neutral-900 flex items-center gap-1">
+                          <Clock className="w-3 h-3 text-neutral-700" />
                           {getFormattedTime(lastSavedTime) || 'Just now'}
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-slate-400">{lang === 'en' ? 'Saved Cartons:' : 'সংরক্ষিত কার্টন:'}</span>
-                        <span className="font-mono text-slate-200 font-bold">{summary.totalCtn} CTN</span>
+                        <span className="text-neutral-500">{lang === 'en' ? 'Saved Cartons:' : 'সংরক্ষিত কার্টন:'}</span>
+                        <span className="font-mono text-neutral-900 font-bold">{summary.totalCtn} CTN</span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-slate-400">{lang === 'en' ? 'Storage Tier:' : 'স্টোরেজ লেয়ার:'}</span>
-                        <span className="font-mono text-emerald-300 font-semibold">LocalStorage + IndexedDB</span>
+                        <span className="text-neutral-500">{lang === 'en' ? 'Storage Tier:' : 'স্টোরেজ লেয়ার:'}</span>
+                        <span className="font-mono text-neutral-900 font-semibold">LocalStorage + IndexedDB</span>
                       </div>
                     </div>
 
-                    <div className="pt-2 border-t border-white/10 flex items-center justify-between gap-2">
-                      <span className="text-[10.5px] text-slate-400 flex items-center gap-1">
-                        <HardDrive className="w-3 h-3 text-slate-400 shrink-0" />
+                    <div className="pt-2 border-t border-neutral-200 flex items-center justify-between gap-2">
+                      <span className="text-[10.5px] text-neutral-500 flex items-center gap-1">
+                        <HardDrive className="w-3 h-3 text-neutral-700 shrink-0" />
                         {lang === 'en' ? 'Zero data loss' : 'ডাটা সুরক্ষিত'}
                       </span>
                       {onOpenIndexedDbBackups && (
@@ -592,7 +590,7 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
                             setShowSaveTooltip(false);
                             onOpenIndexedDbBackups();
                           }}
-                          className="px-2.5 py-1 bg-emerald-600/90 hover:bg-emerald-500 text-white text-[10.5px] font-bold rounded-lg shadow-[0_0_15px_rgba(16,185,129,0.3)] transition cursor-pointer flex items-center gap-1 border border-emerald-400/30"
+                          className="px-2.5 py-1 bg-neutral-900 hover:bg-neutral-800 text-white text-[10.5px] font-bold rounded-lg transition cursor-pointer flex items-center gap-1 shadow-xs"
                         >
                           <Database className="w-3 h-3" />
                           <span>{lang === 'en' ? 'Manage Backups' : 'ব্যাকআপ দেখুন'}</span>
@@ -615,12 +613,12 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
           <button
             type="button"
             onClick={() => setIsControlMenuOpen(true)}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-md shadow-emerald-950/40 border border-emerald-400/50 transition cursor-pointer"
+            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-r from-neutral-900 to-neutral-900 hover:from-neutral-800 hover:to-neutral-800 text-white font-bold text-xs shadow-md shadow-emerald-950/40 border border-neutral-300/50 transition cursor-pointer"
             title="১ নাম্বারে থাকা সকল কন্ট্রোল অপশন ও টুলস একত্রে দেখুন"
           >
-            <SlidersHorizontal className="w-4 h-4 text-emerald-100" />
+            <SlidersHorizontal className="w-4 h-4 text-neutral-100" />
             <span>{lang === 'en' ? 'Control Menu & Tools' : 'কন্ট্রোল অপশন ও টুলস'}</span>
-            <span className="text-[10px] bg-emerald-950/80 px-1.5 py-0.2 rounded font-mono font-bold border border-emerald-400/40">
+            <span className="text-[10px] bg-neutral-950/80 px-1.5 py-0.2 rounded font-mono font-bold border border-neutral-300/40">
               Menu
             </span>
           </button>
@@ -633,7 +631,7 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
               className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold shadow-xs border transition-all cursor-pointer ${
                 user 
                   ? 'bg-slate-800 border-slate-700 hover:bg-slate-700 text-white' 
-                  : 'bg-indigo-600 hover:bg-indigo-500 text-white border-indigo-500'
+                  : 'bg-neutral-900 hover:bg-neutral-800 text-white border-neutral-400'
               }`}
               title={user ? `Signed in as ${user.displayName || user.email}` : 'Sign in'}
             >
@@ -643,10 +641,10 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
                     <img 
                       src={user.photoURL} 
                       alt="User avatar" 
-                      className="w-4 h-4 rounded-full border border-indigo-400 object-cover shadow-xs" 
+                      className="w-4 h-4 rounded-full border border-neutral-300 object-cover shadow-xs" 
                     />
                   ) : (
-                    <div className="w-4 h-4 rounded-full bg-indigo-500 text-white text-[9px] font-bold flex items-center justify-center">
+                    <div className="w-4 h-4 rounded-full bg-neutral-800 text-white text-[9px] font-bold flex items-center justify-center">
                       {user.displayName?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'U'}
                     </div>
                   )}
@@ -656,7 +654,7 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
                 </>
               ) : (
                 <>
-                  <LogIn className="w-3.5 h-3.5 text-indigo-200" />
+                  <LogIn className="w-3.5 h-3.5 text-neutral-200" />
                   <span>{lang === 'en' ? 'Sign In' : 'লগইন'}</span>
                 </>
               )}
@@ -669,7 +667,7 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
             onClick={() => setLang(lang === 'en' ? 'bn' : 'en')}
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 text-xs font-medium transition cursor-pointer"
           >
-            <Globe className="w-3.5 h-3.5 text-sky-400" />
+            <Globe className="w-3.5 h-3.5 text-neutral-400" />
             <span className="font-semibold">{lang === 'en' ? 'বাংলা' : 'English'}</span>
           </button>
 
@@ -687,19 +685,19 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
 
       {/* Control Menu Modal Dialog (১ নাম্বারে থাকা অপশন গুলো এর ড্রয়ার/পপআপ) */}
       {isControlMenuOpen && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto text-white p-5 sm:p-6 space-y-5">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white border border-neutral-300 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto text-neutral-900 p-5 sm:p-6 space-y-5">
             {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div className="flex items-center justify-between border-b border-neutral-200 pb-3">
               <div className="flex items-center gap-2.5">
-                <span className="p-2 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                <span className="p-2 rounded-xl bg-neutral-900 text-white">
                   <SlidersHorizontal className="w-5 h-5" />
                 </span>
                 <div>
-                  <h3 className="font-bold text-base sm:text-lg text-white">
+                  <h3 className="font-bold text-base sm:text-lg text-neutral-900">
                     {lang === 'en' ? 'Control Options & Tools Hub' : 'কন্ট্রোল অপশন ও টুলস হাব'}
                   </h3>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-neutral-500">
                     {lang === 'en'
                       ? 'All header control bar options consolidated into one page'
                       : '১ নাম্বারে থাকা সকল কন্ট্রোল বার অপশন ও ফিচার এখানে এক জায়গায় সাজানো রয়েছে'}
@@ -708,7 +706,7 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
               </div>
               <button
                 onClick={() => setIsControlMenuOpen(false)}
-                className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition cursor-pointer"
+                className="p-1.5 rounded-lg text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 transition cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -717,9 +715,9 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
             {/* Modal Content Categories Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Category 1: User & Cloud Sync */}
-              <div className="p-3.5 rounded-xl bg-slate-800/60 border border-slate-700/60 space-y-2.5">
-                <h4 className="text-xs font-bold text-indigo-400 flex items-center gap-1.5">
-                  <Cloud className="w-4 h-4" />
+              <div className="p-3.5 rounded-xl bg-neutral-50 border border-neutral-200 space-y-2.5">
+                <h4 className="text-xs font-bold text-neutral-900 flex items-center gap-1.5">
+                  <Cloud className="w-4 h-4 text-neutral-700" />
                   <span>{lang === 'en' ? 'Account & Cloud Sync' : 'একাউন্ট ও ক্লাউড সিঙ্ক'}</span>
                 </h4>
                 <div className="flex flex-col gap-2">
@@ -729,13 +727,13 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
                         setIsControlMenuOpen(false);
                         onOpenAuthModal();
                       }}
-                      className="flex items-center justify-between p-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 transition text-left"
+                      className="flex items-center justify-between p-2.5 rounded-lg bg-white hover:bg-neutral-100 text-xs text-neutral-800 border border-neutral-200 transition text-left"
                     >
                       <div className="flex items-center gap-2">
-                        <User className="w-4 h-4 text-indigo-400" />
+                        <User className="w-4 h-4 text-neutral-700" />
                         <span>{user ? (user.displayName || user.email) : (lang === 'en' ? 'Sign In / Account' : 'লগইন / একাউন্ট')}</span>
                       </div>
-                      <span className="text-[10px] bg-indigo-950 text-indigo-300 px-2 py-0.5 rounded font-mono">
+                      <span className="text-[10px] bg-neutral-100 text-neutral-800 border border-neutral-300 px-2 py-0.5 rounded font-mono font-bold">
                         {user ? 'Signed In' : 'Guest'}
                       </span>
                     </button>
@@ -746,10 +744,10 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
                       setIsControlMenuOpen(false);
                       onOpenExcelDrive();
                     }}
-                    className="flex items-center justify-between p-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 transition text-left"
+                    className="flex items-center justify-between p-2.5 rounded-lg bg-white hover:bg-neutral-100 text-xs text-neutral-800 border border-neutral-200 transition text-left"
                   >
                     <div className="flex items-center gap-2">
-                      <Cloud className="w-4 h-4 text-sky-400" />
+                      <Cloud className="w-4 h-4 text-neutral-700" />
                       <span>{lang === 'en' ? 'OneDrive & Excel Access' : 'ওয়ানড্রাইভ ও এক্সেল এক্সেস'}</span>
                     </div>
                   </button>
@@ -760,10 +758,10 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
                         setIsControlMenuOpen(false);
                         handleManualSyncClick();
                       }}
-                      className="flex items-center justify-between p-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 transition text-left"
+                      className="flex items-center justify-between p-2.5 rounded-lg bg-white hover:bg-neutral-100 text-xs text-neutral-800 border border-neutral-200 transition text-left"
                     >
                       <div className="flex items-center gap-2">
-                        <RefreshCw className="w-4 h-4 text-emerald-400" />
+                        <RefreshCw className="w-4 h-4 text-neutral-700" />
                         <span>{lang === 'en' ? 'Re-sync Cloud Firestore' : 'ফায়ারস্টোর সিঙ্ক করুন'}</span>
                       </div>
                     </button>
@@ -772,9 +770,9 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
               </div>
 
               {/* Category 2: Schedules & Files */}
-              <div className="p-3.5 rounded-xl bg-slate-800/60 border border-slate-700/60 space-y-2.5">
-                <h4 className="text-xs font-bold text-blue-400 flex items-center gap-1.5">
-                  <FileSpreadsheet className="w-4 h-4" />
+              <div className="p-3.5 rounded-xl bg-neutral-50 border border-neutral-200 space-y-2.5">
+                <h4 className="text-xs font-bold text-neutral-900 flex items-center gap-1.5">
+                  <FileSpreadsheet className="w-4 h-4 text-neutral-700" />
                   <span>{lang === 'en' ? 'Schedules & Files' : 'শিডিউল ও ফাইল ব্যাকআপ'}</span>
                 </h4>
                 <div className="flex flex-col gap-2">
@@ -784,10 +782,10 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
                         setIsControlMenuOpen(false);
                         onOpenScheduleUpload();
                       }}
-                      className="flex items-center justify-between p-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 transition text-left"
+                      className="flex items-center justify-between p-2.5 rounded-lg bg-white hover:bg-neutral-100 text-xs text-neutral-800 border border-neutral-200 transition text-left"
                     >
                       <div className="flex items-center gap-2">
-                        <Upload className="w-4 h-4 text-blue-400" />
+                        <Upload className="w-4 h-4 text-neutral-700" />
                         <span>{lang === 'en' ? 'Upload Excel Schedule' : 'এক্সেল শিডিউল আপলোড'}</span>
                       </div>
                     </button>
@@ -799,10 +797,10 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
                         setIsControlMenuOpen(false);
                         onOpenApk();
                       }}
-                      className="flex items-center justify-between p-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 transition text-left"
+                      className="flex items-center justify-between p-2.5 rounded-lg bg-white hover:bg-neutral-100 text-xs text-neutral-800 border border-neutral-200 transition text-left"
                     >
                       <div className="flex items-center gap-2">
-                        <Smartphone className="w-4 h-4 text-emerald-400" />
+                        <Smartphone className="w-4 h-4 text-neutral-700" />
                         <span>{lang === 'en' ? 'Install Mobile App / APK' : 'অ্যান্ড্রয়েড অ্যাপ / APK'}</span>
                       </div>
                     </button>
@@ -814,10 +812,10 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
                         setIsControlMenuOpen(false);
                         onOpenIndexedDbBackups();
                       }}
-                      className="flex items-center justify-between p-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 transition text-left"
+                      className="flex items-center justify-between p-2.5 rounded-lg bg-white hover:bg-neutral-100 text-xs text-neutral-800 border border-neutral-200 transition text-left"
                     >
                       <div className="flex items-center gap-2">
-                        <Database className="w-4 h-4 text-amber-400" />
+                        <Database className="w-4 h-4 text-neutral-700" />
                         <span>{lang === 'en' ? 'IndexedDB Local Snapshots' : 'ইনডেক্সড-ডিবি লোকাল ব্যাকআপ'}</span>
                       </div>
                     </button>
@@ -826,9 +824,9 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
               </div>
 
               {/* Category 3: Garment Tools & Guides */}
-              <div className="p-3.5 rounded-xl bg-slate-800/60 border border-slate-700/60 space-y-2.5">
-                <h4 className="text-xs font-bold text-amber-400 flex items-center gap-1.5">
-                  <Wrench className="w-4 h-4" />
+              <div className="p-3.5 rounded-xl bg-neutral-50 border border-neutral-200 space-y-2.5">
+                <h4 className="text-xs font-bold text-neutral-900 flex items-center gap-1.5">
+                  <Wrench className="w-4 h-4 text-neutral-700" />
                   <span>{lang === 'en' ? 'Garment Tools & Guides' : 'গার্মেন্টস টুলস ও গাইড'}</span>
                 </h4>
                 <div className="flex flex-col gap-2">
@@ -837,10 +835,10 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
                       setIsControlMenuOpen(false);
                       onOpenTools();
                     }}
-                    className="flex items-center justify-between p-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 transition text-left"
+                    className="flex items-center justify-between p-2.5 rounded-lg bg-white hover:bg-neutral-100 text-xs text-neutral-800 border border-neutral-200 transition text-left"
                   >
                     <div className="flex items-center gap-2">
-                      <Wrench className="w-4 h-4 text-amber-400" />
+                      <Wrench className="w-4 h-4 text-neutral-700" />
                       <span>{t.utilityTools}</span>
                     </div>
                   </button>
@@ -850,10 +848,10 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
                       setIsControlMenuOpen(false);
                       onOpenHelp();
                     }}
-                    className="flex items-center justify-between p-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 transition text-left"
+                    className="flex items-center justify-between p-2.5 rounded-lg bg-white hover:bg-neutral-100 text-xs text-neutral-800 border border-neutral-200 transition text-left"
                   >
                     <div className="flex items-center gap-2">
-                      <HelpCircle className="w-4 h-4 text-sky-400" />
+                      <HelpCircle className="w-4 h-4 text-neutral-700" />
                       <span>{lang === 'en' ? 'Calculation Formulas & Help' : 'হিসাব নিয়ম ও ফর্মুলা গাইড'}</span>
                     </div>
                   </button>
@@ -863,13 +861,13 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
                       onClick={() => {
                         onToggleWeightUnit();
                       }}
-                      className="flex items-center justify-between p-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 transition text-left"
+                      className="flex items-center justify-between p-2.5 rounded-lg bg-white hover:bg-neutral-100 text-xs text-neutral-800 border border-neutral-200 transition text-left"
                     >
                       <div className="flex items-center gap-2">
-                        <Calculator className="w-4 h-4 text-emerald-400" />
+                        <Calculator className="w-4 h-4 text-neutral-700" />
                         <span>{lang === 'en' ? 'Toggle Weight Unit' : 'ওজন ইউনিট পরিবর্তন'}</span>
                       </div>
-                      <span className="text-[10px] bg-emerald-950 text-emerald-300 font-mono font-bold px-2 py-0.5 rounded border border-emerald-500/30">
+                      <span className="text-[10px] bg-neutral-100 text-neutral-800 font-mono font-bold px-2 py-0.5 rounded border border-neutral-300">
                         {weightUnit.toUpperCase()}
                       </span>
                     </button>
@@ -878,9 +876,9 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
               </div>
 
               {/* Category 4: Print, Share & Actions */}
-              <div className="p-3.5 rounded-xl bg-slate-800/60 border border-slate-700/60 space-y-2.5">
-                <h4 className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
-                  <Printer className="w-4 h-4" />
+              <div className="p-3.5 rounded-xl bg-neutral-50 border border-neutral-200 space-y-2.5">
+                <h4 className="text-xs font-bold text-neutral-900 flex items-center gap-1.5">
+                  <Printer className="w-4 h-4 text-neutral-700" />
                   <span>{lang === 'en' ? 'Print, Share & Export' : 'প্রিন্ট, শেয়ার ও এক্সপোর্ট'}</span>
                 </h4>
                 <div className="flex flex-col gap-2">
@@ -889,10 +887,10 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
                       setIsControlMenuOpen(false);
                       onPrint();
                     }}
-                    className="flex items-center justify-between p-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 transition text-left"
+                    className="flex items-center justify-between p-2.5 rounded-lg bg-white hover:bg-neutral-100 text-xs text-neutral-800 border border-neutral-200 transition text-left"
                   >
                     <div className="flex items-center gap-2">
-                      <Printer className="w-4 h-4 text-emerald-400" />
+                      <Printer className="w-4 h-4 text-neutral-700" />
                       <span>{t.printSheet}</span>
                     </div>
                   </button>
@@ -902,10 +900,10 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
                       setIsControlMenuOpen(false);
                       handleShareSummary();
                     }}
-                    className="flex items-center justify-between p-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 transition text-left"
+                    className="flex items-center justify-between p-2.5 rounded-lg bg-white hover:bg-neutral-100 text-xs text-neutral-800 border border-neutral-200 transition text-left"
                   >
                     <div className="flex items-center gap-2">
-                      <Share2 className="w-4 h-4 text-indigo-400" />
+                      <Share2 className="w-4 h-4 text-neutral-700" />
                       <span>{lang === 'en' ? 'Share Summary (WhatsApp)' : 'প্যাকিং সামারি শেয়ার'}</span>
                     </div>
                   </button>
@@ -916,10 +914,10 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
                         setIsControlMenuOpen(false);
                         onOpenShareSheet();
                       }}
-                      className="flex items-center justify-between p-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 transition text-left"
+                      className="flex items-center justify-between p-2.5 rounded-lg bg-white hover:bg-neutral-100 text-xs text-neutral-800 border border-neutral-200 transition text-left"
                     >
                       <div className="flex items-center gap-2">
-                        <QrCode className="w-4 h-4 text-rose-400" />
+                        <QrCode className="w-4 h-4 text-neutral-700" />
                         <span>{lang === 'en' ? 'Generate QR Code' : 'কিউআর কোড স্ক্যানার'}</span>
                       </div>
                     </button>
@@ -929,15 +927,15 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
             </div>
 
             {/* Bottom Row: History & Reset controls */}
-            <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-slate-800">
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-neutral-200">
               <div className="flex items-center gap-1.5">
                 {onUndo && (
                   <button
                     onClick={onUndo}
                     disabled={!canUndo}
-                    className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-xs font-semibold transition flex items-center gap-1 cursor-pointer"
+                    className="px-3 py-1.5 rounded-lg bg-white hover:bg-neutral-100 border border-neutral-300 disabled:opacity-40 text-xs font-semibold text-neutral-800 transition flex items-center gap-1 cursor-pointer"
                   >
-                    <Undo2 className="w-3.5 h-3.5 text-slate-300" />
+                    <Undo2 className="w-3.5 h-3.5 text-neutral-700" />
                     <span>Undo</span>
                   </button>
                 )}
@@ -945,9 +943,9 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
                   <button
                     onClick={onRedo}
                     disabled={!canRedo}
-                    className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-xs font-semibold transition flex items-center gap-1 cursor-pointer"
+                    className="px-3 py-1.5 rounded-lg bg-white hover:bg-neutral-100 border border-neutral-300 disabled:opacity-40 text-xs font-semibold text-neutral-800 transition flex items-center gap-1 cursor-pointer"
                   >
-                    <Redo2 className="w-3.5 h-3.5 text-slate-300" />
+                    <Redo2 className="w-3.5 h-3.5 text-neutral-700" />
                     <span>Redo</span>
                   </button>
                 )}
@@ -956,16 +954,16 @@ Total Length: ${summary.totalMtr} Mtr (${summary.totalGry} Gry / ${summary.total
                     setIsControlMenuOpen(false);
                     onReset();
                   }}
-                  className="px-3 py-1.5 rounded-lg bg-rose-950/60 hover:bg-rose-900 text-rose-300 border border-rose-500/40 text-xs font-semibold transition flex items-center gap-1 cursor-pointer"
+                  className="px-3 py-1.5 rounded-lg bg-white hover:bg-neutral-100 text-neutral-700 border border-neutral-300 text-xs font-semibold transition flex items-center gap-1 cursor-pointer"
                 >
-                  <RotateCcw className="w-3.5 h-3.5" />
+                  <RotateCcw className="w-3.5 h-3.5 text-neutral-600" />
                   <span>{t.resetDefault}</span>
                 </button>
               </div>
 
               <button
                 onClick={() => setIsControlMenuOpen(false)}
-                className="px-4 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs transition cursor-pointer"
+                className="px-4 py-1.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white font-bold text-xs transition cursor-pointer shadow-xs"
               >
                 {lang === 'en' ? 'Close Menu' : 'বন্ধ করুন'}
               </button>

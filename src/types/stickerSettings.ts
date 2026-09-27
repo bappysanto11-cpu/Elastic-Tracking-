@@ -50,17 +50,17 @@ export const DEFAULT_STICKER_SETTINGS: StickerCustomizationSettings = {
   uppercaseHeaders: true,
 
   themePreset: 'classic-mono',
-  borderColor: '#0f172a', // slate-900
+  borderColor: '#171717', // neutral-900
   borderWidth: '2px',
-  headerBgColor: '#0f172a',
+  headerBgColor: '#171717',
   headerTextColor: '#ffffff',
-  badgeBgColor: '#0f172a',
+  badgeBgColor: '#171717',
   badgeTextColor: '#ffffff',
-  netWtBoxBg: '#ecfdf5', // emerald-50
-  netWtTextColor: '#064e3b', // emerald-900
-  lengthBoxBg: '#eef2ff', // indigo-50
-  lengthTextColor: '#312e81', // indigo-900
-  qrColor: '#0f172a',
+  netWtBoxBg: '#f5f5f5', // neutral-100
+  netWtTextColor: '#171717', // neutral-900
+  lengthBoxBg: '#fafafa', // neutral-50
+  lengthTextColor: '#171717', // neutral-900
+  qrColor: '#171717',
 
   logoUrl: null,
   logoPosition: 'left',
@@ -82,87 +82,87 @@ export const DEFAULT_STICKER_SETTINGS: StickerCustomizationSettings = {
 export const STICKER_THEME_PRESETS: Record<StickerThemePreset, Partial<StickerCustomizationSettings>> = {
   'classic-mono': {
     themePreset: 'classic-mono',
-    borderColor: '#0f172a',
+    borderColor: '#171717',
     borderWidth: '2px',
-    headerBgColor: '#0f172a',
+    headerBgColor: '#171717',
     headerTextColor: '#ffffff',
-    badgeBgColor: '#0f172a',
+    badgeBgColor: '#171717',
     badgeTextColor: '#ffffff',
-    netWtBoxBg: '#f1f5f9',
-    netWtTextColor: '#0f172a',
-    lengthBoxBg: '#f8fafc',
-    lengthTextColor: '#0f172a',
-    qrColor: '#0f172a',
+    netWtBoxBg: '#f5f5f5',
+    netWtTextColor: '#171717',
+    lengthBoxBg: '#ffffff',
+    lengthTextColor: '#171717',
+    qrColor: '#171717',
   },
   'navy-industrial': {
     themePreset: 'navy-industrial',
-    borderColor: '#1e3a8a', // blue-900
+    borderColor: '#262626',
     borderWidth: '2px',
-    headerBgColor: '#1e3a8a',
+    headerBgColor: '#262626',
     headerTextColor: '#ffffff',
-    badgeBgColor: '#1e3a8a',
+    badgeBgColor: '#404040',
     badgeTextColor: '#ffffff',
-    netWtBoxBg: '#eff6ff', // blue-50
-    netWtTextColor: '#172554', // blue-950
-    lengthBoxBg: '#f0fdfa', // teal-50
-    lengthTextColor: '#134e4a',
-    qrColor: '#1e3a8a',
+    netWtBoxBg: '#f5f5f5',
+    netWtTextColor: '#171717',
+    lengthBoxBg: '#e5e5e5',
+    lengthTextColor: '#171717',
+    qrColor: '#262626',
   },
   'emerald-qc': {
     themePreset: 'emerald-qc',
-    borderColor: '#065f46', // emerald-800
+    borderColor: '#0a0a0a',
     borderWidth: '2px',
-    headerBgColor: '#065f46',
+    headerBgColor: '#0a0a0a',
     headerTextColor: '#ffffff',
-    badgeBgColor: '#065f46',
+    badgeBgColor: '#262626',
     badgeTextColor: '#ffffff',
-    netWtBoxBg: '#ecfdf5', // emerald-50
-    netWtTextColor: '#064e3b',
-    lengthBoxBg: '#f0fdf4', // green-50
-    lengthTextColor: '#14532d',
-    qrColor: '#065f46',
+    netWtBoxBg: '#f5f5f5',
+    netWtTextColor: '#0a0a0a',
+    lengthBoxBg: '#e5e5e5',
+    lengthTextColor: '#0a0a0a',
+    qrColor: '#0a0a0a',
   },
   'crimson-export': {
     themePreset: 'crimson-export',
-    borderColor: '#881337', // rose-900
+    borderColor: '#18181b',
     borderWidth: '2px',
-    headerBgColor: '#881337',
+    headerBgColor: '#18181b',
     headerTextColor: '#ffffff',
-    badgeBgColor: '#881337',
+    badgeBgColor: '#27272a',
     badgeTextColor: '#ffffff',
-    netWtBoxBg: '#fff1f2', // rose-50
-    netWtTextColor: '#4c0519',
-    lengthBoxBg: '#fef2f2', // red-50
-    lengthTextColor: '#7f1d1d',
-    qrColor: '#881337',
+    netWtBoxBg: '#f4f4f5',
+    netWtTextColor: '#18181b',
+    lengthBoxBg: '#e4e4e7',
+    lengthTextColor: '#18181b',
+    qrColor: '#18181b',
   },
   'amber-warehouse': {
     themePreset: 'amber-warehouse',
-    borderColor: '#78350f', // amber-900
+    borderColor: '#000000',
     borderWidth: '2px',
-    headerBgColor: '#78350f',
+    headerBgColor: '#000000',
     headerTextColor: '#ffffff',
-    badgeBgColor: '#d97706', // amber-600
+    badgeBgColor: '#525252',
     badgeTextColor: '#ffffff',
-    netWtBoxBg: '#fffbeb', // amber-50
-    netWtTextColor: '#451a03',
-    lengthBoxBg: '#fefce8', // yellow-50
-    lengthTextColor: '#713f12',
-    qrColor: '#78350f',
+    netWtBoxBg: '#f5f5f5',
+    netWtTextColor: '#000000',
+    lengthBoxBg: '#e5e5e5',
+    lengthTextColor: '#000000',
+    qrColor: '#000000',
   },
   'slate-modern': {
     themePreset: 'slate-modern',
-    borderColor: '#334155', // slate-700
+    borderColor: '#3f3f46',
     borderWidth: '2px',
-    headerBgColor: '#334155',
+    headerBgColor: '#3f3f46',
     headerTextColor: '#ffffff',
-    badgeBgColor: '#4f46e5', // indigo-600
+    badgeBgColor: '#18181b',
     badgeTextColor: '#ffffff',
-    netWtBoxBg: '#f8fafc',
-    netWtTextColor: '#0f172a',
-    lengthBoxBg: '#eef2ff',
-    lengthTextColor: '#312e81',
-    qrColor: '#334155',
+    netWtBoxBg: '#f4f4f5',
+    netWtTextColor: '#18181b',
+    lengthBoxBg: '#fafafa',
+    lengthTextColor: '#18181b',
+    qrColor: '#3f3f46',
   },
   'custom': {
     themePreset: 'custom',

@@ -83,7 +83,7 @@ export function QuickFillModal({ isOpen, onClose, onApply, lang }: QuickFillModa
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[85vh]">
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
           <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-            <Zap className="w-5 h-5 text-amber-500" />
+            <Zap className="w-5 h-5 text-neutral-700" />
             {lang === 'en' ? 'Quick Fill Presets' : 'কুইক ফিল প্রিসেট'}
           </h2>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition p-1">
@@ -102,13 +102,13 @@ export function QuickFillModal({ isOpen, onClose, onApply, lang }: QuickFillModa
                 <div
                   key={preset.id}
                   onClick={() => onApply(preset)}
-                  className="flex flex-col p-3 rounded-lg border border-slate-200 hover:border-amber-400 hover:bg-amber-50 cursor-pointer transition group"
+                  className="flex flex-col p-3 rounded-lg border border-slate-200 hover:border-neutral-300 hover:bg-neutral-100 cursor-pointer transition group"
                 >
                   <div className="flex justify-between items-center mb-1">
                     <span className="font-bold text-slate-800 text-sm">{preset.name}</span>
                     <button
                       onClick={(e) => handleDelete(preset.id, e)}
-                      className="text-slate-400 hover:text-red-500 p-1 opacity-0 group-hover:opacity-100 transition"
+                      className="text-slate-400 hover:text-neutral-700 p-1 opacity-0 group-hover:opacity-100 transition"
                       title="Delete"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -170,7 +170,7 @@ export function QuickFillModal({ isOpen, onClose, onApply, lang }: QuickFillModa
           ) : (
             <button
               onClick={() => setIsCreating(true)}
-              className="w-full py-3 border-2 border-dashed border-slate-200 rounded-xl flex items-center justify-center gap-2 text-sm font-semibold text-slate-500 hover:text-amber-600 hover:border-amber-300 hover:bg-amber-50 transition"
+              className="w-full py-3 border-2 border-dashed border-slate-200 rounded-xl flex items-center justify-center gap-2 text-sm font-semibold text-slate-500 hover:text-neutral-800 hover:border-neutral-300 hover:bg-neutral-100 transition"
             >
               <Plus className="w-4 h-4" />
               {lang === 'en' ? 'Add New Preset' : 'নতুন প্রিসেট যোগ করুন'}

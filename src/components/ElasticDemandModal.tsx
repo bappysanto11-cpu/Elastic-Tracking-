@@ -99,33 +99,44 @@ export const ElasticDemandModal: React.FC<ElasticDemandModalProps> = ({
       setStatus('pending');
       setPackedQtyMtr(0);
       setPoNumber('');
-      setNotes('Customer requirement in this REF');
+      setNotes('');
     }
   }, [editingDemand, isOpen]);
 
   if (!isOpen) return null;
 
-  // Live calculation of estimated Gross Yards and Kg
-  const { gry: estGry, kg: estKg } = computeEstimatedKgAndGry(requiredQtyMtr, unitWeightGm);
+  const { kg: estKg, gry: estGry } = computeEstimatedKgAndGry(requiredQtyMtr, unitWeightGm);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!buyer.trim() || !ref.trim() || requiredQtyMtr <= 0) {
+
+    if (!buyer.trim()) {
+      alert(lang === 'en' ? 'Please enter a Buyer name' : 'অনুগ্রহ করে বায়ারের নাম লিখুন');
+      return;
+    }
+    if (!ref.trim()) {
+      alert(lang === 'en' ? 'Please enter a Reference or Item code' : 'অনুগ্রহ করে রেফারেন্স কোড লিখুন');
+      return;
+    }
+    if (!size.trim()) {
+      alert(lang === 'en' ? 'Please specify the Elastic Size' : 'অনুগ্রহ করে ইলাস্টিকের সাইজ দিন');
+      return;
+    }
+    if (requiredQtyMtr <= 0) {
+      alert(lang === 'en' ? 'Required meters must be greater than 0' : 'প্রয়োজনীয় মিটার সংখ্যা ০ এর বেশি হতে হবে');
       return;
     }
 
     const demandPayload: ElasticDemand = {
-      id: editingDemand?.id || `dem-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+      id: editingDemand?.id || `demand_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
       demandDate,
       deliveryDate,
-      buyer: buyer.trim(),
+      buyer: buyer.trim().toUpperCase(),
       customer: customer.trim(),
       ref: ref.trim(),
-      size: size.trim(),
-      color: color.trim(),
-      requiredQtyMtr: Number(requiredQtyMtr),
-      requiredQtyGry: estGry,
-      requiredQtyKg: estKg,
+      size: size.trim().toUpperCase(),
+      color: (color || 'BLACK').trim().toUpperCase(),
+      requiredQtyMtr: Number(requiredQtyMtr) || 0,
       unitWeightGm: Number(unitWeightGm) || 8.0,
       defaultTare: Number(defaultTare) || 0.5,
       priority,
@@ -152,13 +163,13 @@ export const ElasticDemandModal: React.FC<ElasticDemandModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
-      <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-2xl overflow-hidden my-6 animate-in fade-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-150">
+      <div className="bg-white rounded-2xl shadow-2xl border border-neutral-200 w-full max-w-2xl overflow-hidden my-6 animate-in zoom-in-95 duration-200">
         {/* Modal Header */}
-        <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 px-6 py-4 text-white flex items-center justify-between">
+        <div className="bg-neutral-900 px-6 py-4 text-white flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center text-indigo-300">
-              <Sparkles className="w-5 h-5" />
+            <div className="w-10 h-10 rounded-xl bg-neutral-800 border border-neutral-700 flex items-center justify-center text-white">
+              <Sparkles className="w-5 h-5 text-white" />
             </div>
             <div>
               <h3 className="text-base sm:text-lg font-bold text-white">
@@ -167,7 +178,7 @@ export const ElasticDemandModal: React.FC<ElasticDemandModalProps> = ({
                   : (lang === 'en' ? 'Input Elastic Demand (Date-wise)' : 'নতুন ইলাস্টিক চাহিদা এন্ট্রি করুন (তারিখ অনুযায়ী)')
                 }
               </h3>
-              <p className="text-xs text-indigo-200">
+              <p className="text-xs text-neutral-400">
                 {lang === 'en' 
                   ? 'Track buyer-specific meter requirement, size, reference & delivery date'
                   : 'বায়ারের সাইজ, রেফারেন্স, প্রয়োজনীয় মিটার ও ডেলিভারি ডেডলাইন রেকর্ড করুন'
@@ -177,7 +188,7 @@ export const ElasticDemandModal: React.FC<ElasticDemandModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+            className="p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -185,29 +196,29 @@ export const ElasticDemandModal: React.FC<ElasticDemandModalProps> = ({
 
         {/* Preset Quick Fill Bar */}
         {!editingDemand && (
-          <div className="bg-indigo-50/70 border-b border-indigo-100 px-6 py-2.5 flex items-center gap-2 overflow-x-auto text-xs">
-            <span className="text-[11px] font-bold text-indigo-900 shrink-0 flex items-center gap-1">
-              <Bookmark className="w-3.5 h-3.5 text-indigo-600" />
+          <div className="bg-neutral-50 border-b border-neutral-200 px-6 py-2.5 flex items-center gap-2 overflow-x-auto text-xs">
+            <span className="text-[11px] font-bold text-neutral-700 shrink-0 flex items-center gap-1">
+              <Bookmark className="w-3.5 h-3.5 text-neutral-900" />
               {lang === 'en' ? 'Quick Example:' : 'দ্রুত উদাহরণ:'}
             </span>
             <button
               type="button"
               onClick={() => handleApplyPreset('HCF', '7MM', 'LIZ-LO-ELS-26080056', 5000, 8.0, 'BLACK')}
-              className="px-2.5 py-1 rounded-md bg-white border border-indigo-200 text-indigo-800 hover:bg-indigo-600 hover:text-white transition font-medium text-[11px] shrink-0 cursor-pointer shadow-2xs"
+              className="px-2.5 py-1 rounded-md bg-white border border-neutral-300 text-neutral-900 hover:bg-neutral-900 hover:text-white transition font-bold text-[11px] shrink-0 cursor-pointer shadow-2xs"
             >
               HCF · 7MM · 5,000 Mtr
             </button>
             <button
               type="button"
               onClick={() => handleApplyPreset('H&M', '32MM', 'HM-WB-2026-4412', 12000, 16.0, 'OPTICAL WHITE')}
-              className="px-2.5 py-1 rounded-md bg-white border border-indigo-200 text-indigo-800 hover:bg-indigo-600 hover:text-white transition font-medium text-[11px] shrink-0 cursor-pointer shadow-2xs"
+              className="px-2.5 py-1 rounded-md bg-white border border-neutral-300 text-neutral-900 hover:bg-neutral-900 hover:text-white transition font-bold text-[11px] shrink-0 cursor-pointer shadow-2xs"
             >
               H&M · 32MM · 12,000 Mtr
             </button>
             <button
               type="button"
               onClick={() => handleApplyPreset('ZARA', '20MM', 'ZR-JK-9088-EX', 8500, 11.0, 'NAVY BLUE')}
-              className="px-2.5 py-1 rounded-md bg-white border border-indigo-200 text-indigo-800 hover:bg-indigo-600 hover:text-white transition font-medium text-[11px] shrink-0 cursor-pointer shadow-2xs"
+              className="px-2.5 py-1 rounded-md bg-white border border-neutral-300 text-neutral-900 hover:bg-neutral-900 hover:text-white transition font-bold text-[11px] shrink-0 cursor-pointer shadow-2xs"
             >
               ZARA · 20MM · 8,500 Mtr
             </button>
@@ -219,29 +230,29 @@ export const ElasticDemandModal: React.FC<ElasticDemandModalProps> = ({
           {/* Dates Row */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5 text-indigo-600" />
-                {lang === 'en' ? 'Demand Date (Received)' : 'চাহিদা প্রাপ্তির তারিখ'} <span className="text-rose-500">*</span>
+              <label className="block text-xs font-bold text-neutral-800 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                <Calendar className="w-3.5 h-3.5 text-neutral-900" />
+                {lang === 'en' ? 'Demand Date (Received)' : 'চাহিদা প্রাপ্তির তারিখ'} <span className="text-neutral-700">*</span>
               </label>
               <input
                 type="date"
                 required
                 value={demandDate}
                 onChange={e => setDemandDate(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-medium"
+                className="w-full px-3 py-2 text-sm border border-neutral-300 rounded-xl focus:ring-1 focus:ring-neutral-900 font-medium"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 text-amber-600" />
+              <label className="block text-xs font-bold text-neutral-800 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5 text-neutral-900" />
                 {lang === 'en' ? 'Target Delivery Date' : 'টার্গেট ডেলিভারি / শিপমেন্ট তারিখ'}
               </label>
               <input
                 type="date"
                 value={deliveryDate}
                 onChange={e => setDeliveryDate(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-medium"
+                className="w-full px-3 py-2 text-sm border border-neutral-300 rounded-xl focus:ring-1 focus:ring-neutral-900 font-medium"
               />
             </div>
           </div>
@@ -249,22 +260,22 @@ export const ElasticDemandModal: React.FC<ElasticDemandModalProps> = ({
           {/* Buyer & Customer */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                <User className="w-3.5 h-3.5 text-indigo-600" />
-                {lang === 'en' ? 'Buyer Name' : 'বায়ারের নাম (BUYER)'} <span className="text-rose-500">*</span>
+              <label className="block text-xs font-bold text-neutral-800 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                <User className="w-3.5 h-3.5 text-neutral-900" />
+                {lang === 'en' ? 'Buyer Name' : 'বায়ারের নাম (BUYER)'} <span className="text-neutral-700">*</span>
               </label>
               <AutocompleteInput
                 value={buyer}
                 onChange={setBuyer}
                 suggestions={COMMON_BUYERS}
                 placeholder="e.g. HCF, H&M, Zara"
-                className="w-full px-3 py-2 text-sm font-bold text-slate-900 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 text-sm font-bold text-neutral-900 border border-neutral-300 rounded-xl focus:ring-1 focus:ring-neutral-900"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                <User className="w-3.5 h-3.5 text-slate-500" />
+              <label className="block text-xs font-bold text-neutral-800 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                <User className="w-3.5 h-3.5 text-neutral-600" />
                 {lang === 'en' ? 'Customer / Factory' : 'কাস্টমার / ফ্যাক্টরি'}
               </label>
               <input
@@ -272,7 +283,7 @@ export const ElasticDemandModal: React.FC<ElasticDemandModalProps> = ({
                 value={customer}
                 onChange={e => setCustomer(e.target.value)}
                 placeholder="e.g. LIZ, Inditex Sourcing"
-                className="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 text-sm border border-neutral-300 rounded-xl focus:ring-1 focus:ring-neutral-900"
               />
             </div>
           </div>
@@ -280,9 +291,9 @@ export const ElasticDemandModal: React.FC<ElasticDemandModalProps> = ({
           {/* Ref / Style & Size */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                <Tag className="w-3.5 h-3.5 text-indigo-600" />
-                {lang === 'en' ? 'REF / Item Code' : 'রেফারেন্স / আইটেম কোড (REF)'} <span className="text-rose-500">*</span>
+              <label className="block text-xs font-bold text-neutral-800 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                <Tag className="w-3.5 h-3.5 text-neutral-900" />
+                {lang === 'en' ? 'REF / Item Code' : 'রেফারেন্স / আইটেম কোড (REF)'} <span className="text-neutral-700">*</span>
               </label>
               <input
                 type="text"
@@ -290,21 +301,21 @@ export const ElasticDemandModal: React.FC<ElasticDemandModalProps> = ({
                 value={ref}
                 onChange={e => setRef(e.target.value)}
                 placeholder="e.g. LIZ-LO-ELS-26080056"
-                className="w-full px-3 py-2 text-sm font-mono font-bold text-indigo-950 bg-indigo-50/40 border border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 text-sm font-mono font-bold text-neutral-950 bg-neutral-50 border border-neutral-300 rounded-xl focus:ring-1 focus:ring-neutral-900"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                <Maximize2 className="w-3.5 h-3.5 text-emerald-600" />
-                {lang === 'en' ? 'Elastic Size' : 'ইলাস্টিক সাইজ (SIZE)'} <span className="text-rose-500">*</span>
+              <label className="block text-xs font-bold text-neutral-800 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                <Maximize2 className="w-3.5 h-3.5 text-neutral-900" />
+                {lang === 'en' ? 'Elastic Size' : 'ইলাস্টিক সাইজ (SIZE)'} <span className="text-neutral-700">*</span>
               </label>
               <AutocompleteInput
                 value={size}
                 onChange={setSize}
                 suggestions={COMMON_SIZES}
                 placeholder="e.g. 7MM, 25MM"
-                className="w-full px-3 py-2 text-sm font-bold text-emerald-950 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-3 py-2 text-sm font-bold text-neutral-900 border border-neutral-300 rounded-xl focus:ring-1 focus:ring-neutral-900"
               />
             </div>
           </div>
@@ -312,8 +323,8 @@ export const ElasticDemandModal: React.FC<ElasticDemandModalProps> = ({
           {/* Color & PO Number */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                <Palette className="w-3.5 h-3.5 text-purple-600" />
+              <label className="block text-xs font-bold text-neutral-800 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                <Palette className="w-3.5 h-3.5 text-neutral-900" />
                 {lang === 'en' ? 'Color / Shade' : 'কালার (Color)'}
               </label>
               <AutocompleteInput
@@ -321,13 +332,13 @@ export const ElasticDemandModal: React.FC<ElasticDemandModalProps> = ({
                 onChange={setColor}
                 suggestions={COMMON_COLORS}
                 placeholder="e.g. BLACK, OPTICAL WHITE"
-                className="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-purple-500"
+                className="w-full px-3 py-2 text-sm border border-neutral-300 rounded-xl focus:ring-1 focus:ring-neutral-900"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                <FileText className="w-3.5 h-3.5 text-slate-500" />
+              <label className="block text-xs font-bold text-neutral-800 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                <FileText className="w-3.5 h-3.5 text-neutral-600" />
                 {lang === 'en' ? 'PO / Order Number (Optional)' : 'পিও / অর্ডার নং (ঐচ্ছিক)'}
               </label>
               <input
@@ -335,22 +346,22 @@ export const ElasticDemandModal: React.FC<ElasticDemandModalProps> = ({
                 value={poNumber}
                 onChange={e => setPoNumber(e.target.value)}
                 placeholder="e.g. PO-99214"
-                className="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 text-sm border border-neutral-300 rounded-xl focus:ring-1 focus:ring-neutral-900"
               />
             </div>
           </div>
 
           {/* Required Qty (Meters), Unit Wt, Default Tare */}
-          <div className="p-4 bg-slate-50 rounded-xl border border-slate-200/80 space-y-3">
-            <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-              <Scale className="w-4 h-4 text-indigo-600" />
+          <div className="p-4 bg-neutral-50 rounded-xl border border-neutral-200 space-y-3">
+            <h4 className="text-xs font-bold text-neutral-800 uppercase tracking-wider flex items-center gap-1.5">
+              <Scale className="w-4 h-4 text-neutral-900" />
               {lang === 'en' ? 'Quantity & Weight Specifications' : 'পরিমাণ ও ওজনের স্পেসিফিকেশন'}
             </h4>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">
-                  {lang === 'en' ? 'Required Quantity (Mtr)' : 'প্রয়োজনীয় পরিমাণ (মিটার)'} <span className="text-rose-500">*</span>
+                <label className="block text-[11px] font-bold text-neutral-700 mb-1">
+                  {lang === 'en' ? 'Required Quantity (Mtr)' : 'প্রয়োজনীয় পরিমাণ (মিটার)'} <span className="text-neutral-700">*</span>
                 </label>
                 <input
                   type="number"
@@ -359,13 +370,13 @@ export const ElasticDemandModal: React.FC<ElasticDemandModalProps> = ({
                   step={1}
                   value={requiredQtyMtr || ''}
                   onChange={e => setRequiredQtyMtr(Math.max(0, Number(e.target.value)))}
-                  className="w-full px-3 py-2 text-base font-bold text-indigo-700 bg-white border border-indigo-300 rounded-xl focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 text-base font-extrabold text-neutral-900 bg-white border border-neutral-300 rounded-xl focus:ring-1 focus:ring-neutral-900"
                   placeholder="5000"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                <label className="block text-[11px] font-bold text-neutral-700 mb-1">
                   {lang === 'en' ? 'Unit Wt (gm/meter)' : 'প্রতি মিটার ওজন (gm/m)'}
                 </label>
                 <input
@@ -374,13 +385,13 @@ export const ElasticDemandModal: React.FC<ElasticDemandModalProps> = ({
                   min="0.1"
                   value={unitWeightGm || ''}
                   onChange={e => setUnitWeightGm(Number(e.target.value))}
-                  className="w-full px-3 py-2 text-sm font-semibold bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 text-sm font-semibold bg-white border border-neutral-300 rounded-xl focus:ring-1 focus:ring-neutral-900"
                   placeholder="8.00"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                <label className="block text-[11px] font-bold text-neutral-700 mb-1">
                   {lang === 'en' ? 'Default Tare Wt (Kg)' : 'কার্টন ট্যার ওজন (Kg)'}
                 </label>
                 <input
@@ -389,29 +400,29 @@ export const ElasticDemandModal: React.FC<ElasticDemandModalProps> = ({
                   min="0"
                   value={defaultTare || ''}
                   onChange={e => setDefaultTare(Number(e.target.value))}
-                  className="w-full px-3 py-2 text-sm font-semibold bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 text-sm font-semibold bg-white border border-neutral-300 rounded-xl focus:ring-1 focus:ring-neutral-900"
                   placeholder="0.50"
                 />
               </div>
             </div>
 
             {/* Smart Calculated Conversion Preview */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-200 text-center">
-              <div className="bg-white p-2 rounded-lg border border-slate-200">
-                <span className="block text-[10px] text-slate-500 font-bold uppercase">Demand Mtr</span>
-                <span className="text-sm font-mono font-bold text-indigo-700">{requiredQtyMtr.toLocaleString()} m</span>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-neutral-200 text-center">
+              <div className="bg-white p-2 rounded-lg border border-neutral-200">
+                <span className="block text-[10px] text-neutral-500 font-bold uppercase">Demand Mtr</span>
+                <span className="text-sm font-mono font-bold text-neutral-900">{requiredQtyMtr.toLocaleString()} m</span>
               </div>
-              <div className="bg-white p-2 rounded-lg border border-slate-200">
-                <span className="block text-[10px] text-slate-500 font-bold uppercase">Gross Yards (Gry)</span>
-                <span className="text-sm font-mono font-bold text-purple-700">{estGry} Gry</span>
+              <div className="bg-white p-2 rounded-lg border border-neutral-200">
+                <span className="block text-[10px] text-neutral-500 font-bold uppercase">Gross Yards (Gry)</span>
+                <span className="text-sm font-mono font-bold text-neutral-800">{estGry} Gry</span>
               </div>
-              <div className="bg-white p-2 rounded-lg border border-slate-200">
-                <span className="block text-[10px] text-slate-500 font-bold uppercase">Est. Net Wt</span>
-                <span className="text-sm font-mono font-bold text-emerald-700">{estKg} Kg</span>
+              <div className="bg-white p-2 rounded-lg border border-neutral-200">
+                <span className="block text-[10px] text-neutral-500 font-bold uppercase">Est. Net Wt</span>
+                <span className="text-sm font-mono font-bold text-neutral-900">{estKg} Kg</span>
               </div>
-              <div className="bg-white p-2 rounded-lg border border-slate-200">
-                <span className="block text-[10px] text-slate-500 font-bold uppercase">Yards (Yds)</span>
-                <span className="text-sm font-mono font-bold text-slate-800">{Math.round(requiredQtyMtr / 0.9144).toLocaleString()} Yds</span>
+              <div className="bg-white p-2 rounded-lg border border-neutral-200">
+                <span className="block text-[10px] text-neutral-500 font-bold uppercase">Yards (Yds)</span>
+                <span className="text-sm font-mono font-bold text-neutral-800">{Math.round(requiredQtyMtr / 0.9144).toLocaleString()} Yds</span>
               </div>
             </div>
           </div>
@@ -419,7 +430,7 @@ export const ElasticDemandModal: React.FC<ElasticDemandModalProps> = ({
           {/* Priority & Status Row */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+              <label className="block text-xs font-bold text-neutral-800 uppercase tracking-wider mb-1">
                 {lang === 'en' ? 'Priority Level' : 'অগ্রাধিকার লেভেল (Priority)'}
               </label>
               <div className="grid grid-cols-4 gap-1.5">
@@ -430,14 +441,8 @@ export const ElasticDemandModal: React.FC<ElasticDemandModalProps> = ({
                     onClick={() => setPriority(p)}
                     className={`py-1.5 text-xs font-bold rounded-lg border capitalize transition cursor-pointer ${
                       priority === p
-                        ? p === 'urgent'
-                          ? 'bg-rose-600 text-white border-rose-600 shadow-2xs'
-                          : p === 'high'
-                          ? 'bg-amber-600 text-white border-amber-600 shadow-2xs'
-                          : p === 'normal'
-                          ? 'bg-indigo-600 text-white border-indigo-600 shadow-2xs'
-                          : 'bg-slate-700 text-white border-slate-700 shadow-2xs'
-                        : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
+                        ? 'bg-neutral-900 text-white border-neutral-900 shadow-2xs'
+                        : 'bg-white text-neutral-700 border-neutral-200 hover:bg-neutral-100'
                     }`}
                   >
                     {p}
@@ -447,13 +452,13 @@ export const ElasticDemandModal: React.FC<ElasticDemandModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+              <label className="block text-xs font-bold text-neutral-800 uppercase tracking-wider mb-1">
                 {lang === 'en' ? 'Fulfillment Status' : 'বর্তমান অবস্থা (Status)'}
               </label>
               <select
                 value={status}
                 onChange={e => setStatus(e.target.value as DemandStatus)}
-                className="w-full px-3 py-2 text-sm font-semibold border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 bg-white"
+                className="w-full px-3 py-2 text-sm font-semibold border border-neutral-300 rounded-xl focus:ring-1 focus:ring-neutral-900 bg-white"
               >
                 <option value="pending">⏳ Pending (অপেক্ষমাণ)</option>
                 <option value="in_production">⚙️ In Production (চলমান)</option>
@@ -466,7 +471,7 @@ export const ElasticDemandModal: React.FC<ElasticDemandModalProps> = ({
 
           {/* Notes / Special Instructions */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+            <label className="block text-xs font-bold text-neutral-800 uppercase tracking-wider mb-1">
               {lang === 'en' ? 'Notes & Customer Instructions' : 'নোট ও কাস্টমার নির্দেশনা'}
             </label>
             <textarea
@@ -474,22 +479,22 @@ export const ElasticDemandModal: React.FC<ElasticDemandModalProps> = ({
               value={notes}
               onChange={e => setNotes(e.target.value)}
               placeholder="e.g. GOODS customer NEED IN THIS REF, urgent container dispatch..."
-              className="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 resize-none"
+              className="w-full px-3 py-2 text-sm border border-neutral-300 rounded-xl focus:ring-1 focus:ring-neutral-900 resize-none"
             />
           </div>
 
           {/* Actions */}
-          <div className="pt-3 border-t border-slate-200 flex items-center justify-end gap-3">
+          <div className="pt-3 border-t border-neutral-200 flex items-center justify-end gap-3">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition cursor-pointer"
+              className="px-4 py-2 text-sm font-bold text-neutral-700 hover:bg-neutral-100 rounded-xl transition cursor-pointer"
             >
               {lang === 'en' ? 'Cancel' : 'বাতিল'}
             </button>
             <button
               type="submit"
-              className="px-6 py-2 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 rounded-xl shadow-xs transition flex items-center gap-2 cursor-pointer"
+              className="px-6 py-2 text-sm font-bold text-white bg-neutral-900 hover:bg-black active:scale-[0.98] rounded-xl shadow-xs transition flex items-center gap-2 cursor-pointer"
             >
               <CheckCircle2 className="w-4 h-4" />
               {editingDemand 

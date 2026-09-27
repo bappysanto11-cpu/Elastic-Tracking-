@@ -156,13 +156,13 @@ export const PasteWeightsModal: React.FC<PasteWeightsModalProps> = ({
         {/* Header */}
         <div className="px-5 py-4 bg-slate-900 text-white flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-slate-800 text-indigo-400 border border-slate-700">
+            <div className="p-2 rounded-xl bg-slate-800 text-neutral-400 border border-slate-700">
               <ClipboardPaste className="w-5 h-5" />
             </div>
             <div>
               <h3 className="font-bold text-base text-white flex items-center gap-2">
                 <span>{t.pasteWeights}</span>
-                <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-400/30">
+                <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-neutral-800/20 text-neutral-300 border border-neutral-300/30">
                   Fast Import
                 </span>
               </h3>
@@ -188,9 +188,9 @@ export const PasteWeightsModal: React.FC<PasteWeightsModalProps> = ({
               <button
                 type="button"
                 onClick={handleReadClipboard}
-                className="px-3.5 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 font-semibold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-xs"
+                className="px-3.5 py-1.5 rounded-lg bg-neutral-100 hover:bg-neutral-100 text-neutral-800 border border-neutral-200 font-semibold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-xs"
               >
-                <ClipboardPaste className="w-3.5 h-3.5 text-indigo-600" />
+                <ClipboardPaste className="w-3.5 h-3.5 text-neutral-800" />
                 <span>{t.readClipboardBtn}</span>
               </button>
 
@@ -199,14 +199,14 @@ export const PasteWeightsModal: React.FC<PasteWeightsModalProps> = ({
                 onClick={handleLoadSample}
                 className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 font-medium text-xs transition cursor-pointer flex items-center gap-1.5 shadow-xs"
               >
-                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                <Sparkles className="w-3.5 h-3.5 text-neutral-700" />
                 <span>{lang === 'en' ? 'Load Sample' : 'নমুনা ডাটা'}</span>
               </button>
             </div>
 
             {parsedWeights.length > 0 && (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-300 text-xs font-bold font-mono">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-neutral-100 text-neutral-800 border border-neutral-300 text-xs font-bold font-mono">
+                <CheckCircle2 className="w-3.5 h-3.5 text-neutral-800" />
                 <span>{parsedWeights.length} {lang === 'en' ? 'Weights Detected' : 'টি ওজন শনাক্ত'}</span>
               </span>
             )}
@@ -214,15 +214,15 @@ export const PasteWeightsModal: React.FC<PasteWeightsModalProps> = ({
 
           {/* Status Message if any */}
           {clipboardReadStatus && (
-            <div className="p-2.5 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-800 text-xs flex items-center justify-between">
+            <div className="p-2.5 rounded-lg bg-neutral-100 border border-neutral-200 text-neutral-900 text-xs flex items-center justify-between">
               <span className="flex items-center gap-2">
-                <Sparkles className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                <Sparkles className="w-3.5 h-3.5 text-neutral-800 shrink-0" />
                 <span>{clipboardReadStatus}</span>
               </span>
               <button 
                 type="button" 
                 onClick={() => setClipboardReadStatus(null)}
-                className="text-indigo-600 hover:text-indigo-800"
+                className="text-neutral-800 hover:text-neutral-900"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -242,7 +242,7 @@ export const PasteWeightsModal: React.FC<PasteWeightsModalProps> = ({
               value={rawText}
               onChange={e => setRawText(e.target.value)}
               placeholder={`10.06\n10.60\n10.66\n10.80\n10.45\n10.90\n(Or paste entire Excel table column)`}
-              className="w-full px-3.5 py-2.5 text-sm font-mono bg-white border border-slate-300 rounded-lg resize-y placeholder:text-slate-400 text-slate-900 focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3.5 py-2.5 text-sm font-mono bg-white border border-slate-300 rounded-lg resize-y placeholder:text-slate-400 text-slate-900 focus:ring-2 focus:ring-neutral-400"
               autoFocus
             />
           </div>
@@ -258,7 +258,7 @@ export const PasteWeightsModal: React.FC<PasteWeightsModalProps> = ({
               <label 
                 className={`flex items-start gap-2 p-2.5 rounded-xl border cursor-pointer transition ${
                   pasteMode === 'append'
-                    ? 'bg-indigo-50 border-indigo-500 text-indigo-900 shadow-xs'
+                    ? 'bg-neutral-100 border-neutral-400 text-neutral-900 shadow-xs'
                     : 'bg-white border-slate-200 hover:bg-slate-100 text-slate-700'
                 }`}
               >
@@ -268,7 +268,7 @@ export const PasteWeightsModal: React.FC<PasteWeightsModalProps> = ({
                   value="append"
                   checked={pasteMode === 'append'}
                   onChange={() => setPasteMode('append')}
-                  className="mt-0.5 text-indigo-600 focus:ring-indigo-500"
+                  className="mt-0.5 text-neutral-800 focus:ring-neutral-400"
                 />
                 <div className="text-xs">
                   <div className="font-bold">{t.pasteAppendOption}</div>
@@ -284,7 +284,7 @@ export const PasteWeightsModal: React.FC<PasteWeightsModalProps> = ({
               <label 
                 className={`flex items-start gap-2 p-2.5 rounded-xl border cursor-pointer transition ${
                   pasteMode === 'replace'
-                    ? 'bg-rose-50 border-rose-500 text-rose-900 shadow-xs'
+                    ? 'bg-neutral-100 border-neutral-400 text-neutral-900 shadow-xs'
                     : 'bg-white border-slate-200 hover:bg-slate-100 text-slate-700'
                 }`}
               >
@@ -294,7 +294,7 @@ export const PasteWeightsModal: React.FC<PasteWeightsModalProps> = ({
                   value="replace"
                   checked={pasteMode === 'replace'}
                   onChange={() => setPasteMode('replace')}
-                  className="mt-0.5 text-rose-600 focus:ring-rose-500"
+                  className="mt-0.5 text-neutral-800 focus:ring-neutral-400"
                 />
                 <div className="text-xs">
                   <div className="font-bold">{t.pasteReplaceOption}</div>
@@ -308,7 +308,7 @@ export const PasteWeightsModal: React.FC<PasteWeightsModalProps> = ({
               <label 
                 className={`flex items-start gap-2 p-2.5 rounded-xl border cursor-pointer transition ${
                   pasteMode === 'fromIndex'
-                    ? 'bg-purple-50 border-purple-500 text-purple-900 shadow-xs'
+                    ? 'bg-neutral-100 border-neutral-400 text-neutral-900 shadow-xs'
                     : 'bg-white border-slate-200 hover:bg-slate-100 text-slate-700'
                 }`}
               >
@@ -318,7 +318,7 @@ export const PasteWeightsModal: React.FC<PasteWeightsModalProps> = ({
                   value="fromIndex"
                   checked={pasteMode === 'fromIndex'}
                   onChange={() => setPasteMode('fromIndex')}
-                  className="mt-0.5 text-purple-600 focus:ring-purple-500"
+                  className="mt-0.5 text-neutral-800 focus:ring-neutral-400"
                 />
                 <div className="text-xs">
                   <div className="font-bold">{t.pasteFillFromCurrent}</div>
@@ -351,7 +351,7 @@ export const PasteWeightsModal: React.FC<PasteWeightsModalProps> = ({
                 min="0"
                 value={batchTare}
                 onChange={e => setBatchTare(Math.max(0, parseFloat(e.target.value) || 0))}
-                className="w-full px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-900 font-mono font-bold focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-900 font-mono font-bold focus:ring-2 focus:ring-neutral-400"
               />
             </div>
             <div>
@@ -364,7 +364,7 @@ export const PasteWeightsModal: React.FC<PasteWeightsModalProps> = ({
                 min="0.1"
                 value={batchUnitWt}
                 onChange={e => setBatchUnitWt(Math.max(0.1, parseFloat(e.target.value) || 30))}
-                className="w-full px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-900 font-mono font-bold focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-900 font-mono font-bold focus:ring-2 focus:ring-neutral-400"
               />
             </div>
           </div>
@@ -374,7 +374,7 @@ export const PasteWeightsModal: React.FC<PasteWeightsModalProps> = ({
             <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-3 shadow-xs">
               <div className="flex items-center justify-between border-b border-slate-200 pb-2">
                 <span className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+                  <Sparkles className="w-3.5 h-3.5 text-neutral-800" />
                   <span>{lang === 'en' ? 'Live Calculated Summary Preview' : 'লাইভ ক্যালকুলেশন প্রিভিউ'}</span>
                 </span>
                 <span className="text-xs font-mono font-bold text-slate-600">
@@ -387,17 +387,17 @@ export const PasteWeightsModal: React.FC<PasteWeightsModalProps> = ({
                   <div className="text-[10px] text-slate-500 uppercase">Total Gross</div>
                   <div className="text-sm font-black font-mono text-slate-900">{previewStats.totalGross} <span className="text-[10px] font-normal text-slate-500">Kg</span></div>
                 </div>
-                <div className="bg-emerald-50 p-2.5 rounded-xl border border-emerald-200 shadow-xs">
-                  <div className="text-[10px] text-emerald-700 uppercase">Total Net</div>
-                  <div className="text-sm font-black font-mono text-emerald-800">{previewStats.totalNet} <span className="text-[10px] font-normal text-emerald-700">Kg</span></div>
+                <div className="bg-neutral-100 p-2.5 rounded-xl border border-neutral-200 shadow-xs">
+                  <div className="text-[10px] text-neutral-800 uppercase">Total Net</div>
+                  <div className="text-sm font-black font-mono text-neutral-900">{previewStats.totalNet} <span className="text-[10px] font-normal text-neutral-800">Kg</span></div>
                 </div>
-                <div className="bg-indigo-50 p-2.5 rounded-xl border border-indigo-200 shadow-xs">
-                  <div className="text-[10px] text-indigo-700 uppercase">Total Meters</div>
-                  <div className="text-sm font-black font-mono text-indigo-800">{previewStats.totalMtr.toLocaleString()} <span className="text-[10px] font-normal text-indigo-700">Mtr</span></div>
+                <div className="bg-neutral-100 p-2.5 rounded-xl border border-neutral-200 shadow-xs">
+                  <div className="text-[10px] text-neutral-800 uppercase">Total Meters</div>
+                  <div className="text-sm font-black font-mono text-neutral-900">{previewStats.totalMtr.toLocaleString()} <span className="text-[10px] font-normal text-neutral-800">Mtr</span></div>
                 </div>
-                <div className="bg-purple-50 p-2.5 rounded-xl border border-purple-200 shadow-xs">
-                  <div className="text-[10px] text-purple-700 uppercase">Total GRY</div>
-                  <div className="text-sm font-black font-mono text-purple-800">{previewStats.totalGry} <span className="text-[10px] font-normal text-purple-700">Gry</span></div>
+                <div className="bg-neutral-100 p-2.5 rounded-xl border border-neutral-200 shadow-xs">
+                  <div className="text-[10px] text-neutral-800 uppercase">Total GRY</div>
+                  <div className="text-sm font-black font-mono text-neutral-900">{previewStats.totalGry} <span className="text-[10px] font-normal text-neutral-800">Gry</span></div>
                 </div>
               </div>
 
@@ -407,8 +407,8 @@ export const PasteWeightsModal: React.FC<PasteWeightsModalProps> = ({
                   <span>#</span>
                   <span className="text-right">Gross (Kg)</span>
                   <span className="text-right">Tare (Kg)</span>
-                  <span className="text-right text-emerald-700">Net (Kg)</span>
-                  <span className="text-right text-indigo-700">Meters</span>
+                  <span className="text-right text-neutral-800">Net (Kg)</span>
+                  <span className="text-right text-neutral-800">Meters</span>
                 </div>
                 {parsedWeights.slice(0, 10).map((gw, idx) => {
                   const cNo = pasteMode === 'fromIndex' 
@@ -423,8 +423,8 @@ export const PasteWeightsModal: React.FC<PasteWeightsModalProps> = ({
                       <span className="font-bold text-slate-500">#{cNo}</span>
                       <span className="text-right">{gw.toFixed(2)}</span>
                       <span className="text-right text-slate-400">{batchTare.toFixed(2)}</span>
-                      <span className="text-right text-emerald-700 font-bold">{nw.toFixed(2)}</span>
-                      <span className="text-right text-indigo-700">{mtr.toFixed(2)}</span>
+                      <span className="text-right text-neutral-800 font-bold">{nw.toFixed(2)}</span>
+                      <span className="text-right text-neutral-800">{mtr.toFixed(2)}</span>
                     </div>
                   );
                 })}
@@ -455,7 +455,7 @@ export const PasteWeightsModal: React.FC<PasteWeightsModalProps> = ({
             disabled={parsedWeights.length === 0}
             className={`px-5 py-2.5 rounded-lg font-bold text-xs transition cursor-pointer flex items-center gap-2 ${
               parsedWeights.length > 0
-                ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs'
+                ? 'bg-neutral-900 hover:bg-neutral-800 text-white shadow-xs'
                 : 'bg-slate-200 text-slate-400 cursor-not-allowed'
             }`}
           >

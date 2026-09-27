@@ -128,13 +128,13 @@ export const ExcelDriveModal: React.FC<ExcelDriveModalProps> = ({
         {/* Modal Header */}
         <div className="px-5 py-4 border-b border-slate-200 bg-slate-900 text-white flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-emerald-400 shadow-xs">
+            <div className="w-9 h-9 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-neutral-400 shadow-xs">
               <FileSpreadsheet className="w-5 h-5" />
             </div>
             <div>
               <h2 className="text-base font-bold flex items-center gap-2 text-white">
                 <span>{lang === 'en' ? 'Excel & OneDrive Access Manager' : 'এক্সেল ও ওয়ানড্রাইভ ফাইল অ্যাক্সেস'}</span>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono border border-emerald-500/30">
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-neutral-800/20 text-neutral-300 font-mono border border-neutral-400/30">
                   .XLSX & .CSV
                 </span>
               </h2>
@@ -160,11 +160,11 @@ export const ExcelDriveModal: React.FC<ExcelDriveModalProps> = ({
             onClick={() => setActiveTab('onedrive')}
             className={`pb-2.5 px-3 border-b-2 flex items-center gap-1.5 transition cursor-pointer ${
               activeTab === 'onedrive'
-                ? 'border-emerald-600 text-emerald-700 font-bold'
+                ? 'border-neutral-600 text-neutral-800 font-bold'
                 : 'border-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
-            <Cloud className="w-4 h-4 text-sky-600" />
+            <Cloud className="w-4 h-4 text-neutral-800" />
             <span>{lang === 'en' ? 'OneDrive & Cloud Access' : 'ওয়ানড্রাইভ ও ক্লাউড ড্রাইভ'}</span>
           </button>
 
@@ -172,11 +172,11 @@ export const ExcelDriveModal: React.FC<ExcelDriveModalProps> = ({
             onClick={() => setActiveTab('import')}
             className={`pb-2.5 px-3 border-b-2 flex items-center gap-1.5 transition cursor-pointer ${
               activeTab === 'import'
-                ? 'border-emerald-600 text-emerald-700 font-bold'
+                ? 'border-neutral-600 text-neutral-800 font-bold'
                 : 'border-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
-            <Upload className="w-4 h-4 text-emerald-600" />
+            <Upload className="w-4 h-4 text-neutral-800" />
             <span>{lang === 'en' ? 'Import Excel (.xlsx/.csv)' : 'এক্সেল ফাইল আপলোড'}</span>
           </button>
 
@@ -184,11 +184,11 @@ export const ExcelDriveModal: React.FC<ExcelDriveModalProps> = ({
             onClick={() => setActiveTab('export')}
             className={`pb-2.5 px-3 border-b-2 flex items-center gap-1.5 transition cursor-pointer ${
               activeTab === 'export'
-                ? 'border-emerald-600 text-emerald-700 font-bold'
+                ? 'border-neutral-600 text-neutral-800 font-bold'
                 : 'border-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
-            <Download className="w-4 h-4 text-amber-600" />
+            <Download className="w-4 h-4 text-neutral-800" />
             <span>{lang === 'en' ? 'Export Native .XLSX' : 'এক্সেল .XLSX ডাউনলোড'}</span>
           </button>
         </div>
@@ -201,9 +201,9 @@ export const ExcelDriveModal: React.FC<ExcelDriveModalProps> = ({
               {/* Quick Actions Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {/* 1. Microsoft OneDrive Direct */}
-                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col justify-between hover:border-sky-400 transition">
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col justify-between hover:border-neutral-300 transition">
                   <div className="flex items-start gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center shrink-0">
+                    <div className="w-10 h-10 rounded-xl bg-neutral-100 text-neutral-800 flex items-center justify-center shrink-0">
                       <Cloud className="w-5 h-5" />
                     </div>
                     <div>
@@ -220,7 +220,7 @@ export const ExcelDriveModal: React.FC<ExcelDriveModalProps> = ({
 
                   <button
                     onClick={handleOpenOneDriveWeb}
-                    className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded-lg transition cursor-pointer shadow-xs"
+                    className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-bold rounded-lg transition cursor-pointer shadow-xs"
                   >
                     <span>{lang === 'en' ? 'Download & Open in OneDrive' : 'ডাউনলোড করে ওয়ানড্রাইভে খুলুন'}</span>
                     <ExternalLink className="w-3.5 h-3.5" />
@@ -228,9 +228,9 @@ export const ExcelDriveModal: React.FC<ExcelDriveModalProps> = ({
                 </div>
 
                 {/* 2. Excel Online */}
-                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col justify-between hover:border-emerald-400 transition">
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col justify-between hover:border-neutral-300 transition">
                   <div className="flex items-start gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+                    <div className="w-10 h-10 rounded-xl bg-neutral-100 text-neutral-800 flex items-center justify-center shrink-0">
                       <FileSpreadsheet className="w-5 h-5" />
                     </div>
                     <div>
@@ -247,7 +247,7 @@ export const ExcelDriveModal: React.FC<ExcelDriveModalProps> = ({
 
                   <button
                     onClick={handleOpenExcelOnline}
-                    className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg transition cursor-pointer shadow-xs"
+                    className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-bold rounded-lg transition cursor-pointer shadow-xs"
                   >
                     <span>{lang === 'en' ? 'Export & Open Excel Online' : 'এক্সেল অনলাইনে খুলুন'}</span>
                     <ExternalLink className="w-3.5 h-3.5" />
@@ -258,7 +258,7 @@ export const ExcelDriveModal: React.FC<ExcelDriveModalProps> = ({
               {/* Local Sync / OneDrive Folder Guide */}
               <div className="border border-slate-200 rounded-xl p-4 bg-slate-50">
                 <div className="flex items-center gap-2 mb-2">
-                  <FolderSync className="w-4 h-4 text-indigo-600" />
+                  <FolderSync className="w-4 h-4 text-neutral-800" />
                   <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wide">
                     {lang === 'en' ? 'How Automatic OneDrive Folder Sync Works:' : 'ওয়ানড্রাইভ ফোল্ডার সিঙ্ক পদ্ধতি:'}
                   </h4>
@@ -285,7 +285,7 @@ export const ExcelDriveModal: React.FC<ExcelDriveModalProps> = ({
               {/* Google Drive Option */}
               <div className="flex items-center justify-between p-3.5 border border-slate-200 rounded-xl bg-slate-50 text-xs">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center font-bold">
+                  <div className="w-8 h-8 rounded-lg bg-neutral-100 text-neutral-800 flex items-center justify-center font-bold">
                     G
                   </div>
                   <div>
@@ -338,11 +338,11 @@ export const ExcelDriveModal: React.FC<ExcelDriveModalProps> = ({
                 onClick={() => fileInputRef.current?.click()}
                 className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition flex flex-col items-center justify-center gap-2 ${
                   isDragging
-                    ? 'border-emerald-500 bg-emerald-50'
+                    ? 'border-neutral-400 bg-neutral-100'
                     : 'border-slate-300 bg-slate-50 hover:border-slate-400'
                 }`}
               >
-                <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600">
+                <div className="w-12 h-12 rounded-2xl bg-neutral-100 flex items-center justify-center text-neutral-800">
                   <Upload className="w-6 h-6" />
                 </div>
                 <div>
@@ -350,7 +350,7 @@ export const ExcelDriveModal: React.FC<ExcelDriveModalProps> = ({
                     {lang === 'en' ? 'Click to browse or Drag & Drop Excel File' : 'এক্সেল ফাইল নির্বাচন করতে ক্লিক করুন বা ড্র্যাগ করে ছাড়ুন'}
                   </p>
                   <p className="text-xs text-slate-500 mt-0.5">
-                    Supports Microsoft Excel (<code className="font-mono text-emerald-600 font-bold">.xlsx</code>, <code className="font-mono text-emerald-600 font-bold">.xls</code>) & CSV
+                    Supports Microsoft Excel (<code className="font-mono text-neutral-800 font-bold">.xlsx</code>, <code className="font-mono text-neutral-800 font-bold">.xls</code>) & CSV
                   </p>
                 </div>
                 <button
@@ -363,15 +363,15 @@ export const ExcelDriveModal: React.FC<ExcelDriveModalProps> = ({
 
               {/* Status Notice */}
               {importStatus.type === 'error' && (
-                <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+                <div className="p-3 rounded-xl bg-neutral-100 border border-neutral-200 text-neutral-800 text-xs flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-neutral-800" />
                   <span>{importStatus.message}</span>
                 </div>
               )}
 
               {importStatus.type === 'success' && (
-                <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2">
-                  <Check className="w-4 h-4 shrink-0 text-emerald-600" />
+                <div className="p-3 rounded-xl bg-neutral-100 border border-neutral-200 text-neutral-900 text-xs flex items-center gap-2">
+                  <Check className="w-4 h-4 shrink-0 text-neutral-800" />
                   <span className="font-semibold">{importStatus.message}</span>
                 </div>
               )}
@@ -383,7 +383,7 @@ export const ExcelDriveModal: React.FC<ExcelDriveModalProps> = ({
                     <span className="text-xs font-bold text-slate-800 uppercase">
                       {lang === 'en' ? 'Excel Import Preview:' : 'ইমপোর্ট প্রিভিউ:'}
                     </span>
-                    <span className="text-xs font-mono font-bold text-emerald-700 bg-emerald-100 border border-emerald-200 px-2.5 py-0.5 rounded-lg">
+                    <span className="text-xs font-mono font-bold text-neutral-800 bg-neutral-100 border border-neutral-200 px-2.5 py-0.5 rounded-lg">
                       {previewData.summary.totalNetWt.toFixed(2)} Kg Net Wt | {previewData.summary.totalCtn} CTN
                     </span>
                   </div>
@@ -418,7 +418,7 @@ export const ExcelDriveModal: React.FC<ExcelDriveModalProps> = ({
                     </button>
                     <button
                       onClick={handleConfirmImport}
-                      className="px-4 py-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-xs flex items-center gap-1.5 cursor-pointer"
+                      className="px-4 py-1.5 text-xs font-bold text-white bg-neutral-900 hover:bg-neutral-800 rounded-lg shadow-xs flex items-center gap-1.5 cursor-pointer"
                     >
                       <Check className="w-3.5 h-3.5" />
                       <span>{lang === 'en' ? 'Apply & Load into App' : 'অ্যাপে ডাটা লোড করুন'}</span>
@@ -435,7 +435,7 @@ export const ExcelDriveModal: React.FC<ExcelDriveModalProps> = ({
               <div className="border border-slate-200 rounded-xl p-4 bg-slate-50 space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 border border-emerald-200 flex items-center justify-center font-bold">
+                    <div className="w-9 h-9 rounded-xl bg-neutral-100 text-neutral-800 border border-neutral-200 flex items-center justify-center font-bold">
                       XLS
                     </div>
                     <div>
@@ -448,7 +448,7 @@ export const ExcelDriveModal: React.FC<ExcelDriveModalProps> = ({
                     </div>
                   </div>
 
-                  <span className="text-xs font-bold bg-emerald-100 border border-emerald-200 text-emerald-700 px-2.5 py-0.5 rounded-lg">
+                  <span className="text-xs font-bold bg-neutral-100 border border-neutral-200 text-neutral-800 px-2.5 py-0.5 rounded-lg">
                     Ready
                   </span>
                 </div>
@@ -464,7 +464,7 @@ export const ExcelDriveModal: React.FC<ExcelDriveModalProps> = ({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2">
                   <button
                     onClick={() => exportPackingSheetToExcel(sheetData, summary)}
-                    className="flex items-center justify-center gap-2 py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-xs transition cursor-pointer"
+                    className="flex items-center justify-center gap-2 py-2.5 px-4 bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-bold rounded-lg shadow-xs transition cursor-pointer"
                   >
                     <Download className="w-4 h-4" />
                     <span>{lang === 'en' ? 'Download Excel (.xlsx)' : 'এক্সেল (.xlsx) ডাউনলোড'}</span>
